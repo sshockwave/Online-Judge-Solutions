@@ -51,11 +51,11 @@ int main(){
 //		cout<<"Stone #"<<i<<" :"<<last<<endl;
 	}
 	f[0]=0;
-	for(int i=s;i<=last+space;i++){
+	for(int i=s;i<last+t;i++){
 		if((f[i]=mins(i-t,i-s))!=-1){
 			f[i]+=stone[i];
 		}
 //		cout<<"f["<<i<<"]="<<f[i]<<endl;
 	}
-	cout<<f[last+space];
+	cout<<mins(last,last+t-1);
 }
