@@ -53,7 +53,12 @@ inline bool try2(int &x,int &c1,int &c2,int &c3,int &extra){
 		return try3(x,c1,c2,c3,extra);
 	}
 }
-inline bool try1(int &x,int c1,int c2,int c3,int &extra){
+bool dfs(int x,int extra){
+	if(x<0&&!extra){
+		return true;
+	}
+//	cout<<"Starting position "<<x<<":"<<endl;
+	int c1=a[x]-'A',c2=b[x]-'A',c3=c[x]-'A';
 	if(code[c1]==-1){
 //		cout<<"\tloop."<<endl;
 		for(code[c1]=0;code[c1]<n;code[c1]++){
@@ -72,13 +77,6 @@ inline bool try1(int &x,int c1,int c2,int c3,int &extra){
 //		cout<<"\tcur:"<<(char)(c1+'A')<<"->"<<code[c1]<<endl;
 		return try2(x,c1,c2,c3,extra);
 	}
-}
-bool dfs(int x,int extra){
-	if(x<0&&!extra){
-		return true;
-	}
-//	cout<<"Starting position "<<x<<":"<<endl;
-	return try1(x,a[x]-'A',b[x]-'A',c[x]-'A',extra);
 }
 int main(){
 	cin>>n>>a>>b>>c;
