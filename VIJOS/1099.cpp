@@ -55,6 +55,24 @@ inline bool try2(int &x,int &c1,int &c2,int &c3,int &extra){
 }
 inline bool try1(int &x,int c1,int c2,int c3,int &extra){
 	if(code[c1]==-1){
+		if(code[c2]!=-1&&code[c3]!=-1){
+			code[c1]=(code[c3]-code[c2]-extra+n)%n;
+//			cout<<"\tcur:"<<(char)(c1+'A')<<"->"<<code[c1]<<endl;
+//			cout<<"\t\tcur:"<<(char)(c2+'A')<<"->"<<code[c2]<<endl;
+//			cout<<"\t\t\tcur:"<<(char)(c3+'A')<<"->"<<code[c3]<<endl;
+			if(vis[code[c1]]){
+				code[c1]=-1;
+//				cout<<"\tfail!"<<endl;
+				return false;
+			}
+			vis[code[c1]]=true;
+			if(dfs(x-1,(code[c1]+code[c2]+extra)/n)){
+				return true;
+			}
+			vis[code[c1]]=false;
+			code[c1]=-1;
+			return false;
+		}
 //		cout<<"\tloop."<<endl;
 		for(code[c1]=n-1;code[c1]>=0;code[c1]--){
 			if(!vis[code[c1]]){
@@ -70,14 +88,35 @@ inline bool try1(int &x,int c1,int c2,int c3,int &extra){
 		return false;
 	}else{
 //		cout<<"\tcur:"<<(char)(c1+'A')<<"->"<<code[c1]<<endl;
-		return try2(x,c1,c2,c3,extra);
+		if(code[c3]==-1){
+			return try2(x,c1,c2,c3,extra);
+		}else{
+			if(code[c2]!=-1){//Forgotten
+				return try3(x,c1,c2,c3,extra);
+			}
+			code[c2]=(code[c3]-code[c1]-extra+n)%n;
+//			cout<<"\t\tcur:"<<(char)(c2+'A')<<"->"<<code[c2]<<endl;
+//			cout<<"\t\t\tcur:"<<(char)(c3+'A')<<"->"<<code[c3]<<endl;
+			if(vis[code[c2]]){
+				code[c2]=-1;
+//				cout<<"\t\t\tfail!"<<endl;
+				return false;
+			}
+			vis[code[c2]]=true;
+			if(dfs(x-1,(code[c1]+code[c2]+extra)/n)){
+				return true;
+			}
+			vis[code[c2]]=false;
+			code[c2]=-1;
+			return false;
+		}
 	}
 }
 bool dfs(int x,int extra){
 	if(x<0&&!extra){
 		return true;
 	}
-//	cout<<"Starting position "<<x<<":"<<endl;
+//	cout<<"Starting position "<<x<<":"<<"\twith extra="<<extra<<endl;
 	return try1(x,a[x]-'A',b[x]-'A',c[x]-'A',extra);
 }
 int main(){
