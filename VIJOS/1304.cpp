@@ -38,7 +38,7 @@ int main(){
 			digit[dtop-i-1]=s[i]-'0';
 		}
 	}
-	while(getrev(),!judge()){
+	while(getrev(),!judge()&&cnt<=30){
 		addup();
 		cnt++;
 	}
