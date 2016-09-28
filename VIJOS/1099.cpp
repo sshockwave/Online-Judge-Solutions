@@ -36,7 +36,7 @@ inline bool try3(int &x,int &c1,int &c2,int &c3,int &extra){
 inline bool try2(int &x,int &c1,int &c2,int &c3,int &extra){
 	if(code[c2]==-1){
 //		cout<<"\t\tloop."<<endl;
-		for(code[c2]=0;code[c2]<n;code[c2]++){
+		for(code[c2]=n-1;code[c2]>=0;code[c2]--){
 			if(!vis[code[c2]]){
 //				cout<<"\t\tcur:"<<(char)(c2+'A')<<"->"<<code[c2]<<endl;
 				vis[code[c2]]=true;
@@ -53,15 +53,10 @@ inline bool try2(int &x,int &c1,int &c2,int &c3,int &extra){
 		return try3(x,c1,c2,c3,extra);
 	}
 }
-bool dfs(int x,int extra){
-	if(x<0&&!extra){
-		return true;
-	}
-//	cout<<"Starting position "<<x<<":"<<endl;
-	int c1=a[x]-'A',c2=b[x]-'A',c3=c[x]-'A';
+inline bool try1(int &x,int c1,int c2,int c3,int &extra){
 	if(code[c1]==-1){
 //		cout<<"\tloop."<<endl;
-		for(code[c1]=0;code[c1]<n;code[c1]++){
+		for(code[c1]=n-1;code[c1]>=0;code[c1]--){
 			if(!vis[code[c1]]){
 //				cout<<"\tcur:"<<(char)(c1+'A')<<"->"<<code[c1]<<endl;
 				vis[code[c1]]=true;
@@ -77,6 +72,13 @@ bool dfs(int x,int extra){
 //		cout<<"\tcur:"<<(char)(c1+'A')<<"->"<<code[c1]<<endl;
 		return try2(x,c1,c2,c3,extra);
 	}
+}
+bool dfs(int x,int extra){
+	if(x<0&&!extra){
+		return true;
+	}
+//	cout<<"Starting position "<<x<<":"<<endl;
+	return try1(x,a[x]-'A',b[x]-'A',c[x]-'A',extra);
 }
 int main(){
 	cin>>n>>a>>b>>c;
