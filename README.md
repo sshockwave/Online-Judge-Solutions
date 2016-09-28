@@ -7,3 +7,5 @@ not showing it directly, which is time-consuming and tiring.
 First, open the folder with the name of the online judge. 
 Then you should see the files named by the problem id.  
 File histories are available!
+## Credits
+Gratitude to Github and all online judges holders!
