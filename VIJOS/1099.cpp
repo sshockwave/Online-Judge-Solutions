@@ -6,7 +6,7 @@ int n,code[26];
 bool vis[26];
 char a[30],b[30],c[30];
 bool dfs(int x,int extra);
-bool try3(int x,int c1,int c2,int c3,int extra){
+inline bool try3(int &x,int &c1,int &c2,int &c3,int &extra){
 	if(code[c3]==-1){
 		code[c3]=(code[c1]+code[c2]+extra)%n;
 //		cout<<"\t\t\tcur:"<<(char)(c3+'A')<<"->"<<code[c3]<<endl;
@@ -33,7 +33,7 @@ bool try3(int x,int c1,int c2,int c3,int extra){
 	}
 	return false;
 }
-inline bool try2(int x,int c1,int c2,int c3,int extra){
+inline bool try2(int &x,int &c1,int &c2,int &c3,int &extra){
 	if(code[c2]==-1){
 //		cout<<"\t\tloop."<<endl;
 		for(code[c2]=0;code[c2]<n;code[c2]++){
@@ -53,7 +53,7 @@ inline bool try2(int x,int c1,int c2,int c3,int extra){
 		return try3(x,c1,c2,c3,extra);
 	}
 }
-inline bool try1(int x,int c1,int c2,int c3,int extra){
+inline bool try1(int &x,int c1,int c2,int c3,int &extra){
 	if(code[c1]==-1){
 //		cout<<"\tloop."<<endl;
 		for(code[c1]=0;code[c1]<n;code[c1]++){
