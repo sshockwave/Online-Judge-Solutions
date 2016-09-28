@@ -20,7 +20,7 @@ inline int mins(int a,int b){
 	return minn;
 }
 int main(){
-	int l,s,t,m,last=0,space,tmp;
+	int l,s,t,m,last=0,space;
 	cin>>l>>s>>t>>m;
 	if(s==t){
 		int cnt=0;
@@ -39,16 +39,13 @@ int main(){
 	for(int i=1;i<=m;i++){
 		cin>>stonepos[i];
 	}
-	sort(stonepos,stonepos+m);
+	sort(stonepos+1,stonepos+m+1);//sorting is 1...m!
 //	cout<<"Disperse!"<<endl;
+	stonepos[0]=0;
 	for(int i=1;i<=m;i++){
-		if(stonepos[i]-last>space){
-			last+=space;
-		}else{
-			last+=stonepos[i]-stonepos[i-1];
-		}
+		last+=min(space,stonepos[i]-stonepos[i-1]);
 		stone[last]=true;
-//		cout<<"Stone #"<<i<<" :"<<last<<endl;
+//		cout<<"Stone #"<<i<<" :\t"<<stonepos[i]<<"\t->\t"<<last<<endl;
 	}
 	f[0]=0;
 	for(int i=s;i<last+t;i++){
