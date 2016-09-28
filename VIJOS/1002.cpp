@@ -20,7 +20,7 @@ inline int mins(int a,int b){
 	return minn;
 }
 int main(){
-	int l,s,t,m,last=0,space;
+	int l,s,t,m,last=0,space,tmp;
 	cin>>l>>s>>t>>m;
 	if(s==t){
 		int cnt=0;
@@ -52,7 +52,9 @@ int main(){
 	}
 	f[0]=0;
 	for(int i=s;i<=last+space;i++){
-		f[i]=mins(i-t,i-s)+stone[i];
+		if((f[i]=mins(i-t,i-s))!=-1){
+			f[i]+=stone[i];
+		}
 //		cout<<"f["<<i<<"]="<<f[i]<<endl;
 	}
 	cout<<f[last+space];
