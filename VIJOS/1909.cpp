@@ -26,7 +26,7 @@ int main(){
 	qhead=qend=0;
 	que[qend++]=t;
 	while(qhead<qend){
-		x=qhead++;
+		x=que[qhead++];
 		con[x]=true;
 		vis[x]=true;
 		for(int i=rhead[x];~i;i=rbro[i]){
@@ -60,7 +60,7 @@ int main(){
 	inque[s]=true;
 	dis[s]=0;
 	while(qhead<qend){
-		x=qhead++;
+		x=que[qhead++];
 		inque[x]=false;
 		for(int i=head[x];~i;i=bro[x]){
 			if(valid[to[i]]){
@@ -74,5 +74,5 @@ int main(){
 			}
 		}
 	}
-	cout<<dis[t];
+	printf("%d",dis[t]);
 }
