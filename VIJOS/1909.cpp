@@ -41,7 +41,7 @@ int main(){
 		if(!con[x]){
 			continue;
 		}
-		for(int i=head[x];~i;i=bro[x]){
+		for(int i=head[x];~i;i=bro[i]){
 			if(!con[to[i]]){
 				valid[x]=false;
 				break;
@@ -62,7 +62,7 @@ int main(){
 	while(qhead<qend){
 		x=que[qhead++];
 		inque[x]=false;
-		for(int i=head[x];~i;i=bro[x]){
+		for(int i=head[x];~i;i=bro[i]){
 			if(valid[to[i]]){
 				if(dis[to[i]]==-1||dis[to[i]]>dis[x]+1){
 					dis[to[i]]=dis[x]+1;
