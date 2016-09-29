@@ -1,12 +1,11 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#define inque vis
 #define N 10010
 #define M 200010
 using namespace std;
 int to[M],bro[M],head[N],que[N],qhead,qend,rto[M],rbro[M],rhead[N],dis[N];
-bool vis[N],con[N],valid[N];
+bool inque[N],con[N],valid[N];
 int main(){
 	memset(head,-1,sizeof(head));
 	memset(rhead,-1,sizeof(rhead));
@@ -21,17 +20,15 @@ int main(){
 	}
 	scanf("%d%d",&s,&t);
 	//bfs 1
-	memset(vis,0,sizeof(vis));
 	memset(con,0,sizeof(con));
 	qhead=qend=0;
 	que[qend++]=t;
 	while(qhead<qend){
 		x=que[qhead++];
-		con[x]=true;
 		for(int i=rhead[x];~i;i=rbro[i]){
-			if(!vis[rto[i]]){
+			if(!con[rto[i]]){
 				que[qend++]=rto[i];
-				vis[x]=true;
+				con[x]=true;
 			}
 		}
 	}
