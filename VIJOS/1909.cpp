@@ -28,10 +28,10 @@ int main(){
 	while(qhead<qend){
 		x=que[qhead++];
 		con[x]=true;
-		vis[x]=true;
 		for(int i=rhead[x];~i;i=rbro[i]){
 			if(!vis[rto[i]]){
 				que[qend++]=rto[i];
+				vis[x]=true;
 			}
 		}
 	}
