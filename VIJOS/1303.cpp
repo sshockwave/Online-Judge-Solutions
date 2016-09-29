@@ -16,6 +16,7 @@ int main(){
 			height[n]=height[n]*10+s[i]-'0';
 		}
 	}
+	n++;
 	for(int i=0;i<n;i++){
 		for(int j=0;j<i;j++){
 			if(height[j]>=height[i]&&f[j]>f[i]){
@@ -42,5 +43,5 @@ int main(){
 			sys[minp]=height[i];
 		}
 	}
-	cout<<ans;
+	cout<<ans-1;
 }
