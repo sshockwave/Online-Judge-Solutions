@@ -13,11 +13,17 @@ void dfs(int x){
 	for(int i=head[x];~i;i=bro[i]){
 		if(!vis[to[i]]){
 			if(dfs(to[i])){
-				
+				con=true;
+			}else{
+				valid[x]=false;
 			}
 		}
 	}
 	vis[x]=false;
+	if(x==t){
+		con=true;
+	}
+	return con;
 }
 int main(){
 	memset(head,-1,sizeof(head));
