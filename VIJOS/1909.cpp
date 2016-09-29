@@ -23,12 +23,13 @@ int main(){
 	memset(con,0,sizeof(con));
 	qhead=qend=0;
 	que[qend++]=t;
+	con[t]=true;
 	while(qhead<qend){
 		x=que[qhead++];
 		for(int i=rhead[x];~i;i=rbro[i]){
 			if(!con[rto[i]]){
 				que[qend++]=rto[i];
-				con[x]=true;
+				con[rto[i]]=true;
 			}
 		}
 	}
