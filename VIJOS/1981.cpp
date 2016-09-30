@@ -12,7 +12,7 @@ int main(){
 	}
 	int l=0,r=len,mid,last,cnt;
 	while(l<r){
-		mid=l+r>>1;
+		mid=(l+r>>1)+1;
 		last=cnt=0;
 		for(int i=0;i<n;i++){
 			if(dis[i]-last>=mid){
