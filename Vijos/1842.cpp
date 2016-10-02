@@ -45,7 +45,7 @@ int main(){
 	}
 	memset(c,0,sizeof(c));
 	for(int i=n;i>0;i--){
-		cnt+=getsum(num[i]);
+		cnt=(cnt+getsum(num[i]))%MOD;
 		update(num[i]);
 	}
 	printf("%d",cnt);
