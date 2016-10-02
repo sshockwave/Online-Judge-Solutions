@@ -28,7 +28,7 @@ inline int getsum(int x){
 	return sum;//Forgot to return
 }
 int main(){
-	int pos,cnt=0;
+	int cnt=0;
 	scanf("%d",&n);
 	for(int i=1;i<=n;i++){
 		scanf("%d",a+i);
