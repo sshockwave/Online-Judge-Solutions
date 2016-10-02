@@ -13,8 +13,7 @@ int main(){
 	for(int i=1;i<=m;i++){
 		scanf("%d%d%d",d+i,s+i,t+i);
 	}
-	d[m+1]=0,s[m+1]=1,t[m+1]=1;
-	int l=1,r=m+1,mid,sum;
+	int l=1,r=m,mid,sum;
 	bool flag;
 	while(l<r){
 		mid=(l+r>>1)+1;
@@ -37,9 +36,9 @@ int main(){
 			r=mid-1;
 		}
 	}
-	if(l==mid+1){
+	if(l==m){
 		cout<<0;
 	}else{
-		cout<<-1<<endl<<l;
+		cout<<-1<<endl<<l+1;
 	}
 }
