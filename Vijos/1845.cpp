@@ -3,11 +3,18 @@
 #include <cstring>
 using namespace std;
 int main(){
-	int n,cur,last=-1,ans=0;
-	bool down=true;
-	scanf("%d",&n);
-	for(int i=1;i<=n;i++){
+	int n,cur,last=-1,ans=1;
+	bool down;
+	scanf("%d%d",&n,&last);
+	for(int i=1;i<n;i++){
 		scanf("%d",&cur);
+		if(i==1){
+			if(cur<last){
+				down=false;
+			}else{
+				down=true;
+			}
+		}
 		if(down&&cur>last){
 			down=false;
 			ans++;
