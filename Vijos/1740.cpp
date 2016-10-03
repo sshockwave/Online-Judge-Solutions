@@ -45,7 +45,7 @@ int main(){
 	}
 	sum[0]=num[0]=0;
 	while(l+1<r){
-		cout<<"("<<l<<","<<r<<")"<<endl;
+//		cout<<"("<<l<<","<<r<<")"<<endl;
 		mid=(l+r)>>1;
 		if(cal(mid)>s){
 			l=mid;
