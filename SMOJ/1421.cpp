@@ -89,10 +89,10 @@ int main(){
 	l[0]=r[0]=0;
 	f[n][0]=abs(s-l[n]),f[n][1]=abs(s-r[n]);
 	for(int i=n;i>0;i--){
-		apmin(f[drop[i][0]][0],abs(l[i]-l[drop[i][0]]));
-		apmin(f[drop[i][0]][1],abs(l[i]-r[drop[i][0]]));
-		apmin(f[drop[i][1]][0],abs(r[i]-l[drop[i][1]]));
-		apmin(f[drop[i][1]][1],abs(r[i]-r[drop[i][1]]));
+		apmin(f[drop[i][0]][0],f[i][0]+abs(l[i]-l[drop[i][0]]));
+		apmin(f[drop[i][0]][1],f[i][0]+abs(l[i]-r[drop[i][0]]));
+		apmin(f[drop[i][1]][0],f[i][1]+abs(r[i]-l[drop[i][1]]));
+		apmin(f[drop[i][1]][1],f[i][1]+abs(r[i]-r[drop[i][1]]));
 	}
 	printf("%d",max(f[0][0],f[0][1]));
 //	printf("\n%dms",clock());
