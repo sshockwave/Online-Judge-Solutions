@@ -21,6 +21,7 @@ inline void apmin(int &a,int b){
 }
 void build(int &x,int left,int right){
 	x=ntop++;
+	cout<<"("<<left<<","<<right<<"):node "<<x<<endl;
 	lend[x]=left,rend[x]=right,mid[x]=(left+right)/2,val[x]=0;
 	if(left!=right){
 		build(lson[x],left,mid[x]);
@@ -28,6 +29,7 @@ void build(int &x,int left,int right){
 	}
 }
 void cover(int x,int a,int b,int v){
+	cout<<"\tAlter ("<<a<<","<<b<<") in ("<<lend[x]<<","<<rend[x]<<") to "<<v<<endl;
 	if(lend[x]==rend[x]){
 		val[x]=v;
 		return;
@@ -74,11 +76,14 @@ int main(){
 			rm=r[i];
 		}
 	}
+	cout<<"LM:"<<lm<<"\tRM:"<<rm<<endl;
+	cout<<"Building:"<<endl;
 	build(root,0,rm-lm);
 	for(int i=1;i<=n;i++){
 		drop[i][0]=query(root,l[i]-lm);
 		drop[i][1]=query(root,r[i]-lm);
-		cover(root,l[i]-lm,r[i]-rm,i);
+		cout<<"Fence "<<i<<" drop left:"<<drop[i][0]<<" drop right:"<<drop[i][1]<<endl;
+		cover(root,l[i]-lm,r[i]-lm,i);
 	}
 	memset(f,-1,sizeof(f));
 	l[0]=r[0]=0;
