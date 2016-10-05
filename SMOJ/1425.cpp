@@ -4,72 +4,56 @@
 #define N 35
 #define G 20
 using namespace std;
-char seq[G*3];
-int win[35],g,r,b,pre[N],nxt[N],total,n;
-inline void test(){
-//	seq[total]=0;
-//	cout<<"TEST:"<<seq<<endl;
-	for(int i=0;i<n;i++){
-		pre[i]=i-1;
-		nxt[i]=i+1;
-	}
-	pre[0]=n-1,nxt[n-1]=0;
-	int p=0;
-	bool counter=true;
-	for(int i=0;i<total;i++){
-		if(seq[i]=='r'){
-			counter=!counter;
-		}else if(seq[i]=='b'){
-			nxt[pre[p]]=nxt[p];
-			pre[nxt[p]]=pre[p];
-		}
-		if(counter){
-			p=nxt[p];
-		}else{
-			p=pre[p];
-		}
-	}
-	win[p]++;
-}
-void dfs(int pos){
-	if(pos==total){
-		test();
-		return;
-	}
-	if(g>0){
-		g--;
-		seq[pos]='g';
-		dfs(pos+1);
-		g++;
-	}
-	if(r>0){
-		r--;
-		seq[pos]='r';
-		dfs(pos+1);
-		r++;
-	}
-	if(b>0){
-		b--;
-		seq[pos]='b';
-		dfs(pos+1);
-		b++;
-	}
-}
+double f[G][G][G][N];//win rate
 int main(){
-	freopen("winner.in","r",stdin);
-//	freopen("winner.out","w",stdout);
-	int k;
-	for(scanf("%d",&k);k--;){
-		memset(win,0,sizeof(win));
+//	freopen("1425.in","r",stdin);
+//	freopen("1425.out","w",stdout);
+	int tot,n,g,r,b,ans;
+	double rate;
+	for(scanf("%d",&tot);tot--;){
 		scanf("%d%d%d%d",&n,&g,&r,&b);
-		total=g+r+b;
-		dfs(0);
-		int p=0;
-		for(int i=0;i<n;i++){
-			if(win[i]>win[p]){
-				p=i;
+		memset(f,0,sizeof(f));
+		for(int i=n-b;i<=n;i++){
+			for(int j=0;j<=g;j++){
+				for(int k=0;k<=r;k++){
+					if(i==n-b&&j==0&&k==0){
+						f[i][0][0][0]=1;
+						for(int l=1;l<n;l++){
+							f[0][0][0][l]=0;
+						}
+					}else{
+						if(i-n+b>0){//black
+							rate=(double)(i-n+b)/(double)(i-n+b+j+k);
+							for(int l=1;l<i;l++){
+								f[i][j][k][l]+=f[i-1][j][k][l-1]*rate;
+							}
+						}
+						if(j>0){//green
+							rate=(double)j/(double)(i-n+b+j+k);
+							f[i][j][k][0]+=f[i][j-1][k][i-1]*rate;
+							for(int l=1;l<i;l++){
+								f[i][j][k][l]+=f[i][j-1][k][l-1]*rate;
+							}
+						}
+						if(k>0){//red
+							rate=(double)k/(double)(i-n+b+j+k);
+							for(int l=0;l<i;l++){
+								f[i][j][k][l]+=f[i][j][k-1][i-l-1]*rate;
+							}
+						}
+					}
+					for(int l=0;l<i;l++){
+						cout<<"f["<<i<<"]["<<j<<"]["<<k<<"]["<<l<<"]="<<f[i][j][k][l]<<endl;
+					}
+				}
 			}
 		}
-		printf("%d\n",p);
+		ans=0;
+		for(int i=1;i<n;i++){
+			if(f[n][g][r][i]>f[n][g][r][ans]){
+				ans=i;
+			}
+		}
+		printf("%d\n",ans);
 	}
 }
