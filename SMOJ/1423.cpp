@@ -5,8 +5,8 @@
 using namespace std;
 int lo[D],hi[D],root;
 int main(){
-	freopen("1423.in","r",stdin);
-	freopen("1423.out","w",stdout);
+//	freopen("1423.in","r",stdin);
+//	freopen("1423.out","w",stdout);
 	int tot,n,m,d;
 	for(scanf("%d",&tot);tot--;){
 		scanf("%d%d%d",&n,&m,&d);
