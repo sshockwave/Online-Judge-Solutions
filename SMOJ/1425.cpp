@@ -7,8 +7,8 @@
 using namespace std;
 double f[N][G][G][N];//win rate
 int main(){
-	freopen("1425.in","r",stdin);
-	freopen("1425.out","w",stdout);
+//	freopen("1425.in","r",stdin);
+//	freopen("1425.out","w",stdout);
 	int tot,n,g,r,b,ans;
 	double rate;
 	for(scanf("%d",&tot);tot--;){
