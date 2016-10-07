@@ -15,11 +15,12 @@ inline int add_edge(int u,int v,int w){
 	head[u]=etop++;
 }
 int main(){
-	freopen("1424.in","r",stdin);
-	freopen("1424.out","w",stdout);
+//	freopen("1424.in","r",stdin);
+//	freopen("1424.out","w",stdout);
 	int tot,n,m,u,v,w,modder,x,hash,cur,chash;
 	long long t;
 	for(scanf("%d",&tot);tot--;){
+		qhead=qtail=0;
 		memset(head,-1,sizeof(head));
 		memset(reach,-1,sizeof(reach));
 		memset(inq,0,sizeof(inq));
@@ -40,12 +41,13 @@ int main(){
 			continue;
 		}
 		modder<<=1;
-		qhead=qtail=0;
 		reach[0][0]=0;
 		inq[0][0]=true;
 		quei[qtail]=0,quec[qtail]=0,qtail++;
 		while(qhead!=qtail){
 			x=quei[qhead],hash=quec[qhead],qhead++;
+			cout<<"Cur:"<<x<<" hash:"<<hash<<" dis="<<reach[x][hash]<<endl;
+			
 			inq[x][hash]=false;
 			for(int i=head[x];~i;i=bro[i]){
 				cur=to[i],chash=(hash+val[i])%modder;
