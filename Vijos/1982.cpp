@@ -24,11 +24,11 @@ int main(){
 		for(int i=1;i<=n;i++){
 			for(int j=1;j<=m;j++){
 				if(a[i]==b[j]){
-					f[i][j][k&1]=f[i-1][j-1][k&1]+g[i-1][j-1][!(k&1)];
+					f[i][j][k&1]=(f[i-1][j-1][k&1]+g[i-1][j-1][!(k&1)])%MOD;
 				}else{
 					f[i][j][k&1]=0;
 				}
-				g[i][j][k&1]=f[i][j][k&1]+g[i-1][j][k&1];
+				g[i][j][k&1]=(f[i][j][k&1]+g[i-1][j][k&1])%MOD;
 			}
 		}
 	}
