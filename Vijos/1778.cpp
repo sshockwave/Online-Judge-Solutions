@@ -4,8 +4,8 @@
 using namespace std;
 char key[110],s[1010];
 int main(){
-	freopen("vigenere.in","r",stdin);
-	freopen("vigenere.out","w",stdout);
+//	freopen("vigenere.in","r",stdin);
+//	freopen("vigenere.out","w",stdout);
 	cin>>key>>s;
 	bool small;
 	for(int i=0,j=0;s[i];i++,j++){
