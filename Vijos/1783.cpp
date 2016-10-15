@@ -4,7 +4,7 @@
 #include <algorithm>
 #define N 50010
 using namespace std;
-int to[N<<1],bro[N<<1],val[N<<1],head[N],etop=0,walk[N][20],logt[N]
+int to[N<<1],bro[N<<1],val[N<<1],head[N],etop=0,walk[N][20],logt[N],
 	que[N],qhead,qtail,son[N],stop=0,army[N],bln[N];
 long long f[N][20],dis[N],l=0,r=0,mid;
 bool block[N];
@@ -77,14 +77,14 @@ int main(){
 	scanf("%d",&m);
 	if(m<stop){
 		printf("-1");
-		break;
+		return 0;
 	}
 	for(int i=0;i<m;i++){
 		scanf("%d",army+i);
 	}
 	army[m]=-1;
 	sort(army,army+m,armycmp);
-	dismax<<=1;
+	r<<=1;
 	while(l<r){
 		cout<<"("<<l<<","<<r<<")"<<endl;
 		mid=(l+r)/2;
@@ -115,7 +115,7 @@ int main(){
 			for(;i<m;i++){
 				if(!block[bln[army[i]]]){
 					block[bln[army[i]]]=true;
-				}else if(mid-dis[army[i]]>=dis[son[j]]]){
+				}else if(mid-dis[army[i]]>=dis[son[j]]){
 					break;
 				}
 			}
