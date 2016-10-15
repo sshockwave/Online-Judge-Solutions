@@ -19,11 +19,7 @@ void printnum(int n,int a){
 int main(){
 	for(int n,a;cin>>n>>a;){
 		cout<<n<<"=";
-		if(n==0){
-			cout<<0;
-		}else{
-			printnum(n,a);
-		}
+		printnum(n,a);
 		cout<<"(base "<<a<<")"<<endl;
 	}
 }
