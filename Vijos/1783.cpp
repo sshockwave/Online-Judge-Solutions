@@ -46,8 +46,10 @@ int main(){
 	qhead=qtail=0;
 	que[qtail++]=1;
 	dis[1]=f[1][0]=f[0][0]=bln[1]=walk[1][0]=walk[0][0]=0;
+	cout<<"BFS"<<endl;
 	while(qhead<qtail){
 		x=que[qhead++];
+		cout<<"Cur:"<<x<<endl;
 		logt[x]=0;
 		for(int &i=logt[x];walk[x][i];i++){
 			walk[x][i+1]=walk[walk[x][i]][i];
