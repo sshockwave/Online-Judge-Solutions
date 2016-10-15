@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstring>
 using namespace std;
-char s[]="0123456789ABCDEF";
+char s[]="0123456789ABCDEFGHIJKLMNOPQRST";//WRONG::R in [-20,-1] not [-16,-1]
 inline int diymod(int a,int b){
 	if(b<0){
 		b=-b;
