@@ -45,13 +45,12 @@ int main(){
 	}
 	qhead=qtail=0;
 	que[qtail++]=1;
-	dis[1]=f[1][0]=f[0][0]=bln[1]=walk[1][0]=walk[0][0]=0;
-	cout<<"BFS"<<endl;
+	dis[1]=f[1][0]=f[0][0]=walk[1][0]=walk[0][0]=0;
+//	cout<<"BFS"<<endl;
 	while(qhead<qtail){
 		x=que[qhead++];
-		cout<<"Cur:"<<x<<endl;
-		logt[x]=0;
-		for(int &i=logt[x];walk[x][i];i++){
+//		cout<<"Cur:"<<x<<endl;
+		for(int &i=(logt[x]=0);walk[x][i];i++){
 			walk[x][i+1]=walk[walk[x][i]][i];
 			f[x][i+1]=f[x][i]+f[walk[x][i]][i];
 		}
@@ -63,7 +62,7 @@ int main(){
 				walk[to[i]][0]=x;
 				f[to[i]][0]=val[i];
 				dis[to[i]]=dis[x]+val[i];
-				if(bln[x]==0){
+				if(x==1){
 					bln[to[i]]=to[i];
 				}else{
 					bln[to[i]]=bln[x];
@@ -86,9 +85,14 @@ int main(){
 	}
 	army[m]=-1;
 	sort(army,army+m,armycmp);
+//	cout<<"Armys:";
+//	for(int i=0;i<m;i++){
+//		cout<<army[i]<<" ";
+//	}
+//	cout<<endl;
 	r<<=1;
 	while(l<r){
-		cout<<"("<<l<<","<<r<<")"<<endl;
+//		cout<<"("<<l<<","<<r<<")"<<endl;
 		mid=(l+r)/2;
 		for(int i=1;i<=n;i++){
 			block[i]=false;
@@ -110,14 +114,21 @@ int main(){
 			}
 		}
 		dfs(1);
-		for(j=0;j<stop&&i<m;j++){
+		for(j=0;j<stop&&i<m;i++,j++){
+//			cout<<"Son "<<son[j]<<":";
 			if(block[j]){
+//				cout<<"Protected."<<endl;
 				continue;
 			}
 			for(;i<m;i++){
 				if(!block[bln[army[i]]]){
 					block[bln[army[i]]]=true;
-				}else if(mid-dis[army[i]]>=dis[son[j]]){
+				}
+				if(block[j]){
+//					cout<<"At here!"<<endl;
+					break;
+				}
+				if(mid-dis[army[i]]>=dis[son[j]]){
 					break;
 				}
 			}
