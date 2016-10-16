@@ -12,14 +12,14 @@ bool match(char *sub,char *tem){
 	}
 	return (*tem)==0;
 }
-int dfs(char *s,int steps){
+bool dfs(char *s,int rest){
 	if(strcmp(s,b)==0){
-		return steps;
+		return true;
 	}
-	if(steps>10){
-		return steps;
+	if(rest==0){
+		return false;
 	}
-	int mins=11,tmp;
+	rest--;
 	for(int i=0;s[i];i++){
 		for(int j=0;j<ttop;j++){
 			if(match(s+i,from[j])){
@@ -36,15 +36,14 @@ int dfs(char *s,int steps){
 					c[k]=s[l];
 				}
 				c[k]=0;
-				tmp=dfs(c,steps+1);
-				if(tmp<mins){
-					mins=tmp;
+				if(dfs(c,rest)){
+					return true;
 				}
 				delete[] c;
 			}
 		}
 	}
-	return mins;
+	return false;
 }
 int main(){
 	cin>>a>>b;
@@ -52,10 +51,11 @@ int main(){
 		froml[ttop]=strlen(from[ttop]);
 		tol[ttop]=strlen(to[ttop]);
 	}
-	int tmp=dfs(a,0);
-	if(tmp>10){
-		cout<<"NO ANSWER!";
-	}else{
-		cout<<tmp;
+	for(int i=0;i<=10;i++){
+		if(dfs(a,i)){
+			cout<<i;
+			return 0;
+		}
 	}
+	cout<<"NO ANSWER!";
 }
