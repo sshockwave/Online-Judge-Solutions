@@ -4,6 +4,35 @@
 using namespace std;
 char from[15][25],to[15][25],a[25],b[25],froml[15],tol[15];
 int ttop=0;
+struct trie{
+	trie *son[26];
+	int val;
+	trie(){
+		for(int i=0;i<26;i++){
+			son[i]=this;
+		}
+		val=0;
+	}
+	void insert(char *s,int v){
+		if((*s)==0){
+			val=v;
+			return;
+		}
+		if(son[(*s)-'a']==this){
+			son[(*s)-'a']=new trie();
+		}
+		son[(*s)-'a']->insert(s+1,v);
+	}
+	int check(char *s){
+		if((*s)==0){
+			return val;
+		}
+		if(son[(*s)-'a']==this){
+			return 0;
+		}
+		return son[(*s)-'a']->check(s+1);
+	}
+}root;
 bool match(char *sub,char *tem){
 	for(;(*sub)&&(*tem);sub++,tem++){
 		if((*sub)!=(*tem)){
@@ -17,6 +46,9 @@ bool dfs(char *s,int rest){
 		return true;
 	}
 	if(rest==0){
+		return false;
+	}
+	if(root.check(s)>=rest){
 		return false;
 	}
 	rest--;
@@ -43,6 +75,7 @@ bool dfs(char *s,int rest){
 			}
 		}
 	}
+	root.insert(s,rest);
 	return false;
 }
 int main(){
