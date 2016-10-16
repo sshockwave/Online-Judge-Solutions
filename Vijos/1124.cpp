@@ -5,32 +5,43 @@ using namespace std;
 char from[15][25],to[15][25],a[25],b[25],froml[15],tol[15];
 int ttop=0;
 struct trie{
-	trie *son[26];
+	struct chain{
+		trie *son;
+		chain *next;
+		char c;
+	};
+	chain *head;
 	int val;
 	trie(){
-		for(int i=0;i<26;i++){
-			son[i]=this;
-		}
+		head=0;
 		val=0;
+	}
+	chain* find(chain *&p,char c){
+		if(p==0){
+			p=new chain();
+			p->c=c;
+			p->next=0;
+			p->son=new trie();
+			return p;
+		}
+		if(p->c==c){
+			return p;
+		}else{
+			return find(p->next,c);
+		}
 	}
 	void insert(char *s,int v){
 		if((*s)==0){
 			val=v;
 			return;
 		}
-		if(son[(*s)-'a']==this){
-			son[(*s)-'a']=new trie();
-		}
-		son[(*s)-'a']->insert(s+1,v);
+		find(head,*s)->son->insert(s+1,v);
 	}
 	int check(char *s){
 		if((*s)==0){
 			return val;
 		}
-		if(son[(*s)-'a']==this){
-			return 0;
-		}
-		return son[(*s)-'a']->check(s+1);
+		return find(head,*s)->son->check(s+1);
 	}
 }root;
 bool match(char *sub,char *tem){
