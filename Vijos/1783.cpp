@@ -115,24 +115,15 @@ int main(){
 		}
 		dfs(1);
 		for(j=0;j<stop;j++){
-//			cout<<"Son "<<son[j]<<":";
-			if(block[j]){
-//				cout<<"Protected."<<endl;
-				continue;
-			}
-			for(;i<m;i++){
+			for(;i<m&&!block[son[j]];i++){
 				if(!block[bln[army[i]]]){
 					block[bln[army[i]]]=true;
 				}
 				if(mid-dis[army[i]]>=dis[son[j]]){
-					block[j]=true;
-				}
-				if(block[j]){
-					break;
+					block[son[j]]=true;
 				}
 			}
-			i++;
-			if(!block[j]){
+			if(!block[son[j]]){
 				break;
 			}
 		}
