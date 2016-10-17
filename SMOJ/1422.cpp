@@ -11,13 +11,13 @@ int main()
 	ans[2]="B";
 	ans[3]="B";
 	ans[4]="B";
-	ans[5]="D";
+	ans[5]="B";
 	ans[6]="D";
 	ans[7]="D";
 	ans[8]="A";
 	ans[9]="D";
 	ans[10]="A";
-	ans[11]="A";
+	ans[11]="AB";
 	ans[12]="AC";
     cin >>  i;
 	cout  << ans[i];
