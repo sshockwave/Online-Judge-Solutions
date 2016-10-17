@@ -114,17 +114,17 @@ int main(){
 			}
 		}
 		dfs(1);
-		for(j=0;j<stop;j++){
-			for(;i<m&&!block[son[j]];i++){
-				if(!block[bln[army[i]]]){
-					block[bln[army[i]]]=true;
-				}
-				if(mid-dis[army[i]]>=dis[son[j]]){
-					block[son[j]]=true;
-				}
+		for(j=0;i<m;i++){
+			if(!block[bln[army[i]]]){
+				block[bln[army[i]]]=true;
+				continue;
 			}
-			if(!block[son[j]]){
+			for(;j<stop&&block[son[j]];j++);
+			if(j==stop){
 				break;
+			}
+			if(mid-dis[army[i]]>=dis[son[j]]){
+				block[son[j]]=true;
 			}
 		}
 		if(j==stop){//OK
