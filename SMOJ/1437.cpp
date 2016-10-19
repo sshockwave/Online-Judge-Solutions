@@ -24,6 +24,10 @@ int main(){
 				cnty++;
 			}
 		}
-		printf("%d\n",(tx+1)*(ty+1)-(cntx-1)*(cnty-1));
+		if(cntx>0&&cnty>0){
+			printf("%d\n",(tx+1)*(ty+1)-(cntx-1)*(cnty-1));
+		}else{
+			printf("%d\n",(tx+1)*(ty+1)+max(0,cntx-1)+max(0,cnty-1));
+		}
 	}
 }
