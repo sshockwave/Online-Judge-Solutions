@@ -4,7 +4,7 @@
 #define INF 2147483647
 using namespace std;
 int card[14],ans,len[4]={0,5,3,2};
-inline int apmin(int &a,int b){
+inline void apmin(int &a,int b){
 	if(a>b){
 		a=b;
 	}
@@ -23,8 +23,11 @@ inline void getf(int cnt){
 	apmin(ans,cnt+a+b+c+d);
 }
 void dfs(int cnt){
-	getf(cnt++);
-	for(int amt=1;amt<=3;amt++){
+	if(cnt>=ans){
+		return;
+	}
+	getf(cnt);
+	for(int amt=3;amt>=1;amt++){
 		for(int i=2;i+len[amt]-1<=13;i++){
 			for(int j=i;j<=13;j++){
 				card[j]-=amt;
@@ -34,8 +37,8 @@ void dfs(int cnt){
 					}
 					break;
 				}
-				if(j-i+1>=len[amt]){
-					dfs(cnt);
+				if(j>=i+len[amt]-1){
+					dfs(cnt+1);
 				}
 			}
 		}
@@ -45,7 +48,6 @@ int main(){
 	int tot,n,a,b;
 	for(scanf("%d%d",&tot,&n);tot--;){
 		memset(card,0,sizeof(card));
-		ans=INF;
 		for(int i=0;i<n;i++){
 			scanf("%d%d",&a,&b);
 			if(a==1){
@@ -55,6 +57,7 @@ int main(){
 			}
 			card[a]++;
 		}
+		ans=INF;
 		dfs(0);
 		printf("%d\n",ans);
 	}
