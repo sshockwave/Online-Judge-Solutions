@@ -3,26 +3,45 @@
 #include <cstring>
 #define INF 2147483647
 using namespace std;
-int card[14],f[14][14][14][14],ans;
+int card[14],ans,len[4]={0,5,3,2};
 inline int apmin(int &a,int b){
 	if(a>b){
 		a=b;
 	}
 }
-inline bool invalid(int x){
-	return a<0||a>13;
-}
-void getf(int a,int b,int c,int d){
-	int cnt=0;
-	for(;d>0&&b>1;d--,b-=2,ans++);
-	for(;d>0&&a>1;d--,a-=2,ans++);
-	for(;d>0&&b>0;d--,b--,ans++);
-	for(;c>0&&b>0;c--,b--,ans++);
-	for(;c>0&&a>0;c--,a--,ans++);
+inline void getf(int cnt){
+	int num[5]={0},a,b,c,d;
+	for(int i=0;i<=13;i++){
+		num[card[i]]++;
+	}
+	a=num[1],b=num[2],c=num[3],d=num[4];
+	for(;d>0&&b>1;d--,b-=2,cnt++);
+	for(;d>0&&a>1;d--,a-=2,cnt++);
+	for(;d>0&&b>0;d--,b--,cnt++);
+	for(;c>0&&b>0;c--,b--,cnt++);
+	for(;c>0&&a>0;c--,a--,cnt++);
 	apmin(ans,cnt+a+b+c+d);
 }
+void dfs(int cnt){
+	getf(cnt++);
+	for(int amt=1;amt<=3;amt++){
+		for(int i=2;i+len[amt]-1<=13;i++){
+			for(int j=i;j<=13;j++){
+				card[j]-=amt;
+				if(card[j]<0){
+					for(;j>=i;j--){
+						card[j]+=amt;
+					}
+					break;
+				}
+				if(j-i+1>=len[amt]){
+					dfs(cnt);
+				}
+			}
+		}
+	}
+}
 int main(){
-	memset(f,-1,sizeof(f));
 	int tot,n,a,b;
 	for(scanf("%d%d",&tot,&n);tot--;){
 		memset(card,0,sizeof(card));
@@ -31,11 +50,12 @@ int main(){
 			scanf("%d%d",&a,&b);
 			if(a==1){
 				a=13;
-			}else{
+			}else if(a){
 				a--;
 			}
 			card[a]++;
 		}
-		
+		dfs(0);
+		printf("%d\n",ans);
 	}
 }
