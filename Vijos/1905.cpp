@@ -15,10 +15,10 @@ int main(){
 	int n,na,nb,cnta=0,cntb=0;
 	scanf("%d%d%d",&n,&na,&nb);
 	for(int i=0;i<na;i++){
-		scanf("%d",a+na);
+		scanf("%d",a+i);
 	}
 	for(int i=0;i<nb;i++){
-		scanf("%d",b+nb);
+		scanf("%d",b+i);
 	}
 	for(int i=0;i<n;i++){
 		cnta+=rule[a[i%na]][b[i%nb]];
