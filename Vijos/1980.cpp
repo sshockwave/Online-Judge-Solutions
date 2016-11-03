@@ -3,7 +3,7 @@
 #include <cstring>
 #define INF 2147483647
 using namespace std;
-int card[14],ans,len[4]={0,5,3,2},num[5];
+int card[14],ans,num[5];
 inline void apmin(int &a,int b){
 	if(a>b){
 		a=b;
@@ -11,7 +11,8 @@ inline void apmin(int &a,int b){
 }
 inline void getf(int cnt){
 	memset(num,0,sizeof(num));
-	for(int i=0;i<=13;i++){
+	num[1]=card[0];
+	for(int i=1;i<=13;i++){
 		num[card[i]]++;
 	}
 	int a=num[1],b=num[2],c=num[3],d=num[4];
@@ -20,6 +21,9 @@ inline void getf(int cnt){
 	for(;d>0&&b>0;d--,b--,cnt++);
 	for(;c>0&&b>0;c--,b--,cnt++);
 	for(;c>0&&a>0;c--,a--,cnt++);
+	if(a>=2&&card[0]==2){
+		cnt--;
+	}
 	apmin(ans,cnt+a+b+c+d);
 }
 void dfs(int cnt){
@@ -28,7 +32,7 @@ void dfs(int cnt){
 	}
 	getf(cnt);
 	for(int amt=3;amt>=1;amt--){
-		for(int i=2;i+len[amt]-1<=13;i++){
+		for(int i=2;i<=13;i++){
 			for(int j=i;j<=13;j++){
 				card[j]-=amt;
 				if(card[j]<0){
@@ -37,7 +41,7 @@ void dfs(int cnt){
 					}
 					break;
 				}
-				if(j>=i+len[amt]-1){
+				if((j-i+1)*amt>=5){
 					dfs(cnt+1);
 				}
 			}
