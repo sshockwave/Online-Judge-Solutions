@@ -3,7 +3,7 @@
 #include <cstring>
 #define INF 2147483647
 using namespace std;
-int card[14],ans,num[5];
+int card[14],ans,num[5],len[4]={0,5,3,2};
 inline void apmin(int &a,int b){
 	if(a>b){
 		a=b;
@@ -41,7 +41,7 @@ void dfs(int cnt){
 					}
 					break;
 				}
-				if((j-i+1)*amt>=5){
+				if(j-i+1>=len[amt]){
 					dfs(cnt+1);
 				}
 			}
