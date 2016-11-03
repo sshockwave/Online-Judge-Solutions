@@ -32,18 +32,15 @@ void dfs(int cnt){
 	}
 	getf(cnt);
 	for(int amt=3;amt>=1;amt--){
-		for(int i=2;i<=13;i++){
-			for(int j=i;j<=13;j++){
+		for(int i=2,j;i+len[amt]-1<=13;i++){
+			for(j=i;j<=13&&card[j]>=amt;j++){
 				card[j]-=amt;
-				if(card[j]<0){
-					for(;j>=i;j--){
-						card[j]+=amt;
-					}
-					break;
-				}
+			}
+			for(j--;j>=i;j--){
 				if(j-i+1>=len[amt]){
 					dfs(cnt+1);
 				}
+				card[j]+=amt;
 			}
 		}
 	}
