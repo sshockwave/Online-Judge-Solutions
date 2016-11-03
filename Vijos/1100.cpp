@@ -33,6 +33,7 @@ int main(){
 				if(k+1<=j+i){
 					cur*=f[k+1][j+i];
 				}
+				cur+=f[k][k];
 				if(cur>f[j][j+i]){
 					f[j][j+i]=cur;
 					choose[j][j+i]=k;
