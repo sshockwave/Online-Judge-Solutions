@@ -11,8 +11,7 @@ inline void apmin(int &a,int b){
 }
 inline void getf(int cnt){
 	memset(num,0,sizeof(num));
-	num[1]=card[0];
-	for(int i=1;i<=13;i++){
+	for(int i=0;i<=13;i++){
 		num[card[i]]++;
 	}
 	int a=num[1],b=num[2],c=num[3],d=num[4];
@@ -43,11 +42,6 @@ void dfs(int cnt){
 				}
 			}
 		}
-	}
-	if(card[0]==2){
-		card[0]=0;
-		dfs(cnt+1);
-		card[0]=2;
 	}
 }
 int main(){
