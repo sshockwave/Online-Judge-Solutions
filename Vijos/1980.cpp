@@ -3,18 +3,19 @@
 #include <cstring>
 #define INF 2147483647
 using namespace std;
-int card[14],ans,len[4]={0,5,3,2};
+int card[14],ans,len[4]={0,5,3,2},num[5];
 inline void apmin(int &a,int b){
 	if(a>b){
 		a=b;
 	}
 }
 inline void getf(int cnt){
-	int num[5]={0},a,b,c,d;
+	memset(num,0,sizeof(num));
+	num[1]=card[0];
 	for(int i=1;i<=13;i++){
 		num[card[i]]++;
 	}
-	a=num[1],b=num[2],c=num[3],d=num[4];
+	int a=num[1],b=num[2],c=num[3],d=num[4];
 	for(;d>0&&b>1;d--,b-=2,cnt++);
 	for(;d>0&&a>1;d--,a-=2,cnt++);
 	for(;d>0&&b>0;d--,b--,cnt++);
@@ -43,6 +44,11 @@ void dfs(int cnt){
 			}
 		}
 	}
+	if(card[0]==2){
+		card[0]=0;
+		dfs(cnt+1);
+		card[0]=2;
+	}
 }
 int main(){
 	int tot,n,a,b;
@@ -59,6 +65,6 @@ int main(){
 		}
 		ans=INF;
 		dfs(0);
-		printf("%d\n",ans+(card[0]>0));
+		printf("%d\n",ans);
 	}
 }
