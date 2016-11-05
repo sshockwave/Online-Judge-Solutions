@@ -1,38 +1,50 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <cmath>
 #define MOD 1000000007
 #define N 100010
 using namespace std;
-char s[N],t[N],seq[N],cnt=0;
-int n,k;
-bool dfs(int i,int diff){
-	if(diff<0){
-		return false;
+char s[N],t[N];
+int n,k,pwr[N],fac[N],rfac[N],ans=1;
+inline void append(long long v){
+	ans=(v+ans)%MOD;
+}
+inline int c(int up,int dwn){
+	if(up>dwn){
+		return 0;
 	}
-	if(i==n){//check
-		if(diff){
-			return false;
-		}
-		cnt=(cnt+1)%MOD;
-		for(int i=0;i<n;i++){
-			if(seq[i]!=t[i]){
-				return false;
-			}
-		}
-		return true;
-	}
-	seq[i]='a';
-	for(char &c=seq[i];c<='z';c++){
-		if(dfs(i+1,diff-(c!=s[i]))){
-			return true;
-		}
-	}
-	return false;
+	return 1ll*fac[dwn]*rfac[up]%MOD*rfac[dwn-up]%MOD;
 }
 int main(){
 	scanf("%d%d%s%s",&n,&k,s,t);
-	seq[n]=0;
-	dfs(0,k);
-	printf("%d",cnt);
+	fac[0]=pwr[0]=rfac[0]=rfac[1]=1;
+	for(int i=1;i<=n;i++){
+		fac[i]=1ll*fac[i-1]*i%MOD;
+	}
+	for(int i=2;i<=n;i++){
+		rfac[i]=1ll*(MOD-MOD/i)*rfac[MOD%i]%MOD;
+	}
+	for(int i=2;i<=n;i++){
+		rfac[i]=1ll*rfac[i-1]*rfac[i]%MOD;
+	}
+	for(int i=1;i<=n;i++){
+		pwr[i]=1ll*pwr[i-1]*25%MOD;
+	}
+	for(int i=0;i<n;i++){
+		if(s[i]<t[i]){
+			//cur==s[i]
+			append(1ll*c(k,n-i-1)*pwr[k]);
+			//cur!=s[i]
+			if(t[i]>'b'){
+				append(1ll*c(k-1,n-i-1)*pwr[k-1]%MOD*(t[i]-'a'-1));
+			}
+		}else{
+			append(1ll*c(k-1,n-i-1)*pwr[k-1]%MOD*(t[i]-'a'));
+		}
+		if(s[i]!=t[i]){
+			k--;
+		}
+	}
+	printf("%d",ans);
 }
