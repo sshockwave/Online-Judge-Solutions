@@ -3,56 +3,15 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <set> 
 #define N 100010
 using namespace std;
 vector<int>con[N];
-int walk[N][20],logt[N],dfn[N],pos[N],dtop=1,
-	l[N*3],r[N*3],mid[N*3],rest[N*3];
-void build(int x,int a,int b){
-	l[x]=a,r[x]=b,mid[x]=(a+b)/2;
-	rest[x]=b-a+1;
-	if(a!=b){
-		build(x<<1,a,mid[x]);
-		build((x<<1)|1,mid[x]+1,b);
-	}
-}
-inline bool query(int x,int a){
-	while(l[x]!=r[x]&&rest[x]!=0){
-		x<<=1;
-		if(a>mid[x]){
-			x++;
-		}
-	}
-	return rest[x]==0;
-}
-inline void change(int x,int a){
-	while(rest[x]++,l[x]!=r[x]){
-		if(rest[x]==1){
-			rest[x<<1]=0,rest[(x<<1)|1]=0;
-		}
-		x<<=1;
-		if(a>mid[x]){
-			x++;
-		}
-	}
-}
-int occupy(int x,int amt){//return the offset from l[x]
-	rest[x]-=amt;
-	if(rest[x]==0){
-		if(l[x]==r[x]){
-			return 0;
-		}
-		return mid[x]-l[x]+1+occupy((x<<1)|1,rest[(x<<1)|1]);
-	}
-	if(amt<=rest[x<<1]){
-		return occupy(x<<1,amt);
-	}else{
-		int tmp=occupy((x<<1)|1,amt-rest[x<<1])+mid[x]-l[x]+1;
-		rest[x<<1]=0;
-		return tmp;
-	}
-}
-int dfs(int x){
+set<int>s;
+int walk[N][20],logt[N],dfn[N],pos[N],dtop=1,dep[N];
+bool occ[N];
+void dfs(int x){
+	dep[x]=dep[walk[x][0]]+1;
 	for(int &i=logt[x];walk[x][i];i++){
 		walk[x][i+1]=walk[walk[x][i]][i];
 	}
@@ -65,6 +24,7 @@ int dfs(int x){
 	}
 	dfn[x]=dtop++;
 	pos[dfn[x]]=x;
+	s.insert(dfn[x]);
 }
 int main(){
 	int n,t,x,y;
@@ -76,22 +36,29 @@ int main(){
 	}
 	memset(walk,0,sizeof(walk));
 	memset(logt,0,sizeof(logt));
+	memset(occ,0,sizeof(occ));
+	dep[0]=0;
 	dfs(1);
-	build(1,1,n);
 	while(t--){
 		scanf("%d%d",&y,&x);
 		if(y==1){
-			printf("%d\n",pos[occupy(1,x)+1]);
+			for(int i=1;i<x;i++){
+				occ[*s.begin()]=true;
+				s.erase(s.begin());
+			}
+			printf("%d\n",pos[*s.begin()]);
+			occ[*s.begin()]=true;
+			s.erase(s.begin());
 		}else{
-			int at=x,cnt=0;
+			int at=x;
 			for(int i=logt[x];i>=0;i--){
-				if(walk[at][i]!=0&&query(1,dfn[walk[at][i]])){
-					cnt|=(1<<i);
+				if(walk[at][i]&&occ[dfn[walk[at][i]]]){
 					at=walk[at][i];
 				}
 			}
-			change(1,dfn[at]);
-			printf("%d\n",cnt);
+			printf("%d\n",dep[x]-dep[at]);
+			occ[dfn[at]]=false;
+			s.insert(dfn[at]);
 		}
 	}
 }
