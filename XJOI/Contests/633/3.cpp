@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstring>
 #define N 3010
-#define INF 2147483647
 using namespace std;
 int n,lim,f[N][N],val[N],
 	to[N<<1],bro[N<<1],head[N],etop=0;
@@ -29,9 +28,6 @@ void dfs(int x,int fa){
 			}
 		}
 	}
-	for(int i=0;i<=lim;i++){
-		cout<<"f["<<x<<"]["<<i<<"]="<<f[x][i]<<endl;
-	}
 }
 int main(){
 	scanf("%d%d",&n,&lim);
@@ -39,7 +35,7 @@ int main(){
 		scanf("%d",val+i);
 	}
 	memset(head,-1,sizeof(head));
-	int u,v,ans=-INF;
+	int u,v,ans=0;
 	for(int i=1;i<n;i++){
 		scanf("%d%d",&u,&v);
 		add_edge(u,v);
@@ -47,8 +43,8 @@ int main(){
 	}
 	memset(f,0,sizeof(f));
 	dfs(1,0);
-	for(int i=0;i<=lim;i++){
-		apmax(ans,f[1][i]);
+	for(int i=0;i<lim;i++){
+		apmax(ans,f[1][i]+val[1]);
 	}
-	printf("%d",ans+val[1]);
+	printf("%d",ans);
 }
