@@ -16,6 +16,14 @@ struct node{
 	}
 };
 queue<node>q;
+template<>inline bool bitset<N>::operator <(const bitset<N>&a,const bitset<N>&b){
+	for(int i=1;i<=k;i++){
+		if(a.test(i)!=b.test(i)){
+			return a.test(i)<b.test(i);
+		}
+	}
+	return false;
+}
 map<bitset<N>,bool>inque[N];
 map<bitset<N>,int>dis[N];
 inline void apmin(int &a,int b){
