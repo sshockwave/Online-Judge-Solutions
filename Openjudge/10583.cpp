@@ -3,19 +3,21 @@
 #include <cstring>
 #include <queue>
 #include <bitset>
+#include <map> 
 #define N 110
 #define INF 2147483647
 using namespace std;
-int culture[N],to[N*N*2],bro[N*N*2],val[N*N*2],head[N],etop=0,k;
-bool hate[N][N];
-struct state{
-	int pos,dis;
+int culture[N],to[N*N*2],bro[N*N*2],val[N*N*2],head[N],etop=0,k,hate[N][N];
+struct node{
 	bitset<N>b;
-	state(int p,int d,bitset<N>bi){
-		pos=p,dis=d,b=bi;
+	int pos;
+	node(int p,bitset<N>bi){
+		pos=p,b=bi;
 	}
 };
-queue<state>q;
+queue<node>q;
+map<bitset<N>,bool>inque[N];
+map<bitset<N>,int>dis[N];
 inline void apmin(int &a,int b){
 	if(a>b){
 		a=b;
@@ -36,15 +38,14 @@ inline bool judge(bitset<N>b,int cul){
 	return true;
 }
 int main(){
-	int n,m,s,t,u,v,w,tmp,ans=INF;
+	int n,m,s,t,u,v,w,x,d,ans=INF;
 	scanf("%d%d%d%d%d",&n,&k,&m,&s,&t);
 	for(int i=1;i<=n;i++){
 		scanf("%d",culture+i);
 	}
 	for(int i=1;i<=k;i++){
 		for(int j=1;j<=k;j++){
-			scanf("%d",&tmp);
-			hate[i][j]=tmp;
+			scanf("%d",&hate[i][j]);
 			if(i==j){
 				hate[i][j]=true;
 			}
@@ -58,22 +59,29 @@ int main(){
 	}
 	bitset<N>bi(0);
 	bi.set(culture[s]);
-	q.push(state(s,0,bi));
+	q.push(node(s,bi));
 	while(!q.empty()){
-		state cur=q.front();
+		x=q.front().pos;
+		bi=q.front().b;
+		d=dis[x][bi];
 		q.pop();
-		if(cur.pos==t){
-			apmin(ans,cur.dis);
+		inque[x][bi]=false;
+		if(x==t){
+			apmin(ans,d);
 			continue;
 		}
-		for(int i=head[cur.pos];~i;i=bro[i]){
-			if(judge(cur.b,culture[to[i]])){
-				cur.b.set(culture[to[i]]);
-				cur.dis+=val[i];
-				cur.pos=to[i];
-				q.push(cur);
-				cur.dis-=val[i];
-				cur.b.reset(culture[to[i]]);
+		for(int i=head[x];~i;i=bro[i]){
+			v=to[i];
+			if(judge(bi,culture[v])){
+				bi.set(culture[v]);
+				if(dis[v].find(bi)==dis[v].end()||dis[v][bi]>d+val[i]){
+					dis[v][bi]=dis[x][bi]+val[i];
+					if(inque[v].find(bi)==inque[v].end()||!inque[v][bi]){
+						inque[v][bi]=true;
+						q.push(node(v,bi));
+					}
+				}
+				bi.reset(culture[v]);
 			}
 		}
 	}
