@@ -10,6 +10,12 @@ int main(){
 	while(cin>>a>>b){
 		if((a<DIV&&a>=-DIV)||a+b==DIV){
 			cout<<"no"<<endl;
+		}else if(a==DIV){
+			if(b==0){
+				cout<<"no"<<endl;
+			}else{
+				cout<<"yes"<<endl;
+			}
 		}else{
 			cout<<"yes"<<endl;
 		}
