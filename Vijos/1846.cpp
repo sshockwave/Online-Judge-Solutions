@@ -50,7 +50,7 @@ int main(){
 		q.push(state(ex,ey,sx,sy));
 		while(!q.empty()){
 			cur=q.top();
-//			cout<<"ex="<<cur.ex<<"\tey="<<cur.ey<<"\tsx="<<cur.sx<<"\tsy="<<cur.sy<<endl;
+			cout<<"ex="<<cur.ex<<"\tey="<<cur.ey<<"\tsx="<<cur.sx<<"\tsy="<<cur.sy<<endl;
 			q.pop();
 			inque[cur.hash]=false;
 			if(sx==tx&&sy==ty){
