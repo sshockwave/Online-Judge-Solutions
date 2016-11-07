@@ -5,14 +5,14 @@
 #define M 1010
 using namespace std;
 int f[2][M],rise[N],drop[N],up[N],down[N];
-bool pipe[N],r=false;
+bool pipe[N],r;
 inline void apmin(int &a,int b){
-	if(a>b||a==-1){
+	if(b!=-1&&(a>b||a==-1)){
 		a=b;
 	}
 }
 int main(){
-	int n,m,k,cnt=0;
+	int n,m,k,cnt=0,ans=-1;
 	scanf("%d%d%d",&n,&m,&k);
 	bool exist;
 	for(int i=0;i<n;i++){
@@ -21,32 +21,23 @@ int main(){
 	}
 	memset(pipe,0,sizeof(pipe));
 	for(int i=0,j;i<k;i++){
-		scanf("%d",&j);scanf("%d%d",up+j,down+j);
+		scanf("%d",&j);
 		pipe[j]=true;
+		scanf("%d%d",up+j,down+j);
 	}
 	memset(f,0,sizeof(f));
-	for(int i=1;i<n;i++,r=!r){
+	for(int i=1;i<=n;i++,r=!r){
 		memset(f[r],-1,sizeof(f[r]));
-		for(int j=down[i]+1;j<up[i];j++){
-			if(j>rise[i-1]){
-				if(f[!r][j-rise[i-1]]!=-1){
-					apmin(f[r][j],f[!r][j-rise[i-1]]+1);
-				}
-				if(f[r][j-rise[i-1]]!=-1){
-					apmin(f[r][j],f[r][j-rise[i-1]]+1);
-				}
-			}
+		for(int j=max(down[i],rise[i-1])+1;j<up[i];j++){
+			apmin(f[r][j],f[!r][j-rise[i-1]]+1);
+			apmin(f[r][j],f[r][j-rise[i-1]]+1);
 		}
 		for(int j=down[i]+1;j<up[i]&&j+drop[i-1]<up[i-1];j++){
-			if(f[!r][j+drop[i-1]]!=-1){
-				apmin(f[r][j],f[!r][j+drop[i-1]]);
-			}
+			apmin(f[r][j],f[!r][j+drop[i-1]]);
 		}
 		if(up[i]>m){
 			for(int j=m-rise[i-1];j<=m;j++){
-				if(f[!r][j]!=-1){
-					apmin(f[r][m],f[!r][j]);
-				}
+				apmin(f[r][m],f[!r][j]);
 			}
 		}
 		exist=false;
@@ -57,22 +48,16 @@ int main(){
 			}
 		}
 		if(!exist){
-			break;
+			cout<<0<<endl<<cnt;
+			return 0;
 		}
 		if(pipe[i]){
 			cnt++;
 		}
 	}
-	if(exist){
-		int minn=-1;
-		r=-r;
-		for(int i=1;i<m;i++){
-			if(f[r][i]!=-1){
-				apmin(minn,f[r][i]);
-			}
-		}
-		cout<<1<<endl<<minn;
-	}else{
-		cout<<0<<endl<<cnt;
+	r=!r;
+	for(int i=1;i<=m;i++){
+		apmin(ans,f[r][i]);
 	}
+	cout<<1<<endl<<ans;
 }
