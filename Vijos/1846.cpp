@@ -18,30 +18,27 @@ inline void apmin(int &a,int b){
 	}
 }
 inline bool valid(int x,int y){
-	return x>=1&&x<=n&&y>=1&&y<=n&&mat[x][y];
+	return x>=1&&x<=n&&y>=1&&y<=m&&mat[x][y];
 }
 struct state{
 	int ex,ey,sx,sy,hash,exp;
-	state(int x){
-		hash=x;
-		sy=x%30+1,x/=30;
-		sx=x%30+1,x/=30;
-		ey=x%30+1,x/=30;
-		ex=x%30+1,x/=30;
+	state(int a,int b,int c,int d){
+		ex=a,ey=b,sx=c,sy=d;
+		hash=sy-1+30*(sx-1+30*(ey-1+30*(ex-1)));
 		exp=abs(tx-sx)+abs(ty-sy);
 	}
-}cur(0);
+}cur(0,0,0,0);
 bool operator < (state a,state b){
 	return dis[a.hash]+a.exp>dis[b.hash]+b.exp;
 }
 priority_queue<state>q;
 int main(){
-	int qry,ex,ey,sx,sy,shash;
+	int qry,ex,ey,sx,sy,shash,tmp;
 	scanf("%d%d%d",&n,&m,&qry);
 	for(int i=1;i<=n;i++){
 		for(int j=1;j<=m;j++){
-			scanf("%d",&sx);
-			mat[i][j]=(sx==1);
+			scanf("%d",&tmp);
+			mat[i][j]=(tmp==1);
 		}
 	}
 	while(qry--){
@@ -49,9 +46,8 @@ int main(){
 		ans=INF;
 		memset(dis,127,sizeof(dis));
 		memset(inque,0,sizeof(inque));
-		shash=sy-1+30*(sx-1+30*(ey-1+30*(ex-1)));
-		dis[shash]=0;
-		q.push(state(shash));
+		dis[sy-1+30*(sx-1+30*(ey-1+30*(ex-1)))]=0;
+		q.push(state(ex,ey,sx,sy));
 		while(!q.empty()){
 			cur=q.top();
 //			cout<<"ex="<<cur.ex<<"\tey="<<cur.ey<<"\tsx="<<cur.sx<<"\tsy="<<cur.sy<<endl;
@@ -66,19 +62,20 @@ int main(){
 			}
 			for(int i=0;i<4;i++){
 				ex=cur.ex+mx[i],ey=cur.ey+my[i];
-				if(valid(ex,ey)){
-					if(ex==cur.sx&&ey==cur.sy){
-						sx=cur.ex,sy=cur.ey;
-					}else{
-						sx=cur.sx,sy=cur.sy;
-					}
-					shash=sy-1+30*(sx-1+30*(ey-1+30*(ex-1)));
-					if(dis[shash]>dis[cur.hash]+1){
-						dis[shash]=dis[cur.hash]+1;
-						if(!inque[shash]&&dis[shash]<ans){
-							inque[shash]=true;
-							q.push(state(shash));
-						}
+				if(!valid(ex,ey)){
+					continue;
+				}
+				if(ex==cur.sx&&ey==cur.sy){
+					sx=cur.ex,sy=cur.ey;
+				}else{
+					sx=cur.sx,sy=cur.sy;
+				}
+				shash=sy-1+30*(sx-1+30*(ey-1+30*(ex-1)));
+				if(dis[shash]>dis[cur.hash]+1){
+					dis[shash]=dis[cur.hash]+1;
+					if(!inque[shash]&&dis[shash]<ans){
+						inque[shash]=true;
+						q.push(state(ex,ey,sx,sy));
 					}
 				}
 			}
