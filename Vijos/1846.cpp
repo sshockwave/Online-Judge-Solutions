@@ -19,7 +19,7 @@ inline bool valid(int x,int y){
 struct coor{
 	int x,y;
 	coor(int a,int b){
-		a=x,b=y;
+		x=a,y=b;
 	}
 };
 struct state{
