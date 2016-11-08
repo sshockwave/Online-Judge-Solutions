@@ -28,7 +28,7 @@ struct state{
 	}
 }cur,que[S];
 bool operator < (state a,state b){
-	return dis[a.hash]+a.exp>dis[b.hash]+b.exp;
+	return dis[a.hash]+a.exp<dis[b.hash]+b.exp;
 }
 inline void maintain(int pos){
 	for(;pos>1&&que[pos]<que[pos>>1];pos>>=1){
@@ -78,7 +78,7 @@ int main(){
 		push(state(ex,ey,sx,sy));
 		while(qtop>1){
 			cur=pop();
-			cout<<"ex="<<cur.ex<<"\tey="<<cur.ey<<"\tsx="<<cur.sx<<"\tsy="<<cur.sy<<endl;
+			cout<<"ex="<<cur.ex<<"\tey="<<cur.ey<<"\tsx="<<cur.sx<<"\tsy="<<cur.sy<<"\tdis="<<dis[cur.hash]<<endl;
 			if(sx==tx&&sy==ty){
 				ans=dis[cur.hash];
 				break;
