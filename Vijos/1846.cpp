@@ -1,14 +1,12 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#include <queue>
 #define N 35
 #define S 810000
 #define INF 2147483647
 using namespace std;
 bool mat[N][N];
-int tx,ty,ans,dis[S],mx[4]={0,1,0,-1},my[4]={1,0,-1,0},n,m;
-bool inque[S];
+int tx,ty,ans,dis[S],mx[4]={0,1,0,-1},my[4]={1,0,-1,0},n,m,q,qtop=1,qpos[S];
 inline int abs(int a){
 	return a>0?a:-a;
 }
@@ -22,16 +20,46 @@ inline bool valid(int x,int y){
 }
 struct state{
 	int ex,ey,sx,sy,hash,exp;
+	state(){}
 	state(int a,int b,int c,int d){
 		ex=a,ey=b,sx=c,sy=d;
 		hash=sy-1+30*(sx-1+30*(ey-1+30*(ex-1)));
 		exp=abs(tx-sx)+abs(ty-sy);
 	}
-}cur(0,0,0,0);
+}cur,que[S];
 bool operator < (state a,state b){
 	return dis[a.hash]+a.exp>dis[b.hash]+b.exp;
 }
-priority_queue<state>q;
+inline void maintain(int pos){
+	for(;pos>1&&que[pos]<que[pos>>1];pos>>=1){
+		qpos[que[pos>>1].hash]=pos;
+		qpos[que[pos].hash]=pos>>1;
+		swap(que[pos],que[pos>>1]);
+	}
+}
+inline void push(state x){
+	que[qtop]=x;
+	qpos[x.hash]=qtop;
+	qtop++;
+}
+inline state pop(){
+	qtop--;
+	int p=1,v=qtop;
+	while(p!=v){
+		qpos[que[p].hash]=v;
+		qpos[que[v].hash]=q;
+		swap(que[p],que[v]);
+		v=p;
+		if(que[p<<1]<que[v]){
+			v=p<<1;
+		}
+		if(que[(p<<1)+1]<que[v]){
+			v=(p<<1)+1;
+		}
+	}
+	qpos[que[qtop].hash]=0;
+	return que[qtop];
+}
 int main(){
 	int qry,ex,ey,sx,sy,shash,tmp;
 	scanf("%d%d%d",&n,&m,&qry);
@@ -43,22 +71,17 @@ int main(){
 	}
 	while(qry--){
 		scanf("%d%d%d%d%d%d",&ex,&ey,&sx,&sy,&tx,&ty);
-		ans=INF;
 		memset(dis,127,sizeof(dis));
-		memset(inque,0,sizeof(inque));
+		memset(qpos,0,sizeof(qpos));
 		dis[sy-1+30*(sx-1+30*(ey-1+30*(ex-1)))]=0;
-		q.push(state(ex,ey,sx,sy));
-		while(!q.empty()){
-			cur=q.top();
+		ans=-1;
+		push(state(ex,ey,sx,sy));
+		while(qtop>1){
+			cur=pop();
 			cout<<"ex="<<cur.ex<<"\tey="<<cur.ey<<"\tsx="<<cur.sx<<"\tsy="<<cur.sy<<endl;
-			q.pop();
-			inque[cur.hash]=false;
 			if(sx==tx&&sy==ty){
-				apmin(ans,dis[cur.hash]);
-				continue;
-			}
-			if(dis[cur.hash]>=ans){
-				continue;
+				ans=dis[cur.hash];
+				break;
 			}
 			for(int i=0;i<4;i++){
 				ex=cur.ex+mx[i],ey=cur.ey+my[i];
@@ -73,17 +96,13 @@ int main(){
 				shash=sy-1+30*(sx-1+30*(ey-1+30*(ex-1)));
 				if(dis[shash]>dis[cur.hash]+1){
 					dis[shash]=dis[cur.hash]+1;
-					if(!inque[shash]&&dis[shash]<ans){
-						inque[shash]=true;
-						q.push(state(ex,ey,sx,sy));
+					if(qpos[shash]==0){
+						push(state(ex,ey,sx,sy));
 					}
+					maintain(qpos[shash]);
 				}
 			}
 		}
-		if(ans==INF){
-			printf("-1\n");
-		}else{
-			printf("%d\n",ans);
-		}
+		printf("%d\n",ans);
 	}
 }
