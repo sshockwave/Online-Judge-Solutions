@@ -5,48 +5,55 @@
 #define N 1010
 #define M 10010
 using namespace std;
-long long ans=0;
-struct route{
-	int dis,amt;
-}r[N];
-inline void apmax(int &a,int b){
+int num[N],a[M],b[M],t[M],arr[N],last[N],d[N],off[N],n;
+inline int apmax(int &a,int b){
 	if(a<b){
 		a=b;
 	}
 }
-bool operator < (route a,route b){
-	return a.amt<b.amt;
+inline void getarr(int i){
+	for(;i<=n;i++){
+		arr[i]=max(arr[i-1],last[i-1])+d[i-1];
+	}
 }
-int d[N],depart[N],arr[N],a[M],b[M],t[M];
+inline void getnum(int x){
+	for(int i=n-1;i>=x;i--){
+		num[i]=off[i+1];
+		if(arr[i+1]>last[i]){
+			num[i]+=num[i+1];
+		}
+	}
+}
 int main(){
-	int n,m,k,minus;
-	memset(depart,0,sizeof(depart));
-	memset(r,0,sizeof(r));
+	int m,k,x;
+	long long ans=0;
+	memset(last,0,sizeof(last));
 	scanf("%d%d%d",&n,&m,&k);
 	for(int i=1;i<n;i++){
 		scanf("%d",d+i);
 	}
 	for(int i=1;i<=m;i++){
-		scanf("%d%d%d",t+i,a+i,b+i);
-		r[a[i]].amt++,r[b[i]].amt--;
-		apmax(depart[a[i]],t[i]);
+		scanf("%d%d%d",a+i,b+i,t+i);
+		apmax(last[i],t[i]);
+		off[b[i]]++;
 	}
-	arr[1]=0;
-	for(int i=1;i<n;i++){
-		arr[i+1]=max(arr[i],depart[i])+d[i];
-	}
+	arr[0]=d[0]=num[0]=last[0]=0;
+	getarr(1);
+	getnum(1);
 	for(int i=1;i<=m;i++){
 		ans+=arr[b[i]]-t[i];
 	}
-	r[0].amt=0;
-	for(int i=1;i<n;i++){
-		r[i].amt+=r[i-1].amt;
+	while(k--){
+		x=0;
+		for(int i=1;i<=n;i++){
+			if(num[i]>num[x]&&d[i]){
+				x=i;
+			}
+		}
+		d[x]--;
+		ans-=num[x];
+		getarr(x+1);
+		getnum(x);
 	}
-	sort(r+1,r+n);
-	for(int i=n-1;i>0&&k>0;i--){
-		minus=min(d[i],k);
-		ans-=minus*r[i].amt;
-		k-=minus;
-	}
-	cout<<ans;
+	printf("%I64d",ans);
 }
