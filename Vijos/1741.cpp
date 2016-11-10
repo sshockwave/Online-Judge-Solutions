@@ -14,12 +14,13 @@ inline int apmax(int &a,int b){
 inline void getarr(int i){
 	for(;i<=n;i++){
 		arr[i]=max(arr[i-1],last[i-1])+d[i-1];
+//		cout<<"Arr["<<i<<"]:"<<arr[i]<<endl;
 	}
 }
 inline void getnum(int x){
 	for(int i=n-1;i>=x;i--){
 		num[i]=off[i+1];
-		if(arr[i+1]>last[i]){
+		if(arr[i+1]>last[i+1]){
 			num[i]+=num[i+1];
 		}
 	}
@@ -33,8 +34,8 @@ int main(){
 		scanf("%d",d+i);
 	}
 	for(int i=1;i<=m;i++){
-		scanf("%d%d%d",a+i,b+i,t+i);
-		apmax(last[i],t[i]);
+		scanf("%d%d%d",t+i,a+i,b+i);
+		apmax(last[a[i]],t[i]);
 		off[b[i]]++;
 	}
 	arr[0]=d[0]=num[0]=last[0]=0;
@@ -43,6 +44,7 @@ int main(){
 	for(int i=1;i<=m;i++){
 		ans+=arr[b[i]]-t[i];
 	}
+//	cout<<ans<<endl;
 	while(k--){
 		x=0;
 		for(int i=1;i<=n;i++){
@@ -50,6 +52,10 @@ int main(){
 				x=i;
 			}
 		}
+		if(x==0){
+			break;
+		}
+//		cout<<"Shrink "<<x<<" decrease by "<<num[x]<<endl;
 		d[x]--;
 		ans-=num[x];
 		getarr(x+1);
