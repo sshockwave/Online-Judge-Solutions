@@ -6,7 +6,7 @@
 #define M 10010
 using namespace std;
 int num[N],a[M],b[M],t[M],arr[N],last[N],d[N],off[N],n;
-inline int apmax(int &a,int b){
+inline void apmax(int &a,int b){
 	if(a<b){
 		a=b;
 	}
