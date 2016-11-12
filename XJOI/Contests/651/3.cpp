@@ -71,7 +71,12 @@ int main(){
 	memset(delta,0,sizeof(delta));
 	for(day=1;day<=m;day++){
 		scanf("%d%d%d",&l,&r,&c);
-		change(0,l,r,c);
+		if(l>r){
+			change(0,l,n,c);
+			change(0,1,r,c);
+		}else{
+			change(0,l,r,c);
+		}
 	}
 	for(scanf("%d",&q);q--;){
 		scanf("%d",&x);
