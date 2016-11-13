@@ -28,7 +28,7 @@ inline double process(double a){
 	return (double)round(a*100)/100;
 }
 int main(){
-	int n,m1,m2,d;
+	int n,m1,m2,d,ans=0;
 	scanf("%d%d%d%d%d%d",&n,&m1,&m2,&d,&b[0].x,&b[0].y);
 	memset(f,0,sizeof(f));
 	b[0].t=0;
@@ -50,6 +50,7 @@ int main(){
 			printf("N %.2f",process(b[i].t));
 			return 0;
 		}
+		apmax(ans,f[i]);
 	}
-	printf("%d",f[n]);
+	printf("%d",ans);
 }
