@@ -2,3 +2,4 @@
 *.in
 *.out
 $RECYCLE.BIN/ 
+*.ans
