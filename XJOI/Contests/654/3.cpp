@@ -2,49 +2,27 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
-#define N 310
+#define A 10000010
 using namespace std;
-int color[N][4],n;
-map<int,bool>odd;
-inline void apmax(int &a,int b){
-	if(a<b){
-		a=b;
+int fa[A];
+int getroot(int x){
+	if(fa[x]==0){
+		return x;
 	}
-}
-int dfs(int x,int cnt){
-	if(x==n+1){
-		for(map<int,bool>::iterator it=odd.begin();it!=odd.end();it++){
-			if(it->second){
-				return 0;
-			}
-		}
-		return cnt;
-	}
-	int ans=0;
-	odd[color[x][0]]=!odd[color[x][0]];
-	odd[color[x][1]]=!odd[color[x][1]];
-	apmax(ans,dfs(x+1,cnt+1));
-	odd[color[x][0]]=!odd[color[x][0]];
-	odd[color[x][1]]=!odd[color[x][1]];
-	
-	odd[color[x][2]]=!odd[color[x][2]];
-	odd[color[x][3]]=!odd[color[x][3]];
-	apmax(ans,dfs(x+1,cnt+1));
-	odd[color[x][2]]=!odd[color[x][2]];
-	odd[color[x][3]]=!odd[color[x][3]];
-	
-	apmax(ans,dfs(x+1,cnt));
-	
-	return ans;
+	return fa[x]=getroot(fa[x]);
 }
 int main(){
+	memset(fa,0,sizeof(fa));
+	int n,a,b,ans=0;
 	scanf("%d",&n);
+	n<<=1;
 	for(int i=1;i<=n;i++){
-		scanf("%d%d%d%d",&color[i][0],&color[i][1],&color[i][2],&color[i][3]);
-		odd[color[i][0]]=false;
-		odd[color[i][1]]=false;
-		odd[color[i][2]]=false;
-		odd[color[i][3]]=false;
+		scanf("%d%d",&a,&b);
+		a=getroot(a),b=getroot(b);
+		if(a!=b){
+			fa[a]=b;
+			ans++;
+		}
 	}
-	printf("%d",dfs(1,0));
+	printf("%d",min(ans,n>>1));
 }
