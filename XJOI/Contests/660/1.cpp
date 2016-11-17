@@ -2,11 +2,9 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#define PI 3.14159265
+#define PI 3.14159265d
+#define EPS 1e-8
 using namespace std;
-inline double round2(double x){
-	return (double)round(x*100)/100;
-}
 int main(){
 	int n;
 	scanf("%d",&n);
@@ -14,8 +12,9 @@ int main(){
 	while(n--){
 		scanf("%lf%lf",&r,&l);
 		sum+=r;
-		x+=cos(sum*PI/180.0)*l;
-		y+=sin(sum*PI/180.0)*l;
+		x+=cos(sum/180*PI)*l;
+		y+=sin(sum/180*PI)*l;
 	}
-	printf("%.2lf %.2lf",round2(x),round2(y));
+	printf("%.2lf %.2lf",x+EPS,y+EPS);
+	return 0;
 }
