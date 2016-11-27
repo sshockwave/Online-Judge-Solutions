@@ -5,6 +5,7 @@
 #include <ctime>
 #define V 310
 #define N 2010
+#define INF 1e10
 using namespace std;
 int c[N],d[N],dis[V][V];
 double k[N],f[N][N][2];
@@ -19,9 +20,8 @@ inline void apmin(double &a,double b){
 	}
 }
 int main(){
-//	freopen("classroom1.in","r",stdin);
-	freopen("classroom.in","r",stdin);
-	freopen("classroom.out","w",stdout);
+	freopen("1516.in","r",stdin);
+	freopen("1516.out","w",stdout);
 	memset(dis,16,sizeof(dis));
 	int n,m,v,e,a,b,w;
 	scanf("%d%d%d%d",&n,&m,&v,&e);
@@ -57,25 +57,15 @@ int main(){
 		dcd=dis[c[i-1]][d[i]];
 		ddd=dis[d[i-1]][d[i]];
 		f[i][m][0]=f[i-1][m][0]+dcc;
-		f[i][m][1]=f[i-1][m][0]+dcd;
+		f[i][m][1]=INF;
 		for(int j=0;j<m;j++){
-			f[i][j][0]=f[i-1][j][0]+dcc;
-			if(f[i-1][j+1][1]+ddc<f[i][j][0]){
-				f[i][j][0]=k[i-1]*(f[i-1][j+1][1]+ddc)+(1-k[i-1])*f[i][j][0];
-			}
-			f[i][j][1]=f[i-1][j][0]+dcd;
-			if(f[i-1][j+1][1]+ddd<f[i][j][1]){
-				f[i][j][1]=k[i-1]*(f[i-1][j+1][1]+ddd)+(1-k[i-1])*f[i][j][1];
-			}
+			f[i][j][0]=min(f[i-1][j][0]+dcc,f[i-1][j][1]+k[i-1]*ddc+(1-k[i-1])*dcc);
+			f[i][j][1]=min(f[i-1][j+1][0]+k[i]*dcd+(1-k[i])*dcc,f[i-1][j+1][1]+k[i]*(k[i-1]*ddd+(1-k[i-1])*dcd)+(1-k[i])*(k[i-1]*ddc+(1-k[i-1])*dcc));
 		}
 	}
-	double ans=1e10,cur;
+	double ans=INF,cur;
 	for(int i=0;i<m;i++){
-		cur=f[n][i][0];
-		if(f[n][i+1][1]<cur){
-			cur=k[n]*f[n][i+1][1]+(1-k[n])*cur;
-		}
-		apmin(ans,cur);
+		apmin(ans,min(f[n][i][0],f[n][i][1]));
 	}
 	apmin(ans,f[n][m][0]);
 	printf("%.2f",(double)round(ans*100)/100.0);
