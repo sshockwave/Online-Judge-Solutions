@@ -3,76 +3,69 @@
 #include <cstring>
 #define INF 0x7f7f7f7f
 #define N 20
-#define EPS 1e-9
 using namespace std;
 double x[N],y[N];
-int n,m,ltop,ans,bln1[N],bln2[N];
-inline bool eqzero(double a){
-	return a>=-EPS&&a<=EPS;
-}
+int n,m,nxt[N][N],f[1<<N];
+bool rise[N][N];
 inline void apmin(int &a,int b){
 	if(a>b){
 		a=b;
 	}
 }
-inline double cal(int x2,int y2,int x3,int y3,int x4,int y4){
-	return y2*x3*x4*(x3-x4)+y3*x2*x4*(x4-x2)+y4*x2*x3*(x2-x3);
-}
-inline double cala(double x1,double y1,double x2,double y2){
-	double b=(y2*x1*x1-y1*x2*x2)/(x2*x1*x1-x1*x2*x2);
-	return (y1-b*x1)/(x1*x1);
-}
-void dfs(int p){
-	if(p==n+1){
-//		if(ltop<ans){
-//			cout<<"Result:";
-//			for(int i=0;i<ltop;i++){
-//				cout<<"("<<bln1[i]<<","<<bln2[i]<<")";
-//			}
-//			cout<<endl;
-//		}
-		apmin(ans,ltop);
-		return;
-	}
-	for(int i=0;i<ltop;i++){
-		/*
-		if(bln2[i]!=0&&eqzero(cal(x[p],y[p],x[bln1[i]],y[bln1[i]],x[bln2[i]],y[bln2[i]]))){
-			cout<<"same "<<cala(x[p],y[p],x[bln1[i]],y[bln1[i]])<<" with "<<cala(x[p],y[p],x[bln2[i]],y[bln2[i]])<<endl;
-			dfs(p+1);
-			return;
-		}*/
-		if(bln2[i]!=0&&eqzero(cala(x[p],y[p],x[bln1[i]],y[bln1[i]])-cala(x[p],y[p],x[bln2[i]],y[bln2[i]]))){
-//			cout<<"same "<<cala(x[p],y[p],x[bln1[i]],y[bln1[i]])<<" with "<<cala(x[p],y[p],x[bln2[i]],y[bln2[i]])<<endl;
-			dfs(p+1);
-			return;
-		}
-	}
-	for(int i=0;i<ltop;i++){
-		if(bln2[i]==0&&!eqzero(x[bln1[i]]-x[p])&&cala(x[p],y[p],x[bln1[i]],y[bln1[i]])<0){
-			bln2[i]=p;
-			dfs(p+1);
-			bln2[i]=0;
-		}
-	}
-	bln1[ltop++]=p;
-	dfs(p+1);
-	bln1[--ltop]=0;
-}
 int main(){
-//	freopen("angrybirds1.in","r",stdin);
-	freopen("angrybirds.in","r",stdin);
-	freopen("angrybirds.out","w",stdout);
+//	freopen("1519.in","r",stdin);
+//	freopen("1519.out","w",stdout);
 	int tot;
 	for(scanf("%d",&tot);tot--;){
 		scanf("%d%d",&n,&m);
-		for(int i=1;i<=n;i++){
+		for(int i=0;i<n;i++){
 			scanf("%lf%lf",x+i,y+i);
 		}
-		ltop=0;
-		ans=INF;
-		dfs(1);
-		printf("%d\n",ans);
+		memset(nxt,-1,sizeof(nxt));
+		memset(rise,0,sizeof(rise));
+		for(int i=0;i<n;i++){
+			for(int j=i+1;j<n;j++){
+				if((x[i]-x[j])*(y[i]*x[j]-y[j]*x[i])>=0){
+					rise[i][j]=true;
+					continue;
+				}
+				for(int k=j+1;k<n;k++){
+					if(x[i]==x[k]||x[j]==x[k]){
+						continue;
+					}
+					if(y[i]*x[j]*x[k]*(x[j]-x[k])+y[j]*x[i]*x[k]*(x[k]-x[i])+y[k]*x[i]*x[j]*(x[i]-x[j])==0){
+						nxt[i][j]=k;
+						break;
+					}
+				}
+			}
+		}
+		memset(f,127,sizeof(f));
+		f[0]=0;
+		for(int x=0,m=1<<n,cur;x<m;x++){
+			if(f[x]==INF){
+				continue;
+			}
+			for(int i=0;i<n;i++){
+				if((x>>i)&1){
+					continue;
+				}
+				apmin(f[x|(1<<i)],f[x]+1);
+				for(int j=i+1;j<n;j++){
+					if((x>>j)&1||rise[i][j]){
+						continue;
+					}
+					cur=x|(1<<i);
+					for(int k=j;~k;k=nxt[i][k]){
+						cur|=(1<<k);
+					}
+					apmin(f[cur],f[x]+1);
+				}
+			}
+		}
+		printf("%d\n",f[(1<<n)-1]);
 	}
 	fclose(stdin);
 	fclose(stdout);
+	return 0;
 }
