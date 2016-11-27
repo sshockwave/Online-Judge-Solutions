@@ -3,6 +3,7 @@
 #include <cstring>
 #define INF 0x7f7f7f7f
 #define N 20
+#define EPS 1e-10 
 using namespace std;
 double x[N],y[N];
 int n,m,nxt[N][N],f[1<<N];
@@ -12,9 +13,12 @@ inline void apmin(int &a,int b){
 		a=b;
 	}
 }
+inline bool eqzero(double x){
+	return x>=-EPS&&x<=EPS;
+}
 int main(){
-//	freopen("1519.in","r",stdin);
-//	freopen("1519.out","w",stdout);
+	freopen("1519.in","r",stdin);
+	freopen("1519.out","w",stdout);
 	int tot;
 	for(scanf("%d",&tot);tot--;){
 		scanf("%d%d",&n,&m);
@@ -25,7 +29,7 @@ int main(){
 		memset(rise,0,sizeof(rise));
 		for(int i=0;i<n;i++){
 			for(int j=i+1;j<n;j++){
-				if((x[i]-x[j])*(y[i]*x[j]-y[j]*x[i])>=0){
+				if((x[i]-x[j])*(y[i]*x[j]-y[j]*x[i])>=-EPS){
 					rise[i][j]=true;
 					continue;
 				}
@@ -33,7 +37,7 @@ int main(){
 					if(x[i]==x[k]||x[j]==x[k]){
 						continue;
 					}
-					if(y[i]*x[j]*x[k]*(x[j]-x[k])+y[j]*x[i]*x[k]*(x[k]-x[i])+y[k]*x[i]*x[j]*(x[i]-x[j])==0){
+					if(eqzero(y[i]*x[j]*x[k]*(x[j]-x[k])+y[j]*x[i]*x[k]*(x[k]-x[i])+y[k]*x[i]*x[j]*(x[i]-x[j]))){
 						nxt[i][j]=k;
 						break;
 					}
@@ -42,25 +46,21 @@ int main(){
 		}
 		memset(f,127,sizeof(f));
 		f[0]=0;
-		for(int x=0,m=1<<n,cur;x<m;x++){
+		for(int x=0,m=1<<n,cur,i;x<m-1;x++){
 			if(f[x]==INF){
 				continue;
 			}
-			for(int i=0;i<n;i++){
-				if((x>>i)&1){
+			for(i=0;i<n&&((x>>i)&1);i++);
+			apmin(f[x|(1<<i)],f[x]+1);
+			for(int j=i+1;j<n;j++){
+				if((x>>j)&1||rise[i][j]){
 					continue;
 				}
-				apmin(f[x|(1<<i)],f[x]+1);
-				for(int j=i+1;j<n;j++){
-					if((x>>j)&1||rise[i][j]){
-						continue;
-					}
-					cur=x|(1<<i);
-					for(int k=j;~k;k=nxt[i][k]){
-						cur|=(1<<k);
-					}
-					apmin(f[cur],f[x]+1);
+				cur=x|(1<<i);
+				for(int k=j;~k;k=nxt[i][k]){
+					cur|=(1<<k);
 				}
+				apmin(f[cur],f[x]+1);
 			}
 		}
 		printf("%d\n",f[(1<<n)-1]);
