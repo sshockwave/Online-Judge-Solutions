@@ -6,8 +6,8 @@ using namespace std;
 char job[N][15];
 bool face[N];//0:in  1:out
 int main(){
-	freopen("toy.in","r",stdin);
-	freopen("toy.out","w",stdout);
+	freopen("1514.in","r",stdin);
+	freopen("1514.out","w",stdout);
 	int n,m,d,a,s,p=0;
 	scanf("%d%d",&n,&m);
 	for(int i=0;i<n;i++){
