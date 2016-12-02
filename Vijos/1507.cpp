@@ -4,6 +4,7 @@
 #define lson(x) son[0][x]
 #define rson(x) son[1][x]
 #define N 100010
+using namespace std;
 int low,son[2][N],val[N],size[N],delta=0,ntop=1,root,cnt=0;
 inline void left_rotate(int &x){
 	int y=rson(x);
@@ -49,11 +50,11 @@ void insert(int &x,int key){
 		x=ntop++;
 		val[x]=key;
 		size[x]=1;
-		return;
+	}else{
+		size[x]++;
+		insert(son[key>val[x]][x],key);
 	}
-	size[x]++;
-	insert(son[key>val[x]][x],key);
-	maintain(x,key>val[x]);
+//	maintain(x,key>val[x]);
 }
 int query(int x,int rank){
 	if(rank<=size[lson(x)]){
@@ -74,6 +75,20 @@ void leave(int &x){
 		size[x]=size[lson(x)]+size[rson(x)]+1;
 	}
 }
+void pr(int depth){
+    while(depth--){
+        cout<<"|";
+    }
+}
+void dfs(int x,int depth){
+    if(x==0){
+        return;
+    }
+    dfs(rson(x),depth+1);
+    pr(depth);
+    cout<<x<<"\tval="<<val[x]+delta<<endl;
+    dfs(lson(x),depth+1);
+}
 int main(){
 	memset(son,0,sizeof(son));
 	size[0]=root=0;
@@ -85,9 +100,10 @@ int main(){
 		scanf("%d",&k);
 		switch(op){
 			case 'I':{
-				if(k-delta<low){
+				if(k<low){
 					cnt++;
 				}else{
+//					cout<<"Insert "<<k-delta<<endl;
 					insert(root,k-delta);
 				}
 				break;
@@ -110,6 +126,8 @@ int main(){
 				break;
 			}
 		}
+//		cout<<"BST:"<<endl;
+//		dfs(root,0);
 	}
 	printf("%d",cnt);
 }
