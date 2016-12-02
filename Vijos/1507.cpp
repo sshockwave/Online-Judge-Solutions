@@ -6,44 +6,13 @@
 #define N 100010
 using namespace std;
 int low,son[2][N],val[N],size[N],delta=0,ntop=1,root,cnt=0;
-inline void left_rotate(int &x){
-	int y=rson(x);
-	rson(x)=lson(y);
-	lson(y)=x;
+inline void rotate(int &x,bool d){
+	int y=son[!d][x];
+	son[!d][x]=son[d][y];
+	son[d][y]=x;
 	size[y]=size[x];
 	size[x]=size[lson(x)]+size[rson(x)]+1;
 	x=y;
-}
-inline void right_rotate(int &x){
-	int y=lson(x);
-	lson(x)=rson(y);
-	rson(y)=x;
-	size[y]=size[x];
-	size[x]=size[lson(x)]+size[rson(x)]+1;
-	x=y;
-}
-void maintain(int &x,bool flag){//flag side have insertions
-	if(flag){
-		if(size[lson(rson(x))]>size[lson(x)]){
-			right_rotate(rson(x)),left_rotate(x);
-		}else if(size[rson(rson(x))]>size[rson(x)]){
-			left_rotate(x);
-		}else{
-			return;
-		}
-	}else{
-		if(size[lson(lson(x))]>size[rson(x)]){
-			right_rotate(x);
-		}else if(size[rson(lson(x))]>size[rson(x)]){
-			left_rotate(lson(x)),right_rotate(x);
-		}else{
-			return;
-		}
-	}
-	maintain(lson(x),false);
-	maintain(rson(x),true);
-	maintain(x,true);
-	maintain(x,false);
 }
 void insert(int &x,int key){
 	if(x==0){
@@ -53,8 +22,8 @@ void insert(int &x,int key){
 	}else{
 		size[x]++;
 		insert(son[key>val[x]][x],key);
+		rotate(x,!(key>val[x]));//splay
 	}
-//	maintain(x,key>val[x]);
 }
 int query(int x,int rank){
 	if(rank<=size[lson(x)]){
@@ -75,20 +44,6 @@ void leave(int &x){
 		size[x]=size[lson(x)]+size[rson(x)]+1;
 	}
 }
-void pr(int depth){
-    while(depth--){
-        cout<<"|";
-    }
-}
-void dfs(int x,int depth){
-    if(x==0){
-        return;
-    }
-    dfs(rson(x),depth+1);
-    pr(depth);
-    cout<<x<<"\tval="<<val[x]+delta<<endl;
-    dfs(lson(x),depth+1);
-}
 int main(){
 	memset(son,0,sizeof(son));
 	size[0]=root=0;
@@ -103,7 +58,6 @@ int main(){
 				if(k<low){
 					cnt++;
 				}else{
-//					cout<<"Insert "<<k-delta<<endl;
 					insert(root,k-delta);
 				}
 				break;
@@ -126,8 +80,6 @@ int main(){
 				break;
 			}
 		}
-//		cout<<"BST:"<<endl;
-//		dfs(root,0);
 	}
 	printf("%d",cnt);
 }
