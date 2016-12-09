@@ -9,13 +9,16 @@
 #define ROOT -1
 using namespace std;
 int n,fa[N],son[N][2],size[N],side[N];
+inline bool isNum(char c){
+	return c>='0'&&c<='9';
+}
 inline int nextInt(){
 	char in;
-	while(in=getchar(),in<'0'||in>'9');
 	int num=0;
-	while(in=getchar(),in>='0'&&in<='9'){
+	while(!isNum(in=getchar()));
+	do{
 		num=num*10+in-'0';
-	}
+	}while(isNum(in=getchar()));
 	return num;
 }
 inline void push_down(int x){
@@ -94,7 +97,7 @@ int main(){
 			p=nextInt()+1;
 			access(p);
 			splay(p);
-			printf("%d\n",size[lson(p)]);
+			printf("%d\n",size[lson(p)]+1);
 		}else{
 			p=nextInt()+1;
 			val=nextInt();
