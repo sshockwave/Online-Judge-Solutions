@@ -6,20 +6,23 @@
 #define rson(x) son[x][1]
 #define LEFT 0
 #define RIGHT 1
+#define ROOT -1
 using namespace std;
-int n,root[N],fa[N],son[N][2],size[N];
-bool side[N];
+int n,fa[N],son[N][2],size[N],side[N];
+inline int nextInt(){
+	char in;
+	while(in=getchar(),in<'0'||in>'9');
+	int num=0;
+	while(in=getchar(),in>='0'&&in<='9'){
+		num=num*10+in-'0';
+	}
+	return num;
+}
 inline void push_down(int x){
 	//none
 }
 inline void push_up(int x){
-	size[x]=1;
-	if(~lson(x)){
-		size[x]+=size[lson(x)];
-	}
-	if(~rson(x)){
-		size[x]+=size[rson(x)];
-	}
+	size[x]=size[lson(x)]+size[rson(x)]+1;
 }
 inline void rotate(int x,bool d){
 	push_down(x),push_down(son[x][!d]);
@@ -30,37 +33,27 @@ inline void rotate(int x,bool d){
 	fa[x]=y;
 	side[y]=side[x];
 	side[x]=d;
-	if(~son[x][!d]){
-		side[son[x][!d]]=!d;
-	}
-	if(~fa[y]){
-		son[fa[y]][side[d]]=y;
+	side[son[x][!d]]=!d;
+	if(~side[y]){
+		son[fa[y]][side[y]]=y;
 	}
 	push_up(x),push_up(y);
 }
 inline void splay(int x){
-	while(~fa[x]){
+	while(~side[x]){
 		rotate(fa[x],!side[x]);
 	}
 }
-inline int first(int x){
-	for(;~lson(x);x=lson(x));
-	return x;
-}
 inline void access(int x){
-	splay(x);
-	root[rson(x)]=x;
-	fa[rson(x)]=-1;
-	while(~root[x=first(root[x])]){
-		splay(root[x]);
+	int y=0;
+	do{
 		splay(x);
-		fa[rson(root[x])]=-1;
-		root[rson(root[x])]=root[x];
-		rson(root[x])=x;
-		fa[x]=root[x];
-		side[x]=RIGHT;
-		push_up(root[x]);
-	}
+		side[rson(x)]=ROOT;
+		rson(x)=y;
+		side[y]=RIGHT;
+		push_up(x);
+		y=x;
+	}while(x=fa[x]);
 }
 inline void link(int u,int v){
 	access(u);
@@ -74,39 +67,39 @@ inline void link(int u,int v){
 inline void cut(int x){
 	access(x);
 	splay(x);
-	fa[lson(x)]=-1;
-	root[x]=-1;
+	fa[lson(x)]=fa[x];
+	fa[x]=0;
+	side[lson(x)]=ROOT;
+	lson(x)=0;
 	push_up(x);
 }
 int main(){
-	memset(root,-1,sizeof(root));
-	memset(fa,-1,sizeof(fa));
-	memset(son,-1,sizeof(son));
-	int tot,op,p,val;
-	scanf("%d",&n);
-	for(int i=0;i<n;i++){
+	memset(fa,0,sizeof(fa));
+	memset(son,0,sizeof(son));
+	int val;
+	n=nextInt();
+	size[0]=0;
+	for(int i=1;i<=n;i++){
 		size[i]=1;
+		side[i]=-1;
 	}
-	for(int i=0;i<n;i++){
-		scanf("%d",val);
-		if(val+i<n){
+	for(int i=1;i<=n;i++){
+		val=nextInt();
+		if(val+i<=n){
 			link(val+i,i);
 		}
 	}
-	for(scanf("%d",&tot);tot--;){
-		scanf("%d%d",&op,&p);
-		if(op==1){
+	for(int tot=nextInt(),p;tot--;){
+		if(nextInt()==1){
+			p=nextInt()+1;
 			access(p);
 			splay(p);
-			if(lson(p)==-1){
-				printf("1\n");
-			}else{
-				printf("%d\n",size[lson(p)]+1);
-			}
+			printf("%d\n",size[lson(p)]);
 		}else{
-			scanf("%d",&val);
+			p=nextInt()+1;
+			val=nextInt();
 			cut(p);
-			if(val+p<n){
+			if(val+p<=n){
 				link(val+p,p);
 			}
 		}
