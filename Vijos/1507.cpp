@@ -95,12 +95,12 @@ void drop(int &x,int v){
 	drop(lson(x),v);
 	push_up(x);
 }
-int rank(int x,int ord){
+int rankval(int x,int ord){
 	if(ord<=size[rson(x)]){
-		return rank(rson(x),ord);
+		return rankval(rson(x),ord);
 	}
 	if(ord>size[rson(x)]+1){
-		return rank(lson(x),ord-size[rson(x)]-1);
+		return rankval(lson(x),ord-size[rson(x)]-1);
 	}
 	return val[x];
 }
@@ -133,7 +133,7 @@ int main(){
 				if(k>size[root]){
 					puts("-1");
 				}else{
-					printf("%d\n",rank(root,k)+delta);
+					printf("%d\n",rankval(root,k)+delta);
 				}
 				break;
 			}
