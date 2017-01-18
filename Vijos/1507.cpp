@@ -1,85 +1,140 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#define lson(x) son[0][x]
-#define rson(x) son[1][x]
 #define N 100010
+#define LEFT 0
+#define RIGHT 1
+#define ROOT -1
+#define lson(x) son[x][0]
+#define rson(x) son[x][1]
 using namespace std;
-int low,son[2][N],val[N],size[N],delta=0,ntop=1,root,cnt=0;
-inline void rotate(int &x,bool d){
-	int y=son[!d][x];
-	son[!d][x]=son[d][y];
-	son[d][y]=x;
-	size[y]=size[x];
-	size[x]=size[lson(x)]+size[rson(x)]+1;
-	x=y;
+inline bool isNum(char c){
+	return c>='0'&&c<='9';
 }
-void insert(int &x,int key){
+inline bool isW(char c){
+	return isNum(c)||(c>='A'&&c<='Z')||(c>='a'&&c<='z');
+}
+inline int nextInt(){
+	int i=0;char c;
+	while(!isNum(c=getchar()));
+	for(;isNum(c);i=i*10-'0'+c,c=getchar());
+	return i;
+}
+inline char nextChar(){
+	char c;
+	while(!isW(c=getchar()));
+	return c;
+}
+int val[N],son[N][2],fa[N],size[N],side[N],ntop=1,root=0;
+inline void push_up(int x){
+	size[x]=size[lson(x)]+size[rson(x)]+1;
+}
+inline void rotate(int x){
+	bool d=side[x];
+	son[fa[x]][d]=son[x][!d];
+	side[son[x][!d]]=side[x];
+	fa[son[x][!d]]=fa[x];
+	son[x][!d]=fa[x];
+	push_up(fa[x]);
+	side[x]=side[fa[x]];
+	side[fa[x]]=!d;
+	fa[x]=fa[fa[x]];
+	fa[son[x][!d]]=x;
+	if(side[x]==ROOT){
+		root=x;
+	}else{
+		son[fa[x]][side[x]]=x;
+	}
+	push_up(x);
+}
+inline void splay(int x){
+	while(side[x]!=ROOT){
+		if(side[fa[x]]==ROOT){
+			rotate(x);
+		}else if(side[x]==side[fa[x]]){
+			rotate(fa[x]),rotate(x);
+		}else{
+			rotate(x),rotate(fa[x]);
+		}
+	}
+}
+bool insert(int &x,int key){
 	if(x==0){
 		x=ntop++;
 		val[x]=key;
+		son[x][0]=son[x][1]=0;
 		size[x]=1;
-	}else{
-		size[x]++;
-		insert(son[key>val[x]][x],key);
-		rotate(x,!(key>val[x]));//splay
+		return true;
+	}
+	size[x]++;
+	int &s=son[x][key>val[x]];
+	if(insert(s,key)){
+		side[s]=key>val[x];
+		fa[s]=x;
+		splay(s);
+	}
+	return false;
+}
+inline void insert(int key){
+	if(insert(root,key)){
+		side[root]=-1;
 	}
 }
-int query(int x,int rank){
-	if(rank<=size[lson(x)]){
-		return query(lson(x),rank);
+void drop(int &x,int v){
+	if(x==0){
+		return;
 	}
-	if(rank==size[lson(x)]+1){
-		return val[x];
-	}
-	return query(rson(x),rank-size[lson(x)]-1);
-}
-void leave(int &x){
-	while(x&&val[x]+delta<low){
-		cnt+=size[lson(x)]+1;
+	int sidex=side[x],fax=fa[x];
+	while(val[x]<v){
 		x=rson(x);
 	}
-	if(x){
-		leave(lson(x));
-		size[x]=size[lson(x)]+size[rson(x)]+1;
+	side[x]=sidex,fa[x]=fax;
+	drop(lson(x),v);
+	push_up(x);
+}
+int rank(int x,int ord){
+	if(ord<=size[lson(x)]){
+		return rank(lson(x),ord);
 	}
+	if(ord>size[lson(x)]+1){
+		return rank(rson(x),ord-size[lson(x)]-1);
+	}
+	return val[x];
 }
 int main(){
-	memset(son,0,sizeof(son));
-	size[0]=root=0;
-	int n,k;
-	char op;
-	scanf("%d%d",&n,&low);
-	while(n--){
-		while(op=getchar(),op>'Z'||op<'A');
-		scanf("%d",&k);
-		switch(op){
+	int tot=nextInt(),low=nextInt(),leaves=0,delta=0;
+	while(tot--){
+		switch(nextChar()){
 			case 'I':{
+				int k=nextInt();
 				if(k<low){
-					cnt++;
+					leaves++;
 				}else{
-					insert(root,k-delta);
+					insert(k-delta);
 				}
 				break;
 			}
 			case 'A':{
-				delta+=k;
+				delta+=nextInt();
 				break;
 			}
 			case 'S':{
-				delta-=k;
-				leave(root);
+				delta-=nextInt();
+				leaves+=size[root];
+				drop(root,low-delta);
+				leaves-=size[root];
 				break;
 			}
 			case 'F':{
+				int k=nextInt();
 				if(k>size[root]){
-					printf("-1\n");
+					puts("-1\n");
 				}else{
-					printf("%d\n",query(root,size[root]+1-k)+delta);
+					printf("%d\n",rank(root,k)+delta);
 				}
 				break;
 			}
 		}
 	}
-	printf("%d",cnt);
+	printf("%d",leaves);
 }
