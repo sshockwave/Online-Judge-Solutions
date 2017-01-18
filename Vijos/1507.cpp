@@ -85,19 +85,22 @@ void drop(int &x,int v){
 		return;
 	}
 	int sidex=side[x],fax=fa[x];
-	while(val[x]<v){
+	while(x&&val[x]<v){
 		x=rson(x);
+	}
+	if(x==0){
+		return;
 	}
 	side[x]=sidex,fa[x]=fax;
 	drop(lson(x),v);
 	push_up(x);
 }
 int rank(int x,int ord){
-	if(ord<=size[lson(x)]){
-		return rank(lson(x),ord);
+	if(ord<=size[rson(x)]){
+		return rank(rson(x),ord);
 	}
-	if(ord>size[lson(x)]+1){
-		return rank(rson(x),ord-size[lson(x)]-1);
+	if(ord>size[rson(x)]+1){
+		return rank(lson(x),ord-size[rson(x)]-1);
 	}
 	return val[x];
 }
@@ -128,7 +131,7 @@ int main(){
 			case 'F':{
 				int k=nextInt();
 				if(k>size[root]){
-					puts("-1\n");
+					puts("-1");
 				}else{
 					printf("%d\n",rank(root,k)+delta);
 				}
