@@ -8,7 +8,7 @@ inline bool isNum(char c){
 	return c>='0'&&c<='9';
 }
 int prev[P],est[P],mat[3][3],que[P],qtop=1,fac[10],ktop=0,mx[4]={0,0,1,-1},my[4]={1,-1,0,0};
-char move[P],mc[]="lrud",stk[P];
+char move[P],mc[]="rldu",stk[P];
 inline bool valid(int x,int y){
 	return x>=0&&x<3&&y>=0&&y<3;
 }
