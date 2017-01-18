@@ -58,41 +58,32 @@ inline void splay(int x){
 		}
 	}
 }
-bool insert(int &x,int key){
+void insert(int &x,int k,int f,int d){
 	if(x==0){
 		x=ntop++;
-		val[x]=key;
-		son[x][0]=son[x][1]=0;
+		fa[x]=f;
+		side[x]=d;
+		val[x]=k;
 		size[x]=1;
-		return true;
+		lson(x)=rson(x)=0;
+		splay(x);
+		return;
 	}
 	size[x]++;
-	int &s=son[x][key>val[x]];
-	if(insert(s,key)){
-		side[s]=key>val[x];
-		fa[s]=x;
-		splay(s);
-	}
-	return false;
+	insert(son[x][k>val[x]],k,x,k>val[x]);
 }
-inline void insert(int key){
-	if(insert(root,key)){
-		side[root]=-1;
-	}
-}
-void drop(int &x,int v){
+void drop(int &x,int v,int f,int d){
 	if(x==0){
 		return;
 	}
-	int sidex=side[x],fax=fa[x];
 	while(x&&val[x]<v){
 		x=rson(x);
 	}
 	if(x==0){
 		return;
 	}
-	side[x]=sidex,fa[x]=fax;
-	drop(lson(x),v);
+	fa[x]=f,side[x]=d;
+	drop(lson(x),v,x,LEFT);
 	push_up(x);
 }
 int rankval(int x,int ord){
@@ -102,6 +93,7 @@ int rankval(int x,int ord){
 	if(ord>size[rson(x)]+1){
 		return rankval(lson(x),ord-size[rson(x)]-1);
 	}
+	splay(x);
 	return val[x];
 }
 int main(){
@@ -113,7 +105,7 @@ int main(){
 				if(k<low){
 					leaves++;
 				}else{
-					insert(k-delta);
+					insert(root,k-delta,0,-1);
 				}
 				break;
 			}
@@ -124,7 +116,7 @@ int main(){
 			case 'S':{
 				delta-=nextInt();
 				leaves+=size[root];
-				drop(root,low-delta);
+				drop(root,low-delta,0,-1);
 				leaves-=size[root];
 				break;
 			}
