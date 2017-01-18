@@ -38,7 +38,17 @@ inline int encode(){
 	return hash;
 }
 inline void decode(int hash){
-	
+	int *num=*mat;
+	bool exist[10]={0};
+	for(int i=0,rank;i<9;i++){
+		rank=hash/fac[8-i];
+		num[i]=0;
+		for(int j=0;j<=rank;j++){
+			while(exist[++num[i]]);
+		}
+		exist[num[i]]=true;
+		hash%=fac[8-i];
+	}
 }
 inline void push(int x){
 	est[x]=estimate();
@@ -52,7 +62,26 @@ inline void push(int x){
 	}
 }
 inline int pop(){
-	
+	for(int i=--qtop,j=1;i!=j;){
+		swap(que[i],que[j]);
+		i=j;
+		if((i<<1)<qtop&&est[que[i<<1]]<est[que[j]]){
+			j=(i<<1);
+		}
+		if(((i<<1)|1)<qtop&&est[que[(i<<1)|1]]<est[que[j]]){
+			j=((i<<1)|1);
+		}
+	}
+	return que[qtop];
+}
+inline void blank(int &x,int &y){
+	for(x=0;x<3;x++){
+		for(y=0;y<3;y++){
+			if(mat[x][y]==9){
+				return;
+			}
+		}
+	}
 }
 int main(){
 	memset(prev,-1,sizeof(prev));
@@ -71,12 +100,13 @@ int main(){
 			}
 		}
 	}
-	push(encode());
-	int hash,x,y,to;
+	int hash=encode(),x,y,to;
+	prev[hash]=-2;
+	push(hash);
 	while(qtop>1){
 		hash=pop();
 		if(hash==0){
-			while(~prev[hash]){
+			while(prev[hash]!=-2){
 				stk[ktop++]=move[hash];
 				hash=prev[hash];
 			}
@@ -86,13 +116,7 @@ int main(){
 			return 0;
 		}
 		decode(hash);
-		for(x=0;x<3;x++){
-			for(y=0;y<3;y++){
-				if(mat[x][y]==9){
-					break;
-				}
-			}
-		}
+		blank(x,y);
 		for(int i=0,tx,ty;i<4;i++){
 			tx=x+mx[i],ty=y+my[i];
 			if(valid(tx,ty)){
