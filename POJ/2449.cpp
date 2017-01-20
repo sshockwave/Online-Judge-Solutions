@@ -43,6 +43,7 @@ namespace rev{
 		memset(dis,127,sizeof(dis));
 		dis[x]=0;
 		push(x);
+		inque[x]=true;
 		while(qhead!=qtail){
 			x=pop();
 			for(int i=head[x];~i;i=bro[i]){
@@ -58,7 +59,7 @@ namespace rev{
 		}
 	}
 }
-inline void add_edge(int u,int v,int w){
+inline void add_edge(int w,int v,int u){//should be reversed
 	rev::add_edge(v,u,w);
 	to[etop]=v;
 	val[etop]=w;
