@@ -80,15 +80,17 @@ priority_queue<state>q;
 int main(){
 	memset(head,-1,sizeof(head));
 	memset(rev::head,-1,sizeof(rev::head));
-	int v=nextInt(),e=nextInt(),x,t,k,d;
+	int v=nextInt(),e=nextInt(),x,s,t,k,d;
 	while(e--){
 		add_edge(nextInt(),nextInt(),nextInt());
 	}
-	q.push(state(nextInt(),0)),rev::spfa(t=nextInt()),k=nextInt();
+	s=nextInt(),rev::spfa(t=nextInt()),k=nextInt();
+	q.push(state(s,0));
 	while(!q.empty()){
-		x=q.top().x,d=q.top().f-dis[x];
+		x=q.top().x;d=q.top().f-dis[x];
 		q.pop();
 		if(x==t){
+			cout<<"Route Back No."<<k<<": "<<d<<endl;
 			k--;
 			if(k==0){
 				printf("%d",d);
