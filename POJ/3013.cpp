@@ -72,7 +72,7 @@ int main(){
 			ans+=1ll*weight[i]*dis[i];
 		}
 		if(fail){
-			puts("-1");
+			puts("No Answer");
 		}else{
 			printf("%lld\n",ans);
 		}
