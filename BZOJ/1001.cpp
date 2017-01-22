@@ -21,7 +21,10 @@ inline int nextInt(){
 inline int new_node(){
 	return ntop++;
 }
-inline void add_edge(int u,int v,int w){
+inline void add_edge(int u,int v,int w,bool rev){
+	if(rev){
+		add_edge(v,u,w,false);
+	}
 	to[etop]=v;
 	val[etop]=w;
 	bro[etop]=head[u];
@@ -37,20 +40,26 @@ int main(){
 		ld[0][i]=t;
 		ur[r][i]=s;
 	}
+	for(int i=1;i<r;i++){
+		for(int j=1;j<c;j++){
+			ld[i][j]=new_node();
+			ur[i][j]=new_node();
+		}
+	}
 	memset(head,-1,sizeof(head));
 	for(int i=1;i<=r;i++){
 		for(int j=1;j<c;j++){
-			add_edge(ld[i-1][j],ur[i][j],nextInt());
+			add_edge(ld[i-1][j],ur[i][j],nextInt(),true);
 		}
 	}
 	for(int i=1;i<r;i++){
 		for(int j=1;j<=c;j++){
-			add_edge(ur[i][j-1],ld[i][j],nextInt());
+			add_edge(ur[i][j-1],ld[i][j],nextInt(),true);
 		}
 	}
 	for(int i=1;i<r;i++){
 		for(int j=1;j<c;j++){
-			add_edge(ld[i][j],ur[i][j],nextInt());
+			add_edge(ld[i][j],ur[i][j],nextInt(),true);
 		}
 	}
 	memset(inque,0,sizeof(inque));
