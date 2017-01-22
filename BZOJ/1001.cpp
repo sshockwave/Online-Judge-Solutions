@@ -7,8 +7,7 @@
 #define E (R*C*3)
 #define V (E-R*C+2)
 using namespace std;
-int to[E],val[E],bro[E],head[V],etop=0,ntop=0,ld[R][C],ur[R][C],que[V],qhead=0,qtail=0,dis[V];
-bool inque[V];
+int to[E],val[E],bro[E],head[V],etop=0,ntop=1,ld[R][C],ur[R][C],que[V],qend,dis[V],qpos[V];
 inline bool isNum(char c){
 	return c>='0'&&c<='9';
 }
@@ -29,6 +28,36 @@ inline void add_edge(int u,int v,int w,bool rev){
 	val[etop]=w;
 	bro[etop]=head[u];
 	head[u]=etop++;
+}
+inline int pop(int i,int j){
+	while(i!=j){
+		swap(que[i],que[j]);
+		qpos[que[i]]=i;
+		qpos[que[j]]=j;
+		i=j;
+		if((j<<1)<qend&&dis[que[j<<1]]<dis[que[i]]){
+			i=(j<<1);
+		}
+		if(((j<<1)|1)<qend&&dis[que[(j<<1)|1]]<dis[que[i]]){
+			i=(j<<1)|1;
+		}
+	}
+	return que[qend];
+}
+inline void update(int x){
+	for(x=qpos[x];x>1&&(que[x>>1]>que[x]);x>>=1){
+		swap(que[x>>1],que[x]);
+		qpos[que[x>>1]]=x>>1;
+		qpos[que[x]]=x;
+	};
+	int y=x;
+	if((x<<1)<qend&&dis[que[x<<1]]<dis[que[y]]){
+		y=(x<<1);
+	}
+	if(((x<<1)|1)<qend&&dis[que[(x<<1)|1]]<dis[que[y]]){
+		y=(x<<1)|1;
+	}
+	pop(x,y);
 }
 int main(){
 	int s=new_node(),t=new_node(),r=nextInt(),c=nextInt();
@@ -62,29 +91,21 @@ int main(){
 			add_edge(ld[i][j],ur[i][j],nextInt(),true);
 		}
 	}
-	memset(inque,0,sizeof(inque));
 	memset(dis,127,sizeof(dis));
-	que[qtail++]=s;
-	inque[s]=true;
+	qend=ntop;
+	for(int i=1;i<qend;i++){
+		que[i]=i;
+		qpos[i]=i;
+	}
 	dis[s]=0;
-	while(qhead!=qtail){
-		int x=que[qhead++];
-		if(qhead==V){
-			qhead=0;
-		}
+	while(qend>1){
+		int x=pop(--qend,1);
 		for(int i=head[x];~i;i=bro[i]){
 			if(dis[to[i]]>dis[x]+val[i]){
 				dis[to[i]]=dis[x]+val[i];
-				if(!inque[to[i]]){
-					inque[to[i]]=true;
-					que[qtail++]=to[i];
-					if(qtail==V){
-						qtail=0;
-					}
-				}
+				update(to[i]);
 			}
 		}
-		inque[x]=false;
 	}
 	printf("%d",dis[t]);
 }
