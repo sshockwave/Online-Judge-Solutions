@@ -86,11 +86,13 @@ int main(){
 	}
 	s=nextInt(),rev::spfa(t=nextInt()),k=nextInt();
 	q.push(state(s,0));
+	if(s==t){
+		k++;
+	}
 	while(!q.empty()){
 		x=q.top().x;d=q.top().f-dis[x];
 		q.pop();
 		if(x==t){
-			cout<<"Route Back No."<<k<<": "<<d<<endl;
 			k--;
 			if(k==0){
 				printf("%d",d);
