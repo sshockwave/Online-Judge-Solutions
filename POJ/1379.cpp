@@ -19,26 +19,28 @@ inline int nextInt(){
 	for(;isNum(c);i=i*10-'0'+c,c=getchar());
 	return i;
 }
-int w,h,m,x[M],y[M];
-double gx,gy,gest;
+int w,h,m;
 inline double apmin(double &a,double b){
 	if(a>b){
 		a=b;
 	}
 }
-inline double est(double ex,double ey){
-	double mini=1e30;
-	for(int i=0;i<m;i++){
-		apmin(mini,(ex-x[i])*(ex-x[i])+(ey-y[i])*(ey-y[i]));
-	}
-	return mini;
-}
 inline double random(){
 	return (double)rand()/(double)RAND_MAX;
 }
-inline bool valid(double x,double y){
-	return x>=0&&x<=w&&y>=0&&y<=h;
-}
+struct coor{
+	double x,y,d;
+	coor gen(double delta){
+		double theta;
+		coor res;
+		do{
+			res.x=x+delta*cos(theta);
+			res.y=y+delta*sin(theta);
+			res.d=1e100;
+			for(int i=0;i<30)
+		}while(theta);
+	}
+};
 inline void generate(){
 	gx=random()*w,gy=random()*h,gest=est(gx,gy);
 	double nx,ny,nest,mx,my,mest;
