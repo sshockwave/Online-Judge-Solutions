@@ -19,15 +19,22 @@ inline int next_int(){
 inline int abs(int a){
 	return a>0?a:-a;
 }
+inline void apmin(int &a,int b){
+	if(a>b){
+		a=b;
+	}
+}
 struct point{
 	int x,y,i;
 }men[N],house[N];
-int to[E],val[E],cap[E],bro[E],head[V],dis[V],etop,ntop,s,t;
+int to[E],val[E],cap[E],bro[E],head[V],dis[V],pre[V],etop,ntop,s,t;
 inline void add_edge(int u,int v,int w,int c,bool ori){//zero is original
 	to[etop]=v;
 	val[etop]=w;
 	cap[etop]=c;
 	bro[etop]=head[u];
+	//debug
+	cout<<"Edge["<<etop<<"]:"<<u<<"->"<<v<<"\tval="<<val[etop]<<"\tcap="<<cap[etop]<<endl;
 	head[u]=etop++;
 	if(ori){
 		add_edge(v,u,-w,0,0);
@@ -48,9 +55,11 @@ inline void problem(int r,int c){
 		scanf("%s",str);
 		for(int j=0;j<c;j++){
 			if(str[j]=='H'){
+				cout<<"Node["<<ntop<<"]:house ("<<i<<","<<j<<")"<<endl;
 				house[hcnt]=(point){i,j,new_node()};
 				add_edge(house[hcnt++].i,t,0,1,1);
 			}else if(str[j]=='m'){
+				cout<<"Node["<<ntop<<"]:man ("<<i<<","<<j<<")"<<endl;
 				men[mcnt]=(point){i,j,new_node()};
 				add_edge(s,men[mcnt++].i,0,1,1);
 			}
@@ -65,7 +74,6 @@ inline void problem(int r,int c){
 int que[V],qhead,qtail;
 bool inque[V];
 inline void spfa(){
-	memset(inque,0,sizeof(inque));
 	memset(dis,127,sizeof(dis));
 	qhead=qtail=0;
 	dis[s]=0;
@@ -79,6 +87,7 @@ inline void spfa(){
 		for(int i=head[x];~i;i=bro[i]){
 			if(cap[i]&&dis[to[i]]>dis[x]+val[i]){
 				dis[to[i]]=dis[x]+val[i];
+				pre[to[i]]=i;
 				if(!inque[to[i]]){
 					inque[to[i]]=true;
 					que[qtail++]=to[i];
@@ -91,27 +100,27 @@ inline void spfa(){
 		inque[x]=false;
 	}
 }
-int flow(int x,int allo){
-	int sum=0,inc;
-	for(int i=head[x];~i;i=bro[i]){
-		if(cap[i]&&dis[to[i]]==dis[x]+val[i]){
-			inc=flow(to[i],min(allo-sum,cap[i]));
-			sum+=inc,cap[i]-=inc,cap[i^1]+=inc;
-			if(sum==allo){
-				break;
-			}
-		}
+int flow(){
+	int inc=INF;
+	for(int p=t;p!=s;p=to[pre[p]^1]){
+		apmin(inc,cap[pre[p]]);
 	}
-	return sum;
+	for(int p=t;p!=s;p=to[pre[p]^1]){
+		cap[pre[p]]-=inc,cap[pre[p]^1]+=inc;
+	}
+	return inc;
 }
 inline int mcmf(){
 	int sum=0;
 	while(spfa(),dis[t]<INF){
-		sum+=flow(s,INF)*dis[t];
+		sum+=flow()*dis[t];
 	}
 	return sum;
 }
 int main(){
+	//debug
+	freopen("2195.in","r",stdin);
+	memset(inque,0,sizeof(inque));
 	int r,c;
 	while((r=next_int())&&(c=next_int())){
 		reset();
