@@ -7,7 +7,7 @@
 #include <ctime>
 #define M 1010
 #define G 30
-#define EPS 0.001
+#define EPS 1e-4
 #define PI 3.1415926535898
 using namespace std;
 inline bool isNum(char c){
@@ -20,61 +20,69 @@ inline int nextInt(){
 	return i;
 }
 int w,h,m;
-inline double apmin(double &a,double b){
+inline double random(){
+	return (double)rand()/(double)RAND_MAX;
+}
+inline void apmin(double &a,double b){
 	if(a>b){
 		a=b;
 	}
 }
-inline double random(){
-	return (double)rand()/(double)RAND_MAX;
-}
 struct coor{
 	double x,y,d;
-	coor gen(double delta){
-		double theta;
-		coor res;
-		do{
-			res.x=x+delta*cos(theta);
-			res.y=y+delta*sin(theta);
-			res.d=1e100;
-			for(int i=0;i<30)
-		}while(theta);
+	bool valid(){
+		return x>=0&&x<=w&&y>=0&&y<=h;
 	}
-};
-inline void generate(){
-	gx=random()*w,gy=random()*h,gest=est(gx,gy);
-	double nx,ny,nest,mx,my,mest;
-	for(double delta=max(w,h),theta;delta>EPS;delta*=0.8){
-		mest=0;
+	void cal();
+	coor go(double delta){
+		double theta=random()*2*PI;
+		coor res;
+		res.x=x+delta*cos(theta);
+		res.y=y+delta*sin(theta);
+		res.cal();
+		return res;
+	}
+	coor iterate(double delta){
+		coor res=*this,tmp;
 		for(int i=0;i<G;i++){
-			theta=random()*PI*2;
-			nx=gx+delta*cos(theta);
-			ny=gy+delta*sin(theta);
-			nest=est(nx,ny);
-			if(valid(nx,ny)&&nest>mest){
-				mx=nx,my=ny,mest=nest;
+			tmp=go(delta);
+			if(tmp.valid()&&tmp.d>res.d){
+				res=tmp;
 			}
 		}
-		if(mest>gest){
-			gx=mx,gy=my,gest=mest;
-		}
+		return res;
+	}
+}holes[M];
+void coor::cal(){
+	d=1e50;
+	for(int i=0;i<m;i++){
+		apmin(d,(holes[i].x-x)*(holes[i].x-x)+(holes[i].y-y)*(holes[i].y-y));
 	}
 }
+inline coor anneal(){
+	coor res;
+	res.x=random()*w;
+	res.y=random()*h;
+	res.cal();
+	for(double delta=max(w,h);delta>EPS;delta*=0.8){
+		res=res.iterate(delta);
+	}
+	return res;
+}
 int main(){
-	srand(time(0));
 	for(int tot=nextInt();tot--;){
 		w=nextInt(),h=nextInt(),m=nextInt();
 		for(int i=0;i<m;i++){
-			x[i]=nextInt(),y[i]=nextInt();
+			holes[i].x=nextInt(),holes[i].y=nextInt();
 		}
-		double ansx,ansy,aest=0;
+		coor ans,tmp;
+		ans.d=0;
 		for(int i=0;i<G;i++){
-			generate();
-			if(gest>aest){
-				aest=gest;
-				ansx=gx,ansy=gy;
+			tmp=anneal();
+			if(tmp.d>ans.d){
+				ans=tmp;
 			}
 		}
-		printf("The safest point is (%.1f, %.1f).\n",(double)round(ansx*10)/10.0,(double)round(ansy*10)/10.0);
+		printf("The safest point is (%.1f, %.1f).\n",(double)round(ans.x*10)/10.0,(double)round(ans.y*10)/10.0);
 	}
 }
