@@ -33,8 +33,6 @@ inline void add_edge(int u,int v,int w,int c,bool ori){//zero is original
 	val[etop]=w;
 	cap[etop]=c;
 	bro[etop]=head[u];
-	//debug
-	cout<<"Edge["<<etop<<"]:"<<u<<"->"<<v<<"\tval="<<val[etop]<<"\tcap="<<cap[etop]<<endl;
 	head[u]=etop++;
 	if(ori){
 		add_edge(v,u,-w,0,0);
@@ -55,11 +53,9 @@ inline void problem(int r,int c){
 		scanf("%s",str);
 		for(int j=0;j<c;j++){
 			if(str[j]=='H'){
-				cout<<"Node["<<ntop<<"]:house ("<<i<<","<<j<<")"<<endl;
 				house[hcnt]=(point){i,j,new_node()};
 				add_edge(house[hcnt++].i,t,0,1,1);
 			}else if(str[j]=='m'){
-				cout<<"Node["<<ntop<<"]:man ("<<i<<","<<j<<")"<<endl;
 				men[mcnt]=(point){i,j,new_node()};
 				add_edge(s,men[mcnt++].i,0,1,1);
 			}
@@ -67,7 +63,7 @@ inline void problem(int r,int c){
 	}
 	for(int i=0;i<mcnt;i++){
 		for(int j=0;j<hcnt;j++){
-			add_edge(men[i].i,house[j].i,abs(men[i].x-house[i].x)+abs(men[i].y-house[i].y),1,1);
+			add_edge(men[i].i,house[j].i,abs(men[i].x-house[j].x)+abs(men[i].y-house[j].y),1,1);
 		}
 	}
 }
@@ -119,7 +115,7 @@ inline int mcmf(){
 }
 int main(){
 	//debug
-	freopen("2195.in","r",stdin);
+//	freopen("2195.in","r",stdin);
 	memset(inque,0,sizeof(inque));
 	int r,c;
 	while((r=next_int())&&(c=next_int())){
