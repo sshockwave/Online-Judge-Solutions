@@ -70,7 +70,6 @@ inline coor anneal(){
 	return res;
 }
 int main(){
-	srand(time(0));
 	for(int tot=nextInt();tot--;){
 		w=nextInt(),h=nextInt(),m=nextInt();
 		for(int i=0;i<m;i++){
