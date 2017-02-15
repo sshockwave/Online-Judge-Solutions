@@ -30,12 +30,12 @@ int pow(int x,int n){
 inline int rev(int x){
 	return pow(x,p-2);
 }
-inline void dp(int num){
+inline void dp(int num,int sum){
 	for(int i=sr;i>=0;i--){
 		for(int j=sb;j>=0;j--){
 			for(int k=sg;k>=0;k--){
 				int &F=f[i][j][k];
-				if(F){
+				if(F&&i+j+k==sum){
 					if(i+num<=sr){
 						f[i+num][j][k]+=F;
 					}
@@ -55,6 +55,7 @@ inline int fixed_cnt(){
 	memset(vis,0,sizeof(vis));
 	memset(f,0,sizeof(f));
 	f[0][0][0]=1;
+	int sum=0;
 	for(int i=1;i<=n;i++){
 		if(!vis[i]){
 			int cnt=0;
@@ -62,7 +63,8 @@ inline int fixed_cnt(){
 				vis[j]=true;
 				cnt++;
 			}
-			dp(cnt);
+			dp(cnt,sum);
+			sum+=cnt;
 		}
 	}
 	return f[sr][sb][sg];
