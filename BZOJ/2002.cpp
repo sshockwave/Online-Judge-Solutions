@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <cassert>
 #define N 200010
 #define lson(x) son[x][0]
 #define rson(x) son[x][1]
@@ -8,102 +9,100 @@
 #define RIGHT 1
 #define ROOT -1
 using namespace std;
-int n,fa[N],son[N][2],size[N],side[N];
-inline bool isNum(char c){
+inline bool is_num(char c){
 	return c>='0'&&c<='9';
 }
-inline int nextInt(){
-	char in;
-	int num=0;
-	while(!isNum(in=getchar()));
-	do{
-		num=num*10+in-'0';
-	}while(isNum(in=getchar()));
-	return num;
+inline int next_int(){
+	int i=0;char c;
+	while(!is_num(c=getchar()));
+	for(;is_num(c);i=i*10-'0'+c,c=getchar());
+	return i;
 }
-inline void push_down(int x){
-	//none
-}
+int fa[N],son[N][2],size[N],side[N];
 inline void push_up(int x){
-	size[x]=size[lson(x)]+size[rson(x)]+1;
-}
-inline void rotate(int x,bool d){
-	push_down(x),push_down(son[x][!d]);
-	int y=son[x][!d];
-	son[x][!d]=son[y][d];
-	son[y][d]=x;
-	fa[y]=fa[x];
-	fa[x]=y;
-	side[y]=side[x];
-	side[x]=d;
-	side[son[x][!d]]=!d;
-	if(~side[y]){
-		son[fa[y]][side[y]]=y;
+	size[x]=1;
+	if(lson(x)){
+		size[x]+=size[lson(x)];
 	}
-	push_up(x),push_up(y);
+	if(rson(x)){
+		size[x]+=size[rson(x)];
+	}
+}
+inline void rotate(int x){
+	assert(side[x]!=ROOT);
+	bool r=!side[x];
+	son[fa[x]][!r]=son[x][r];
+	if(~son[x][r]){
+		fa[son[x][r]]=fa[x];
+		side[son[x][r]]=!r;
+	}
+	son[x][r]=fa[x];
+	side[x]=side[fa[x]];
+	side[fa[x]]=r;
+	fa[x]=fa[fa[x]];
+	fa[son[x][r]]=x;
+	if(~side[x]){
+		son[fa[x]][side[x]]=x;
+	}
+	push_up(son[x][r]),push_up(x);
 }
 inline void splay(int x){
-	while(~side[x]){
-		rotate(fa[x],!side[x]);
+	while(side[x]!=ROOT){
+		if(side[fa[x]]==ROOT){
+			rotate(x);
+		}else if(side[fa[x]]==side[x]){
+			rotate(fa[x]),rotate(x);
+		}else{
+			rotate(x),rotate(x);
+		}
 	}
 }
 inline void access(int x){
-	int y=0;
-	do{
-		splay(x);
-		side[rson(x)]=ROOT;
-		rson(x)=y;
-		side[y]=RIGHT;
-		push_up(x);
-		y=x;
-	}while(x=fa[x]);
-}
-inline void link(int u,int v){
-	access(u);
-	splay(u);
-	splay(v);
-	rson(u)=v;
-	side[v]=RIGHT;
-	fa[v]=u;
-	push_up(u);
-}
-inline void cut(int x){
-	access(x);
 	splay(x);
-	fa[lson(x)]=fa[x];
-	fa[x]=0;
-	side[lson(x)]=ROOT;
-	lson(x)=0;
-	push_up(x);
+	if(~rson(x)){
+		side[rson(x)]=ROOT;
+		rson(x)=-1;
+		push_up(x);
+	}
+	while(~fa[x]){
+		splay(fa[x]);
+		if(~rson(fa[x])){
+			side[rson(fa[x])]=ROOT;
+		}
+		side[x]=RIGHT;
+		rson(fa[x])=x;
+		push_up(fa[x]);
+		rotate(x);
+	}
 }
 int main(){
-	memset(fa,0,sizeof(fa));
-	memset(son,0,sizeof(son));
-	int val;
-	n=nextInt();
-	size[0]=0;
-	for(int i=1;i<=n;i++){
+	memset(side,ROOT,sizeof(side));
+	memset(son,-1,sizeof(son));
+	int n=next_int();
+	for(int i=0;i<n;i++){
 		size[i]=1;
-		side[i]=-1;
-	}
-	for(int i=1;i<=n;i++){
-		val=nextInt();
-		if(val+i<=n){
-			link(val+i,i);
+		fa[i]=i+next_int();
+		if(fa[i]>=n){
+			fa[i]=-1;
 		}
 	}
-	for(int tot=nextInt(),p;tot--;){
-		if(nextInt()==1){
-			p=nextInt()+1;
-			access(p);
-			splay(p);
-			printf("%d\n",size[lson(p)]+1);
+	for(int tot=next_int();tot--;){
+		if(next_int()==1){
+			int x=next_int();
+			access(x);
+			printf("%d\n",size[x]);
 		}else{
-			p=nextInt()+1;
-			val=nextInt();
-			cut(p);
-			if(val+p<=n){
-				link(val+p,p);
+			int x=next_int();
+			access(x);
+			if(~lson(x)){
+				side[lson(x)]=-1;
+				fa[lson(x)]=-1;
+				lson(x)=-1;
+				push_up(x);
+			}
+			fa[x]=x+next_int();
+			if(fa[x]>=n){
+				fa[x]=-1;
 			}
 		}
 	}
