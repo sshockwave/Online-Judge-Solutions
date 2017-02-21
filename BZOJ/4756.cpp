@@ -16,7 +16,7 @@ inline int nextInt() {
 	char c;
 	while(!isNum(c=getchar()));
 	for(; isNum(c); i=i*10-'0'+c,c=getchar());
-	return c;
+	return i;
 }
 int val[N],ans[N],to[N],bro[N],head[N],etop=0,fa[N],side[N],son[N][2],size[N];
 inline void push_up(int x) {
@@ -25,13 +25,16 @@ inline void push_up(int x) {
 inline void rotate(int x) {
 	bool d=side[x];
 	son[fa[x]][d]=son[x][!d];
-	fa[son[x][!d]]=fa[x];
-	side[son[x][!d]]=d;
+	if(son[x][!d]){
+		fa[son[x][!d]]=fa[x];
+		side[son[x][!d]]=d;
+	}
 	push_up(fa[x]);
 	side[x]=side[fa[x]];
 	side[fa[x]]=!d;
 	son[x][!d]=fa[x];
 	fa[x]=fa[fa[x]];
+	fa[son[x][!d]]=x;
 	if(side[x]!=ROOT) {
 		son[fa[x]][side[x]]=x;
 	}
@@ -73,11 +76,10 @@ void merge_dfs(int u,int v) {
 }
 inline void merge(int u,int v) {
 	splay(u),splay(v);
-	if(size[u]>size[v]) {
-		merge_dfs(u,v);
-	} else {
-		merge_dfs(v,u);
+	if(size[u]<size[v]) {
+		swap(u,v);
 	}
+	merge_dfs(u,v);
 }
 void dfs(int x) {
 	for(int i=head[x]; ~i; i=bro[i]) {
@@ -93,8 +95,8 @@ inline void add_edge(int u,int v) {
 	head[u]=etop++;
 }
 int main() {
+//	freopen("4756.in","r",stdin);
 	int n=nextInt();
-	cout<<n<<endl;
 	size[0]=val[0]=0;
 	for(int i=1; i<=n; i++) {
 		val[i]=nextInt();
