@@ -1,6 +1,4 @@
-#include <iostream>
 #include <cstdio>
-#include <cstring>
 using namespace std;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
