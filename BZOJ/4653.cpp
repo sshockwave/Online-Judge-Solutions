@@ -22,20 +22,20 @@ inline void apmin(int &a,int b){
 }
 struct interval{
 	int l,r;
-	bool operator < (const interval &b){
-		return r-l<b.r-b.l;
-	}
 }inv[N];
+bool operator < (interval a,interval b){
+	return a.r-a.l<b.r-b.l;
+}
 struct point{
 	int x,*bln;
-	bool operator < (const point &b){
-		return x<b.x;
-	}
 }pt[N*2];
+bool operator < (point a,point b){
+	return a.x<b.x;
+}
 int lson[D],rson[D],lend[D],rend[D],mid[D],val[D],delta[D],ntop=0;
 int build(int l,int r){
 	int x=ntop++;
-	lend[x]=l,rend[x]=r,mid[x]=l+r>>1;
+	lend[x]=l,rend[x]=r,mid[x]=(l+r)>>1;
 	if(l==r){
 		return x;
 	}
