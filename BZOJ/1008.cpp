@@ -17,6 +17,5 @@ long long qpow(long long x,long long exp){
 int main(){
 	long long n,m;
 	scanf("%lld%lld",&m,&n);
-	m%=MOD,n%=MOD;
 	printf("%lld",((qpow(m,n)-m*qpow(m-1,n-1))%MOD+MOD)%MOD);
 }
