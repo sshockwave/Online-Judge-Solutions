@@ -42,8 +42,8 @@ void dfs2(int x){
 	}else{
 		top[x]=x;
 	}
-	if(son[x]){
-		dfs2(x);
+	if(~son[x]){
+		dfs2(son[x]);
 	}
 	for(int i=head[x];~i;i=bro[i]){
 		if(to[i]!=son[x]){
@@ -70,6 +70,7 @@ inline void push_down(int x){
 			sum[rson(x)]=rend[x]-mid[x];
 		}
 		mark[lson(x)]=mark[rson(x)]=true;
+		mark[x]=false;
 	}
 }
 inline void push_up(int x){
@@ -147,7 +148,7 @@ int main(){
 			printf("%d\n",cnt);
 		}else{
 			printf("%d\n",query(root,dfn[x],dfe[x]));
-			clear(x,dfn[x],dfe[x]);
+			clear(root,dfn[x],dfe[x]);
 		}
 	}
 }
