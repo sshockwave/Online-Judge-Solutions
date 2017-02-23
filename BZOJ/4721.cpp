@@ -44,6 +44,9 @@ int main(){
 		(*head)++;
 		cur+=delta;
 		if(i%t==0){
+			if(i!=t){
+				putchar(' ');
+			}
 			printf("%d",cur);
 		}
 		px=u*cur/v;
@@ -67,6 +70,9 @@ int main(){
 		}
 		(*head)++;
 		if(i%t==0){
+			if(i!=t){
+				putchar(' ');
+			}
 			printf("%d",cur+delta);
 		}
 	}
