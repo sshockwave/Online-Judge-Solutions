@@ -72,6 +72,7 @@ void alter(int x,int l,int r,int w){
 	push_up(x);
 }
 int main(){
+//	freopen("4653.in","r",stdin);
 	int n=next_int(),m=next_int(),maxx=-1,ans=INF;
 	for(int i=0;i<n;i++){
 		inv[i].l=next_int();
@@ -90,12 +91,12 @@ int main(){
 			last=pt[i].x;
 			maxx++;
 		}
-		*pt[i].bln=maxx;
+		*(pt[i].bln)=maxx;
 	}
 	memset(delta,0,sizeof(delta));
 	memset(val,0,sizeof(val));
 	int root=build(0,maxx);
-	for(int i=0,j=-1;j<n;i++){
+	for(int i=0,j=-1;i<n;i++){
 		while(val[root]<m){
 			if((++j)>=n){
 				break;
@@ -108,5 +109,5 @@ int main(){
 		apmin(ans,inv[j].r-inv[j].l-inv[i].r+inv[i].l);
 		alter(root,inv[i].l,inv[i].r,-1);
 	}
-	printf("%d",ans);
+	printf("%d",ans==INF?-1:ans);
 }
