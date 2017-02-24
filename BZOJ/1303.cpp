@@ -24,18 +24,18 @@ int main(){
 	}
 	memset(lexp,0,sizeof(lexp));
 	memset(rexp,0,sizeof(rexp));
-	for(int i=posb-1,sum=0;i>0;i--){
+	for(int i=posb,sum=0;i>0;i--){
 		if(num[i]<b){
 			sum--;
-		}else{
+		}else if(num[i]>b){
 			sum++;
 		}
 		lexp[sum+N]++;
 	}
-	for(int i=posb+1,sum=0;i<=n;i++){
+	for(int i=posb,sum=0;i<=n;i++){
 		if(num[i]<b){
 			sum--;
-		}else{
+		}else if(num[i]>b){
 			sum++;
 		}
 		rexp[sum+N]++;
