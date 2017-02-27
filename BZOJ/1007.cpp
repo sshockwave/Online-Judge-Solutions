@@ -16,10 +16,16 @@ inline int ni(){
 int k[N],b[N],rlist[N],stk[N],stop=0;
 bool vis[N];
 bool rlistcmp(int u,int v){
+	if(k[u]==k[v]){
+		return b[u]<b[v];
+	}
 	return k[u]<k[v];
 }
 inline bool omit(int x){
 	long long k1=k[stk[stop-2]],b1=b[stk[stop-2]],k2=k[stk[stop-1]],b2=b[stk[stop-1]],k3=k[x],b3=b[x];
+	if(k2==k3){
+		return true;
+	}
 	return b3*k2-k3*b2>=k1*(b3-b2)+b1*(k2-k3);
 }
 int main(){
