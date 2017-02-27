@@ -26,7 +26,7 @@ int prem(int n){
 	}
 	return ret;
 }
-int prep(int n){
+long long prep(int n){
 	if(n<N){
 		return prephi[n];
 	}
@@ -62,6 +62,6 @@ int main(){
 	}
 	for(int tot=ni(),n;tot--;){
 		n=ni();
-		printf("%d %d\n",prep(n),prem(n));
+		printf("%lld %d\n",prep(n),prem(n));
 	}
 }
