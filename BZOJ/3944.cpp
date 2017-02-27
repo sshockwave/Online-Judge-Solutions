@@ -15,7 +15,7 @@ inline int ni(){
 int phi[N],mu[N],prephi[N],premu[N],prime[N],ptop=0;
 bool np[N];
 int prem(int n){
-	if(n<10){
+	if(n<N){
 		return premu[n];
 	}
 	long long ret=1;
@@ -27,7 +27,7 @@ int prem(int n){
 	return ret;
 }
 int prep(int n){
-	if(n<10){
+	if(n<N){
 		return prephi[n];
 	}
 	long long ret=1ll*n*(n+1)/2;
