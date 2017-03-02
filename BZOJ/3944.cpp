@@ -13,12 +13,18 @@ inline int ni(){
 	for(;is_num(c);i=i*10-'0'+c,c=getchar());
 	return i;
 }
+inline long long nl(){
+	long long i=0;char c;
+	while(!is_num(c=getchar()));
+	for(;is_num(c);i=i*10-'0'+c,c=getchar());
+	return i;
+}
 int phi[N],mu[N],premu[N],prime[N],ptop=0;
 map<int,int>pm;
 map<int,long long>pp;
 long long prephi[N];
 bool np[N];
-int prem(int n){
+int prem(long long n){
 	if(n<N){
 		return premu[n];
 	}
@@ -26,8 +32,8 @@ int prem(int n){
 	if(it!=pm.end()){
 		return it->second;
 	}
-	int ret=1;
-	for(int i=2,l,r;i<=n;i++){
+	int ret=1,l,r;
+	for(long long i=2;i<=n;i++){
 		l=i,r=n/(n/l);
 		ret-=prem(n/i)*(r-l+1);
 		i=r;
@@ -35,7 +41,7 @@ int prem(int n){
 	pm[n]=ret;
 	return ret;
 }
-long long prep(int n){
+long long prep(long long n){
 	if(n<N){
 		return prephi[n];
 	}
@@ -44,7 +50,8 @@ long long prep(int n){
 		return it->second;
 	}
 	long long ret=1ll*n*(n+1)/2;
-	for(int i=2,l,r;i<=n;i++){
+	int l,r;
+	for(long long i=2;i<=n;i++){
 		l=i,r=n/(n/l);
 		ret-=prep(n/i)*(r-l+1);
 		i=r;
@@ -74,8 +81,8 @@ int main(){
 			}
 		}
 	}
-	for(int tot=ni(),n;tot--;){
-		n=ni();
+	for(int tot=ni();tot--;){
+		long long n=nl();
 		printf("%lld %d\n",prep(n),prem(n));
 	}
 }
