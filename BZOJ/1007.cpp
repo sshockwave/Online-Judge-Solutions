@@ -33,7 +33,9 @@ int main(){
 	}
 	sort(rlist+1,rlist+1+n,rlistcmp);
 	for(int i=1;i<=n;i++){
+		cout<<"Considering line y="<<k[rlist[i]]<<"x+"<<b[rlist[i]]<<endl;
 		while(stop>1&&omit(rlist[i])){
+			cout<<"Omitting line y="<<k[stk[stop-1]]<<"x+"<<b[stk[stop-1]]<<endl;
 			stop--;
 		}
 		stk[stop++]=rlist[i];
