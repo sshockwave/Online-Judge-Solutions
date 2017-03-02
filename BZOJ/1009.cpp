@@ -13,18 +13,18 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-int MOD,fail[M];
+int m,MOD,fail[M];
 char s[M];
 struct mat{
 	int num[M][M];
 	mat operator * (mat b){
 		mat ret;
-		for(int i=0;i<M;i++){
-			for(int j=0;j<M;j++){
+		for(int i=0;i<m;i++){
+			for(int j=0;j<m;j++){
 				int &F=ret.num[i][j];
 				F=0;
 				for(int k=0;k<M;k++){
-					(F+=(num[i][k]*b.num[k][j])%MOD)%=MOD;
+					(F+=num[i][k]*b.num[k][j])%=MOD;
 				}
 			}
 		}
@@ -43,8 +43,8 @@ mat transpow(int x){
 	return ret;
 }
 int main(){
-	int n=ni(),m=ni();
-	MOD=ni();
+	int n=ni();
+	m=ni(),MOD=ni();
 	scanf("%s",s+1);
 	fail[1]=0;
 	for(int i=1,j=0;s[i];){//[1,j)==[i-j+1,i),j<i
