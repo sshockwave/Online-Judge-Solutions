@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
+#include <cassert>
 #define N 4000000
 using namespace std;
 inline bool is_num(char c){
@@ -24,7 +25,7 @@ map<int,int>pm;
 map<int,long long>pp;
 long long prephi[N];
 bool np[N];
-int prem(long long n){
+int prem(int n){
 	if(n<N){
 		return premu[n];
 	}
@@ -33,7 +34,7 @@ int prem(long long n){
 		return it->second;
 	}
 	int ret=1,l,r;
-	for(long long i=2;i<=n;i++){
+	for(unsigned int i=2;i<=n;i++){
 		l=i,r=n/(n/l);
 		ret-=prem(n/i)*(r-l+1);
 		i=r;
@@ -41,7 +42,7 @@ int prem(long long n){
 	pm[n]=ret;
 	return ret;
 }
-long long prep(long long n){
+long long prep(int n){
 	if(n<N){
 		return prephi[n];
 	}
@@ -49,9 +50,9 @@ long long prep(long long n){
 	if(it!=pp.end()){
 		return it->second;
 	}
-	long long ret=1ll*n*(n+1)/2;
+	long long ret=(long long)n*((long long)n+1)/2;
 	int l,r;
-	for(long long i=2;i<=n;i++){
+	for(unsigned int i=2;i<=n;i++){
 		l=i,r=n/(n/l);
 		ret-=prep(n/i)*(r-l+1);
 		i=r;
@@ -81,8 +82,8 @@ int main(){
 			}
 		}
 	}
-	for(int tot=ni();tot--;){
-		long long n=nl();
+	for(int tot=ni(),n;tot--;){
+		n=ni();
 		printf("%lld %d\n",prep(n),prem(n));
 	}
 }
