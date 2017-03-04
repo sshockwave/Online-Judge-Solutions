@@ -13,10 +13,31 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-int c[N][N];//c[up][down]
+long long c[N][N];//c[up][down]
+struct bigint{
+	int digit[4000],dtop;
+	void operator *= (int b){
+		int r=0;
+		for(int i=0;i<dtop;i++){
+			digit[i]*=b;
+			digit[i]+=r;
+			r=digit[i]/10;
+			digit[i]%=10;
+		}
+		while(r){
+			digit[dtop++]=r%10;
+			r/=10;
+		}
+	}
+	void print(){
+		for(int i=dtop-1;i>=0;i--){
+			putchar(digit[i]+'0');
+		}
+	}
+}ans;
 int main(){
 	int n=ni(),cnt=0,rest;
-	long long ans=1;
+	ans.dtop=ans.digit[0]=1;
 	rest=n-2;
 	memset(c,0,sizeof(c));
 	for(int i=0;i<=n;i++){
@@ -41,8 +62,8 @@ int main(){
 			return 0;
 		}
 	}
-	for(int i=0;i<rest;i++){
+	while(rest--){
 		ans*=cnt;
 	}
-	printf("%d",ans);
+	ans.print();
 }
