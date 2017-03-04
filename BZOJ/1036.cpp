@@ -78,6 +78,7 @@ inline void push_up(int x){
 }
 void alter(int x,int i,int w){
 	if(lend[x]==rend[x]){
+		assert(lend[x]==i&&rend[x]==i);
 		mx[x]=sum[x]=w;
 		return;
 	}
@@ -90,6 +91,7 @@ void alter(int x,int i,int w){
 }
 typedef int(*joiner)(int,int);
 int ask(int x,int l,int r,int *val,joiner join){
+	assert(l<=r);
 	if(l==lend[x]&&r==rend[x]){
 		return val[x];
 	}
@@ -107,14 +109,15 @@ int join_mx(int a,int b){
 	return max(a,b);
 }
 int query(int u,int v,int *val,joiner join,int ans){
-	while(dep[u]!=dep[v]){
-		if(dep[u]<dep[v]){
+	while(top[u]!=top[v]){
+		if(dep[top[u]]<dep[top[v]]){
 			swap(u,v);
 		}
-		join(ans,ask(root,dfn[top[u]],dfn[u],val,join));
+		ans=join(ans,ask(root,dfn[top[u]],dfn[u],val,join));
+		u=fa[top[u]];
 	}
 	if(u==v){
-		return ans;
+		return join(ans,ask(root,dfn[u],dfn[v],val,join));
 	}
 	if(dep[u]<dep[v]){
 		swap(u,v);
