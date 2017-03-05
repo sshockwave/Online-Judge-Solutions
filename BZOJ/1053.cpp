@@ -13,35 +13,26 @@ inline int ni(){
 	return i;
 }
 struct state{
-	int ans;
-	long long cnt;
+	int num;
+	long long g;
 };
 inline void apmax(state &a,state b){
-	if(a.cnt<b.cnt||(a.cnt==b.cnt&&a.ans<b.ans)){
+	if(a.g<b.g||(a.g==b.g&&a.num<b.num)){
 		a=b;
 	}
 }
-int prime[]={2,3,5,7,11,13,17,19,23,29},n,exp[10];
-state dfs(long long cur){
-	state ret;
-	ret.ans=1;
-	ret.cnt=1;
-	if(cur*2>n){
-		ret.ans=cur;
-		for(int i=0;i<10;i++){
-			ret.cnt*=exp[i]+1;
-		}
-		return ret;
+int prime[]={2,3,5,7,11,13,17,19,23,29,31},n;
+state dfs(int p,long long cur,long long g){
+	if(p>10){
+		return (state){cur,g};
 	}
-	for(int i=0;i<10&&cur*prime[i]<=n;i++){
-		exp[i]++;
-		apmax(ret,dfs(cur*prime[i]));
-		exp[i]--;
+	state ret=(state){1,1};
+	for(int i=0;cur<=n;i++,cur*=prime[p]){
+		apmax(ret,dfs(p+1,cur,g*(i+1)));
 	}
 	return ret;
 }
 int main(){
 	n=ni();
-	memset(exp,0,sizeof(exp));
-	printf("%d",dfs(1).ans);
+	printf("%d",dfs(0,1,1).num);
 }
