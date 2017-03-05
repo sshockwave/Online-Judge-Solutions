@@ -15,8 +15,8 @@ inline int getans(int m,int n){
 }
 int main(){
 //	freopen("problem1.in","r",stdin);
-	freopen("problem.in","r",stdin);
-	freopen("problem.out","w",stdout);
+	freopen("1517.in","r",stdin);
+	freopen("1517.out","w",stdout);
 	int t,MOD,n,m;
 	scanf("%d%d",&t,&MOD);
 	memset(c,0,sizeof(c));
@@ -37,4 +37,5 @@ int main(){
 	}
 	fclose(stdin);
 	fclose(stdout);
+	return 0;
 }

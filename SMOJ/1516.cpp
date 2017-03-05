@@ -20,14 +20,14 @@ inline void apmin(double &a,double b){
 	}
 }
 int main(){
-	freopen("1516.in","r",stdin);
-	freopen("1516.out","w",stdout);
-	memset(dis,16,sizeof(dis));
+//	freopen("1516.in","r",stdin);
+//	freopen("1516.out","w",stdout);
+	memset(dis,127,sizeof(dis));
+	memset(f,127,sizeof(f));
 	int n,m,v,e,a,b,w;
 	scanf("%d%d%d%d",&n,&m,&v,&e);
 	for(int i=1;i<=n;i++){
 		scanf("%d",c+i);
-		dis[i][i]=0;
 	}
 	for(int i=1;i<=n;i++){
 		scanf("%d",d+i);
@@ -35,39 +35,46 @@ int main(){
 	for(int i=1;i<=n;i++){
 		scanf("%lf",k+i);
 	}
+	for(int i=1;i<=v;i++){
+		dis[i][i]=0;
+	} 
 	while(e--){
 		scanf("%d%d%d",&a,&b,&w);
 		apmin(dis[a][b],w);
 		apmin(dis[b][a],w);
 	}
-	for(int t=1;t<=n;t++){
-		for(int i=1;i<=n;i++){
-			for(int j=i+1;j<=n;j++){
+	for(int t=1;t<=v;t++){
+		for(int i=1;i<=v;i++){
+			for(int j=1;j<=v;j++){
 				apmin(dis[i][j],dis[i][t]+dis[t][j]);
-				dis[j][i]=dis[i][j];
 			}
 		}
 	}
-	for(int i=0;i<=m;i++){
-		f[1][i][0]=f[1][i][1]=0;
-	}
+	double d10,d01,d11;
+	f[1][0][0]=0;
+	f[1][1][1]=0;
 	for(int i=2,dcc,ddc,dcd,ddd;i<=n;i++){
 		dcc=dis[c[i-1]][c[i]];
 		ddc=dis[d[i-1]][c[i]];
 		dcd=dis[c[i-1]][d[i]];
 		ddd=dis[d[i-1]][d[i]];
-		f[i][m][0]=f[i-1][m][0]+dcc;
-		f[i][m][1]=INF;
-		for(int j=0;j<m;j++){
-			f[i][j][0]=min(f[i-1][j][0]+dcc,f[i-1][j][1]+k[i-1]*ddc+(1-k[i-1])*dcc);
-			f[i][j][1]=min(f[i-1][j+1][0]+k[i]*dcd+(1-k[i])*dcc,f[i-1][j+1][1]+k[i]*(k[i-1]*ddd+(1-k[i-1])*dcd)+(1-k[i])*(k[i-1]*ddc+(1-k[i-1])*dcc));
+		f[i][0][0]=f[i-1][0][0]+dcc;
+		cout<<"f["<<i<<"][0][0]="<<f[i][0][0]<<endl;
+		cout<<"f["<<i<<"][0][1]="<<f[i][0][1]<<endl;
+		d10=k[i-1]*ddc+(1-k[i-1])*dcc;
+		d01=k[i]*dcd+(1-k[i])*dcc;
+		d11=k[i-1]*(k[i]*ddd+(1-k[i])*ddc)+(1-k[i-1])*(k[i]*dcd+(1-k[i])*dcc);
+		for(int j=1;j<=m&&j<=i;j++){
+			f[i][j][0]=min(f[i-1][j][0]+dcc,f[i-1][j][1]+d10);
+			f[i][j][1]=min(f[i-1][j-1][0]+d01,f[i-1][j-1][1]+d11);
+			cout<<"f["<<i<<"]["<<j<<"][0]="<<f[i][j][0]<<endl;
+			cout<<"f["<<i<<"]["<<j<<"][1]="<<f[i][j][1]<<endl;
 		}
 	}
 	double ans=INF,cur;
-	for(int i=0;i<m;i++){
+	for(int i=0;i<=m;i++){
 		apmin(ans,min(f[n][i][0],f[n][i][1]));
 	}
-	apmin(ans,f[n][m][0]);
 	printf("%.2f",(double)round(ans*100)/100.0);
 	fclose(stdin);
 	fclose(stdout);
