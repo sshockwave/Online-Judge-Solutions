@@ -17,30 +17,26 @@ struct state{
 	long long cnt;
 };
 inline void apmax(state &a,state b){
-	if(a.cnt<b.cnt){
+	if(a.cnt<b.cnt||(a.cnt==b.cnt&&a.ans<b.ans)){
 		a=b;
 	}
 }
 int prime[]={2,3,5,7,11,13,17,19,23,29},n,exp[10];
 state dfs(long long cur){
 	state ret;
+	ret.ans=1;
 	ret.cnt=1;
 	if(cur*2>n){
 		ret.ans=cur;
-		for(int i=0;i<10&&exp[i];i++){
+		for(int i=0;i<10;i++){
 			ret.cnt*=exp[i]+1;
 		}
 		return ret;
 	}
-	for(int i=0;i<10;i++){
-		if(cur*prime[i]<=n){
-			exp[i]++;
-			apmax(ret,dfs(cur*prime[i]));
-			exp[i]--;
-		}
-		if(exp[i]==0){
-			break;
-		}
+	for(int i=0;i<10&&cur*prime[i]<=n;i++){
+		exp[i]++;
+		apmax(ret,dfs(cur*prime[i]));
+		exp[i]--;
 	}
 	return ret;
 }
