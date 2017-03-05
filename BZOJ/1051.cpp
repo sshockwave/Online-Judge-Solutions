@@ -61,7 +61,7 @@ int main(){
 		}
 	}
 	for(int i=1;i<=n;i++){
-		if(outd[i]==0){
+		if(bln[i]==i&&outd[i]==0){
 			cnt++;
 			last=ring[i];
 		}
