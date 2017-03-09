@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
-#define T 550
+#define T 10010
 #define D 18
 #define N 35
 using namespace std;
@@ -86,6 +86,12 @@ bigint operator * (bigint a,bigint b){
 		ans.digit[ans.dtop++]=r%10;
 		r/=10;
 	}
+	while(ans.dtop&&ans.digit[ans.dtop-1]==0){
+		ans.dtop--;
+	}
+	if(ans.dtop==0){
+		ans.dtop++;
+	}
 	return ans;
 }
 bigint operator * (bigint a,int b){
@@ -118,23 +124,24 @@ int main(){
 		f[0][i].set(1);
 		_f[0][i].set(1);
 	}
-	f[1][1].set(0);
-	for(int i=1;i<=n;i++){
-		f[1][1]+=c[i][n];
-	}
-	_f[1][1]=f[1][1];
-	_f[1][1]+=1;
+	f[1][0].set(1);
+	_f[1][0].set(1);
+	f[1][1].set(1);
+	_f[1][1].set(2);
 	for(int i=2;i<=n;i++){
-		f[1][i]=f[1][i-1]*f[1][1];
+		f[1][i].set(1);
 		_f[1][i]=_f[1][i-1]*_f[1][1];
 	}
+	cout<<"f[0]="<<f[0][1]<<endl;
+	cout<<"f[1]="<<f[1][1]<<endl;
 	for(int i=2;i<=d;i++){
 		f[i][0].set(1);
-		f[i][1].set(0);
 		_f[i][0].set(1);
+		f[i][1].set(0);
 		for(int j=1;j<=n;j++){
 			f[i][1]+=f[i-1][j]*_f[i-2][n-j]*c[j][n];
 		}
+		cout<<"f["<<i<<"]="<<f[i][1]<<endl;
 		_f[i][1]=f[i][1];
 		_f[i][1]+=_f[i-1][1];
 		for(int j=2;j<=n;j++){
