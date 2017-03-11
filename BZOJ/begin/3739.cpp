@@ -23,7 +23,7 @@ struct edge{
 	int u,v,c;
 }e[M];
 ostream & operator << (ostream & out,edge e){
-	printf("(%d,%d)",e.u,e.v);
+	printf("(%d,%d)[%d] ",e.u,e.v,e.c);
 	return out;
 }
 struct kruskal{
@@ -34,8 +34,11 @@ struct kruskal{
 		}
 		return x;
 	}
-	void uni(edge e){
+	bool uni(edge e){
 		int u=root(e.u),v=root(e.v);
+		if(u==v){
+			return false;
+		}
 		if(rank[u]>rank[v]){
 			swap(u,v);
 		}
@@ -43,6 +46,7 @@ struct kruskal{
 		if(rank[u]==rank[v]){
 			rank[v]++;
 		}
+		return true;
 	}
 	void join(int *sa,int *sb,int *ans){
 		memset(fa,0,sizeof(fa));
@@ -54,18 +58,16 @@ struct kruskal{
 			}else{
 				id=*(sb++);
 			}
-			if(root(e[id].u)!=root(e[id].v)){
+			if(uni(e[id])){
 				*(ans++)=id;
-				uni(e[id]);
 			}
 		}
 		if(*sb){
 			sa=sb;
 		}
 		for(;*sa;sa++){
-			if(root(e[*sa].u)!=root(e[*sa].v)){
+			if(uni(e[*sa])){
 				*(ans++)=*sa;
-				uni(e[id]);
 			}
 		}
 		*ans=0;
