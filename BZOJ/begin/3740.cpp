@@ -31,14 +31,15 @@ inline void apmin(int &a,int b){
 struct coor{
 	int x,y;
 };
-typedef comp complex<double>;
+typedef complex<double> comp;
+const double PI=acos(-1);
 int rev[D],n,m,len,lm,rm,um,dm,mx[4]={-1,0,1,0},my[4]={0,1,0,-1};
 bool vis[N][N];
 char mat[N][N];
 comp blk[D],ship[D];
 queue<coor>q;
 inline bool nz(comp a){
-	return (int)(a+EPS);
+	return (int)(a.real()+EPS);
 }
 inline void bitrev(int n){
 	for(int i=1;i<n;i++){
@@ -55,8 +56,12 @@ inline void bitrev(int n,comp *num){
 		}
 	}
 }
+inline comp unit(int n){
+	double angle=PI*2/n;
+	return comp(cos(angle),sin(angle));
+}
 inline void fft(int n,comp *num,int d){
-	bitrev(num);
+	bitrev(n,num);
 	for(int i=2,half;i<=n;i<<=1){
 		half=i>>1;
 		comp wn=unit(i*d),w=1,p,q;
@@ -91,7 +96,7 @@ inline void mul(comp *a,comp *b){
 	fft(len,a,-1);
 }
 int main(){
-	n=ni(),m=ni(),len=n*m*2,ans=0;
+	n=ni(),m=ni(),len=n*m*2;
 	lm=m,rm=0,um=n,dm=0;
 	for(int i=0;i<n;i++){
 		gets(mat[i]);
@@ -125,6 +130,7 @@ int main(){
 		}
 	}
 	mul(blk,ship);
+	int ans=0;
 	for(int i=0;i<n;i++){
 		if(nz(blk[i])){
 			ans++;
