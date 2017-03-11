@@ -5,7 +5,7 @@
 #include <complex>
 #include <cassert>
 #define L 50010
-#define D 150000
+#define D 140000
 using namespace std;
 inline void apmax(int &a,int b){
 	if(a<b){
@@ -67,7 +67,7 @@ inline int process(char *s,complex<double> *num){
 	return n;
 }
 int main(){
-	while(scanf("%s%s",s1,s2)){
+	while(scanf("%s%s",s1,s2)!=EOF){
 		memset(a,0,sizeof(a));
 		memset(b,0,sizeof(b));
 		int n=process(s1,a)+process(s2,b),shift=0,r=0;
