@@ -5,6 +5,10 @@
 #include <algorithm>
 #define M 100010
 #define N 110
+#define D (M*2)
+#define lson(x) son[x][0]
+#define rson(x) son[x][1]
+#define INF 0x7f7f7f7f
 using namespace std;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
@@ -17,49 +21,92 @@ inline int ni(){
 }
 struct edge{
 	int u,v,c;
-}e[M],cpy[M];
-bool operator < (edge a,edge b){
-	return a.c<b.c;
-}
-int fa[N],rank[N];
-int root(int x){
-	if(fa[x]){
-		return fa[x]=root(fa[x]);
+}e[M];
+struct kruskal{
+	int fa[N],rank[N];
+	int root(int x){
+		if(fa[x]){
+			return fa[x]=root(fa[x]);
+		}
+		return x;
 	}
-	return x;
-}
-inline void uni(int u,int v){
-	u=root(u),v=root(v);
-	if(rank[u]<rank[v]){
-		swap(u,v);
+	void uni(edge e){
+		int u=root(e.u),v=root(e.v);
+		if(rank[u]>rank[v]){
+			swap(u,v);
+		}
+		fa[u]=v;
+		if(rank[u]==rank[v]){
+			rank[v]++;
+		}
 	}
-	fa[v]=u;
-	if(rank[u]==rank[v]){
-		rank[u]++;
+	void join(int *sa,int *sb,int *ans){
+		memset(fa,0,sizeof(fa));
+		memset(rank,0,sizeof(rank));
+		int i=0,j=0,p=0,id;
+		while(sa[i]||sb[j]){
+			if(sa[i]&&e[sa[i]].c<e[sb[j]].c){
+				id=sa[i++];
+			}else{
+				id=sb[j++];
+			}
+			if(root(e[id].u)!=root(e[id].v)){
+				ans[p++]=id;
+				uni(e[id]);
+			}
+		}
+		ans[p]=0;
 	}
-}
+}kru;
+struct segtree{
+	int lend[D],rend[D],mid[D],son[D][2],seq[D][N],cal[M][N],root,ntop,ctop;
+	inline void init(){
+		memset(son,-1,sizeof(son));
+		ntop=ctop=0;
+	}
+	int build(int l,int r){
+		int x=ntop++;
+		lend[x]=l,rend[x]=r,mid[x]=(l+r)>>1;
+		if(l==r){
+			seq[x][0]=l;
+			seq[x][1]=0;
+			return x;
+		}
+		lson(x)=build(l,mid[x]);
+		rson(x)=build(mid[x]+1,r);
+		kru.join(seq[lson(x)],seq[rson(x)],seq[x]);
+		return x;
+	}
+	int* query(int x,int l,int r){
+		if(lend[x]==l&&rend[x]==r){
+			return seq[x];
+		}
+		if(r<=mid[x]){
+			return query(lson(x),l,r);
+		}
+		if(l>mid[x]){
+			return query(rson(x),l,r);
+		}
+		int *ret=cal[ctop++];
+		kru.join(query(lson(x),l,mid[x]),query(rson(x),mid[x]+1,r),ret);
+		return ret;
+	}
+}seg;
 int main(){
-	freopen("highway.in","r",stdin);
-	freopen("highway.out","w",stdout);
-	int n=ni(),m=ni(),tot=ni();
+	int n=ni(),m=ni(),tot=ni(),l,r,*seq,ans;
 	for(int i=1;i<=m;i++){
 		e[i].u=ni(),e[i].v=ni(),e[i].c=ni();
 	}
+	seg.init();
+	seg.root=seg.build(1,m);
 	while(tot--){
-		int l=ni(),r=ni();
-		for(int i=l;i<=r;i++){
-			cpy[i]=e[i];
+		l=ni(),r=ni();
+		seg.ctop=0;
+		seq=seg.query(seg.root,l,r);
+		ans=0;
+		for(int i=0;seq[i];i++){
+			ans+=e[seq[i]].c;
 		}
-		sort(cpy+l,cpy+r+1);
-		memset(fa,0,sizeof(fa));
-		memset(rank,0,sizeof(rank));
-		int cost=0;
-		for(int i=l;i<=r;i++){
-			if(root(cpy[i].u)!=root(cpy[i].v)){
-				uni(cpy[i].u,cpy[i].v);
-				cost+=cpy[i].c;
-			}
-		}
-		printf("%d\n",cost);
+		printf("%d\n",ans);
 	}
 }
