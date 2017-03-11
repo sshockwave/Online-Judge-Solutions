@@ -22,6 +22,10 @@ inline int ni(){
 struct edge{
 	int u,v,c;
 }e[M];
+ostream & operator << (ostream & out,edge e){
+	printf("(%d,%d)",e.u,e.v);
+	return out;
+}
 struct kruskal{
 	int fa[N],rank[N];
 	int root(int x){
@@ -43,19 +47,28 @@ struct kruskal{
 	void join(int *sa,int *sb,int *ans){
 		memset(fa,0,sizeof(fa));
 		memset(rank,0,sizeof(rank));
-		int i=0,j=0,p=0,id;
-		while(sa[i]||sb[j]){
-			if(sa[i]&&e[sa[i]].c<e[sb[j]].c){
-				id=sa[i++];
+		int id;
+		while((*sa)&&(*sb)){
+			if(e[*sa].c<e[*sb].c){
+				id=*(sa++);
 			}else{
-				id=sb[j++];
+				id=*(sb++);
 			}
 			if(root(e[id].u)!=root(e[id].v)){
-				ans[p++]=id;
+				*(ans++)=id;
 				uni(e[id]);
 			}
 		}
-		ans[p]=0;
+		if(*sb){
+			sa=sb;
+		}
+		for(;*sa;sa++){
+			if(root(e[*sa].u)!=root(e[*sa].v)){
+				*(ans++)=*sa;
+				uni(e[id]);
+			}
+		}
+		*ans=0;
 	}
 }kru;
 struct segtree{
