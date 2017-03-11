@@ -16,8 +16,8 @@ inline int ni(){
 }
 int w[K],f[K];
 int main(){
-	freopen("highway.in","r",stdin);
-	freopen("highway.out","w",stdout);
+	freopen("shopping.in","r",stdin);
+	freopen("shopping.out","w",stdout);
 	int n=ni(),m=ni(),k=ni();
 	for(int i=1;i<=m;i++){
 		w[i]=ni();
