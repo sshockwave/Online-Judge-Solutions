@@ -1,10 +1,13 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#include <cassert>
+#include <cmath>
+#include <complex>
 #include <queue>
-#include <ctime>
-#define M 710
+#include <cassert>
+#define N 710
+#define D 1048576
+#define EPS 1e-5
 using namespace std;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
@@ -15,73 +18,116 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
+inline void apmax(int &a,int b){
+	if(a<b){
+		a=b;
+	}
+}
+inline void apmin(int &a,int b){
+	if(a>b){
+		a=b;
+	}
+}
 struct coor{
 	int x,y;
-	coor(){
-	}
-	coor(int i,int j){
-		x=i,y=j;
-	}
-}ship[M*M];
-int mx[4]={-1,0,1,0},my[4]={0,1,0,-1},stat[M][M],stop=0;
-bool vis[M][M],reach[M][M];
-char mat[M][M];
+};
+typedef comp complex<double>;
+int rev[D],n,m,len,lm,rm,um,dm,mx[4]={-1,0,1,0},my[4]={0,1,0,-1};
+bool vis[N][N];
+char mat[N][N];
+comp blk[D],ship[D];
 queue<coor>q;
-inline int trans(int x){
-	return x+(M/2);
+inline bool nz(comp a){
+	return (int)(a+EPS);
+}
+inline void bitrev(int n){
+	for(int i=1;i<n;i++){
+		rev[i]=rev[i>>1]>>1;
+		if(i&1){
+			rev[i]|=n>>1;
+		}
+	}
+}
+inline void bitrev(int n,comp *num){
+	for(int i=0;i<n;i++){
+		if(i<rev[i]){
+			swap(num[i],num[rev[i]]);
+		}
+	}
+}
+inline void fft(int n,comp *num,int d){
+	bitrev(num);
+	for(int i=2,half;i<=n;i<<=1){
+		half=i>>1;
+		comp wn=unit(i*d),w=1,p,q;
+		for(int j=0;j<half;j++){
+			for(int k=j;k<n;k+=i){
+				p=num[k],q=w*num[k+half];
+				num[k]=p+q,num[k+half]=p-q;
+			}
+			w*=wn;
+		}
+	}
+	if(d==-1){
+		for(int i=0;i<n;i++){
+			num[i]/=n;
+		}
+	}
 }
 inline void push(int x,int y){
-	if(!vis[trans(x)][trans(y)]){
-		q.push(coor(x,y));
-		vis[trans(x)][trans(y)]=true;
+	int shift=(x+um)*m+y+lm;
+	if(x+um<0||x+dm>=n||y+lm<0||y+rm>=m||nz(blk[shift])||nz(ship[(len>>1)-1+m*x+y])){
+		return;
 	}
+	blk[shift]=1;
+	q.push((coor){x,y});
+}
+inline void mul(comp *a,comp *b){
+	fft(len,a,1);
+	fft(len,b,1);
+	for(int i=0;i<len;i++){
+		a[i]*=b[i];
+	}
+	fft(len,a,-1);
 }
 int main(){
-	freopen("sailing.in","r",stdin);
-	freopen("sailing.out","w",stdout);
-	int n=ni(),m=ni();
+	n=ni(),m=ni(),len=n*m*2,ans=0;
+	lm=m,rm=0,um=n,dm=0;
 	for(int i=0;i<n;i++){
 		gets(mat[i]);
-	}
-	memset(stat,0,sizeof(stat));
-	for(int i=0;i<n;i++){
+		comp *b=blk+i*n,*s=ship+i*n;
 		for(int j=0;j<m;j++){
-			if(mat[i][j]!='#'){
-				if(mat[i][j]=='o'){
-					ship[stop++]=coor(i,j);
-				}
-				for(int d=0,tx,ty;d<4;d++){
-					tx=i+mx[d],ty=j+my[d];
-					if(tx>=0&&tx<n&&ty>=0&&ty<m&&mat[tx][ty]!='#'){
-						stat[i][j]|=1<<d;
-					}
-				}
+			if(mat[i][j]=='o'){
+				s[j]=1;
+				apmin(lm,j),apmax(rm,j);
+				apmin(um,i),apmax(dm,i);
+			}else if(mat[i][j]=='#'){
+				b[j]=1;
 			}
 		}
 	}
+	int shift=0;
+	for(;(1<<shift)<len;shift++);
+	len=(1<<shift);
+	bitrev(len);
+	for(int i=0,j=(len>>1)-1;i<j;i++,j--){
+		swap(ship[i],ship[j]);
+	}
+	mul(ship,blk);
 	memset(vis,0,sizeof(vis));
-	memset(reach,0,sizeof(reach));
+	memset(blk,0,sizeof(blk));
 	push(0,0);
 	while(!q.empty()){
 		int x=q.front().x,y=q.front().y;
 		q.pop();
-		int ext=15;
-		for(int i=0;i<stop;i++){
-			reach[ship[i].x+x][ship[i].y+y]=true;
-			ext&=stat[ship[i].x+x][ship[i].y+y];
-		}
-		for(int d=0;d<4;d++){
-			if(ext&(1<<d)){
-				push(x+mx[d],y+my[d]);
-			}
+		for(int i=0;i<4;i++){
+			push(x+mx[i],y+my[i]);
 		}
 	}
-	int ans=0;
+	mul(blk,ship);
 	for(int i=0;i<n;i++){
-		for(int j=0;j<m;j++){
-			if(reach[i][j]){
-				ans++;
-			}
+		if(nz(blk[i])){
+			ans++;
 		}
 	}
 	printf("%d",ans);
