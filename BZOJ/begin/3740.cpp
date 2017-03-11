@@ -36,7 +36,7 @@ const double PI=acos(-1);
 int rev[D],n,m,len,lm,rm,um,dm,mx[4]={-1,0,1,0},my[4]={0,1,0,-1};
 bool vis[N][N];
 char mat[N][N];
-comp blk[D],ship[D];
+comp blk[D],ship[D],cross[D];
 queue<coor>q;
 inline bool nz(comp a){
 	return (int)(a.real()+EPS);
@@ -81,7 +81,7 @@ inline void fft(int n,comp *num,int d){
 }
 inline void push(int x,int y){
 	int shift=(x+um)*m+y+lm;
-	if(x+um<0||x+dm>=n||y+lm<0||y+rm>=m||nz(blk[shift])||nz(ship[(len>>1)-1+m*x+y])){
+	if(x+um<0||x+dm>=n||y+lm<0||y+rm>=m||nz(blk[shift])||nz(cross[(len>>1)-1+m*x+y])){
 		return;
 	}
 	blk[shift]=1;
@@ -100,7 +100,7 @@ int main(){
 	lm=m,rm=0,um=n,dm=0;
 	for(int i=0;i<n;i++){
 		gets(mat[i]);
-		comp *b=blk+i*n,*s=ship+i*n;
+		comp *b=blk+i*m,*s=ship+i*m;
 		for(int j=0;j<m;j++){
 			if(mat[i][j]=='o'){
 				s[j]=1;
@@ -118,7 +118,12 @@ int main(){
 	for(int i=0,j=(len>>1)-1;i<j;i++,j--){
 		swap(ship[i],ship[j]);
 	}
-	mul(ship,blk);
+	fft(len,ship,1);
+	fft(len,blk,1);
+	for(int i=0;i<len;i++){
+		cross[i]=ship[i]*blk[i];
+	}
+	fft(len,cross,-1);
 	memset(vis,0,sizeof(vis));
 	memset(blk,0,sizeof(blk));
 	push(0,0);
@@ -129,9 +134,13 @@ int main(){
 			push(x+mx[i],y+my[i]);
 		}
 	}
-	mul(blk,ship);
+	fft(len,blk,1);
+	for(int i=0;i<len;i++){
+		blk[i]*=ship[i];
+	}
+	fft(len,blk,-1);
 	int ans=0;
-	for(int i=0;i<n;i++){
+	for(int i=0;i<len;i++){
 		if(nz(blk[i])){
 			ans++;
 		}
