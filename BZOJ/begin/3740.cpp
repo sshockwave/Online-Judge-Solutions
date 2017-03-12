@@ -96,6 +96,8 @@ inline void mul(comp *a,comp *b){
 	fft(len,a,-1);
 }
 int main(){
+	freopen("3740.in","r",stdin);
+	freopen("3740.out","w",stdout);
 	n=ni(),m=ni(),len=n*m*2;
 	lm=m,rm=0,um=n,dm=0;
 	for(int i=0;i<n;i++){
@@ -114,6 +116,7 @@ int main(){
 	int shift=0;
 	for(;(1<<shift)<len;shift++);
 	len=(1<<shift);
+	cout<<"shifted:"<<len<<endl;
 	bitrev(len);
 	for(int i=0,j=(len>>1)-1;i<j;i++,j--){
 		swap(ship[i],ship[j]);
@@ -127,6 +130,7 @@ int main(){
 	memset(vis,0,sizeof(vis));
 	memset(blk,0,sizeof(blk));
 	push(0,0);
+	int cnt=0;
 	while(!q.empty()){
 		int x=q.front().x,y=q.front().y;
 		q.pop();
