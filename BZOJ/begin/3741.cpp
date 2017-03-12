@@ -4,6 +4,7 @@
 #include <cassert>
 #define M 300010
 #define N 155
+#define R 550
 using namespace std;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
@@ -27,61 +28,116 @@ inline void apmin(int &a,int b){
 struct edge{
 	int u,v;
 }e[M];
-int dfn[N],low[N],timer,bln[N],stk[N],stop=0,n,size[N];
-bool con[N][N],vis[N],instk[N];
-int tarjan(int x){
-	dfn[x]=low[x]=timer++;
-	stk[stop++]=x;
-	vis[x]=true;
-	instk[x]=true;
-	for(int i=1;i<=n;i++){
-		if(con[x][i]){
-			if(instk[i]){
-				apmin(low[x],low[i]);
-			}else if(!vis[i]){
-				apmin(low[x],tarjan(i));
+struct bit{
+	unsigned int digit[5];
+	inline void set(int x){
+		digit[x>>5]|=1u<<(x&31);
+	}
+	inline void flip(int x){
+		digit[x>>5]^=1u<<(x&31);
+	}
+	inline void setall(){
+		for(int i=0;i<5;i++){
+			digit[i]=0xffffffffu;
+		}
+	}
+	void operator |= (bit b){
+		for(int i=0;i<5;i++){
+			digit[i]|=b.digit[i];
+		}
+	}
+}nvis;
+struct con{
+	bit node[N];
+	void operator |= (con b){
+		for(int i=0;i<N;i++){
+			node[i]|=b.node[i];
+		}
+	}
+	inline void clearall(){
+		memset(node,0,sizeof(node));
+	}
+}st[R][12],res;
+bit operator | (bit a,bit b){
+	bit c;
+	for(int i=0;i<5;i++){
+		c.digit[i]=a.digit[i]|b.digit[i];
+	}
+	return c;
+}
+bit operator & (bit a,bit b){
+	bit c;
+	for(int i=0;i<5;i++){
+		c.digit[i]=a.digit[i]&b.digit[i];
+	}
+	return c;
+}
+con operator | (con a,con b){
+	con c;
+	for(int i=0;i<N;i++){
+		c.node[i]=a.node[i]|b.node[i];
+	}
+	return c;
+}
+int n,stk[N],stop=0;
+void dfs1(int x){
+	nvis.flip(x);
+	bit stat=nvis&res.node[x];
+	for(int i=0;i<5;i++){
+		if(stat.digit[i]){
+			for(int j=0;j<32;j++){
+				if(stat.digit[i]&(1<<j)){
+					dfs1((i<<5)|j);
+				}
 			}
 		}
 	}
-	if(dfn[x]==low[x]){
-		do{
-			stop--;
-			bln[stk[stop]]=x;
-			size[x]++;
-		}while(stk[stop]!=x);
-	}
-	instk[x]=false;
-	return low[x];
+	stk[stop++]=x;
+}
+void dfs2(){
+	
 }
 int main(){
-	freopen("friend.in","r",stdin);
-	freopen("friend.out","w",stdout);
 	n=ni();
 	int m=ni(),tot=ni();
-	for(int i=1;i<=m;i++){
+	for(int i=0;i<m;i++){//from 0 to m-1
 		e[i].u=ni(),e[i].v=ni();
+		st[i/R][0].node[e[i].u].set(e[i].v);
+	}
+	int bcnt=m/R+1;
+	for(int i=1;(1<<i)<bcnt;i++){
+		for(int j=0;j+(1<<i)<=bcnt;j++){
+			st[j][i]=st[j][i-1]|st[j+(1<<(i-1))][i-1];
+		}
 	}
 	while(tot--){
-		int l=ni(),r=ni(),ans=0;
-		memset(con,0,sizeof(con));
-		for(int i=l;i<=r;i++){
-			con[e[i].u][e[i].v]=true;
-		}
-		timer=0;
-		memset(vis,0,sizeof(vis));
-		memset(instk,0,sizeof(instk));
-		memset(size,0,sizeof(size));
-		for(int i=1;i<=n;i++){
-			if(!vis[i]){
-				tarjan(i);
+		int l=ni()-1,r=ni()-1,bl,br;
+		bl=l/R,br=r/R;
+		res.clearall();
+		if(bl==br){
+			for(int i=l;i<=r;i++){
+				res.node[e[i].u].set(e[i].v);
+			}
+		}else{
+			if(l%R){
+				bl++;
+				for(int i=l,top=bl*R;i<top;i++){
+					res.node[e[i].u].set(e[i].v);
+				}
+			}
+			if((r+1)%R){
+				br--;
+				for(int i=r/R*R,top;i<=r;i++){
+					res.node[e[i].u].set(e[i].v);
+				}
+			}
+			if(bl<=br){//st query
+				int i=0;
+				for(;bl+(1<<i)<=br;i++);
+				i--;
+				res|=st[bl][i]|st[br-(1<<i)+1][i];
 			}
 		}
-		for(int i=1;i<=n;i++){
-			if(bln[i]==i&&size[i]>1){
-				ans+=size[i]*(size[i]-1)/2;
-			}
-		}
-		printf("%d\n",ans);
+		nvis.setall();
 	}
-	return 0;
 }
