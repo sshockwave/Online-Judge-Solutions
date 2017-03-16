@@ -37,12 +37,12 @@ int main(){
 			f[j+c[i]]+=f[j];
 		}
 	}
-	ans=0;
 	for(int tot=ni();tot--;){
 		for(int i=0;i<4;i++){
 			d[i]=ni();
 		}
 		s=ni();
+		ans=0;
 		for(int i=0;i<16;i++){
 			ans+=getf(i);
 		}
