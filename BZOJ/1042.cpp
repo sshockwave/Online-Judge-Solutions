@@ -46,6 +46,6 @@ int main(){
 		for(int i=0;i<16;i++){
 			ans+=getf(i);
 		}
-		printf("%d\n",ans);
+		printf("%lld\n",ans);
 	}
 }
