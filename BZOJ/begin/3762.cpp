@@ -14,7 +14,7 @@ inline int ni(){
 }
 struct matrix{
 	int num[3][3];
-	int* operator [] (int x){
+	inline int* operator [] (int x){
 		return num[x];
 	}
 }trans,id,ans;
@@ -35,17 +35,7 @@ matrix operator * (matrix a,matrix b){
 	}
 	return c;
 }
-ostream & operator << (ostream & out,matrix a){
-	for(int i=0;i<3;i++){
-		for(int j=0;j<3;j++){
-			out<<a[i][j]<<" ";
-		}
-		out<<endl;
-	}
-	return out;
-}
 matrix tpow(int n){
-	cout<<"pow "<<n<<endl;
 	if(n==0){
 		return id;
 	}
@@ -54,11 +44,12 @@ matrix tpow(int n){
 	if(n&1){
 		ret=ret*trans;
 	}
-	cout<<"pow^"<<n<<":"<<endl<<ret;
 	return ret;
 }
 int main(){
-	int f0=ni(),f1=ni(),MOD=ni(),n=ni();
+	int f0=ni(),f1=ni(),n;
+	MOD=ni();
+	n=ni();
 	if(n==0){
 		printf("%d",f0%MOD);
 		return 0;
