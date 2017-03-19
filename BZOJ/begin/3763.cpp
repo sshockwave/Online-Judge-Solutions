@@ -119,4 +119,9 @@ int main(){
 			cap[pre[p]]+=flow,cap[pre[p]^1]-=flow;
 		}
 	}
+	if(totflow==sum){
+		printf("%d",cost);
+	}else{
+		puts("-1");
+	}
 }
