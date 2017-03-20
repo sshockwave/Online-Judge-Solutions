@@ -31,7 +31,7 @@ inline void add_edge(int u,int v,int c,int w,bool d=true){
 	val[etop]=w;
 	head[u]=etop++;
 	if(d){
-		add_edge(v,u,0,-w,0);
+		add_edge(v,u,0,-w,false);
 	}
 }
 int que[N],dis[N],pre[N],qhead,qtail;
@@ -66,10 +66,11 @@ inline void spfa(int s){
 		inque[x]=false;
 	}
 }
-int diff[N],add[N],minus[N],node[N];
+int diff[N],add[N],rmov[N],node[N];
 int main(){
 	int n=ni(),tot=ni(),s=new_node(),t=new_node(),sum=0;
-	for(int i=0,last=0;i<n;i++){//diff[i]=h[i+1]-h[i]
+	memset(head,-1,sizeof(head));
+	for(int i=0,last=-INF;i<n;i++){//diff[i]=h[i+1]-h[i]
 		diff[i]=ni()-last;
 		last+=diff[i];
 		node[i]=new_node();
@@ -83,7 +84,8 @@ int main(){
 	diff[n]=INF;
 	node[n]=new_node();
 	add_edge(node[n],t,diff[n],0);
-	memset(len,127,sizeof(len));
+	memset(add,127,sizeof(add));
+	memset(rmov,127,sizeof(rmov));
 	char op;
 	for(int i=0,cur;i<tot;i++){
 		while(op=getchar(),op!='+'&&op!='-');
@@ -91,19 +93,18 @@ int main(){
 		if(op=='+'){
 			apmin(add[cur],ni());
 		}else{
-			apmin(minus[cur],ni());
+			apmin(rmov[cur],ni());
 		}
 	}
-	memset(head,-1,sizeof(head));
 	for(int i=1;i<=n;i++){
 		if(add[i]!=INF){
 			for(int j=0;i+j<=n;j++){
 				add_edge(node[j],node[i+j],INF,add[i]);
 			}
 		}
-		if(minus[i]!=INF){
-			for(int j=0;j<=n;j++){
-				add_edge(node[i+j],node[j],INF,minus[i]);
+		if(rmov[i]!=INF){
+			for(int j=0;i+j<=n;j++){
+				add_edge(node[i+j],node[j],INF,rmov[i]);
 			}
 		}
 	}
