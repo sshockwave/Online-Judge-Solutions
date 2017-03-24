@@ -13,41 +13,36 @@ inline int ni(){
 	return i;
 }
 const int N=210;
-bool col[N];
+int n,linker[N];
+bool mat[N][N],vis[N];
+bool hung(int x){
+	for(int i=0;i<n;i++){
+		if(mat[x][i]&&!vis[i]){
+			vis[i]=true;
+			if(linker[i]==-1||hung(linker[i])){
+				linker[i]=x;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 int main(){
-	int n;
-	bool row,cur;
 	for(int tot=ni();tot--;){
-		memset(col,0,sizeof(col));
-		row=true;
 		n=ni();
 		for(int i=0;i<n;i++){
-			cur=false;
 			for(int j=0;j<n;j++){
-				if(ni()==1){
-					cur=true;
-					col[j]=true;
-				}
-			}
-			if(!cur){
-				row=false;
+				mat[i][j]=ni();
 			}
 		}
-		if(row){
-			row=false;
-			for(int i=0;i<n;i++){
-				if(!col[i]){
-					row=true;
-					break;
-				}
+		memset(linker,-1,sizeof(linker));
+		int cnt=0;
+		for(int i=0;i<n;i++){
+			memset(vis,0,sizeof(vis));
+			if(hung(i)){
+				cnt++;
 			}
-			if(row){
-				puts("No");
-			}else{
-				puts("Yes");
-			}
-		}else{
-			puts("No");
 		}
+		puts(n==cnt?"Yes":"No");
 	}
 }
