@@ -17,55 +17,46 @@ inline int ni(){
 	return i;
 }
 const int N=100010,L=300010,D=1700000;
-int ranking[N],start[N],last[N],n;
+int start[N],last[N],n;
 char pool[L],*s[N];
 struct SegmentTree{
 	#define lson(x) son[x][0]
 	#define rson(x) son[x][1]
 	int lend[D],rend[D],mid[D],son[D][2],sum[D],root[N],ntop;
 	SegmentTree(){
-		ntop=0;
-		root[0]=-1;
-		memset(son,-1,sizeof(son));
+		sum[0]=root[0]=0;
+		ntop=1;
+		memset(son,0,sizeof(son));
 	}
 	void alter(int &x,int l,int r,int p){
 		assert(l<=p&&p<=r);
-		if(x==-1){
-			x=ntop++;
-			sum[x]=1;
-			lend[x]=l,rend[x]=r,mid[x]=(l+r)>>1;
-			if(l==r){
-				return;
-			}
-		}else{
-			lson(ntop)=lson(x),rson(ntop)=rson(x);
-			sum[ntop]=sum[x]+1;
-			x=ntop++;
-			lend[x]=l,rend[x]=r,mid[x]=(l+r)>>1;
+		lson(ntop)=lson(x),rson(ntop)=rson(x);
+		sum[ntop]=sum[x]+1;
+		x=ntop++;
+		lend[x]=l,rend[x]=r,mid[x]=(l+r)>>1;
+		if(l==r){
+			return;
 		}
-		assert(l!=r);
 		if(p<=mid[x]){
 			alter(lson(x),l,mid[x],p);
 		}else{
 			alter(rson(x),mid[x]+1,r,p);
 		}
 	}
-	int ask_sum(int x,int l,int r){
-		assert(l<=r);
-		if(x==-1){
-			return 0;
+	int query(int x1,int x2,int k){
+		assert(x2);
+		assert(k<=rend[x2]-lend[x2]+1);
+		if(lend[x2]==rend[x2]){
+			assert(k==1);
+			return lend[x2];
 		}
-		assert(lend[x]<=l&&r<=rend[x]);
-		if(lend[x]==l&&rend[x]==r){
-			return sum[x];
+		int diff=sum[lson(x2)]-sum[lson(x1)];
+		assert(diff>=0);
+		if(diff>=k){
+			return query(lson(x1),lson(x2),k);
+		}else{
+			return query(rson(x1),rson(x2),k-diff);
 		}
-		if(r<=mid[x]){
-			return ask_sum(lson(x),l,r);
-		}
-		if(l>mid[x]){
-			return ask_sum(rson(x),l,r);
-		}
-		return ask_sum(lson(x),l,mid[x])+ask_sum(rson(x),mid[x]+1,r);
 	}
 }seg;
 struct Trie{
@@ -94,7 +85,8 @@ struct Trie{
 	void dfs(int x){
 		int st=dfn;
 		for(int i=head[x];~i;i=bro[i]){
-			ranking[to[i]]=dfn++;
+			seg.alter(seg.root[dfn]=seg.root[dfn-1],1,n,to[i]);
+			dfn++;
 		}
 		for(int i=0;i<26;i++){
 			if(~son[x][i]){
@@ -110,16 +102,7 @@ inline int work(int i,int k){
 	if(k<=0||last[i]-start[i]<k){
 		return -1;
 	}
-	int l=1,r=n,mid;
-	while(l<r){
-		mid=(l+r)>>1;
-		if(seg.ask_sum(seg.root[mid],start[i],last[i]-1)<k){
-			l=mid+1;
-		}else{
-			r=mid;
-		}
-	}
-	return l;
+	return seg.query(seg.root[start[i]-1],seg.root[last[i]-1],k);
 }
 int main(){
 	n=ni();
@@ -137,9 +120,6 @@ int main(){
 		trie.insert(0,s[i],i);
 	}
 	trie.dfs(0);
-	for(int i=1;i<=n;i++){
-		seg.alter(seg.root[i]=seg.root[i-1],1,n,ranking[i]);
-	}
 	for(int i=1;i<=n;i++){
 		printf("%d\n",work(i,ni()));
 	}
