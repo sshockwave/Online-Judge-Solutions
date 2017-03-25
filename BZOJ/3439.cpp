@@ -17,7 +17,7 @@ inline int ni(){
 	return i;
 }
 const int N=100010,L=300010,D=1700000;
-int rank[N],start[N],end[N],n;
+int ranking[N],start[N],last[N],n;
 char pool[L],*s[N];
 struct SegmentTree{
 	#define lson(x) son[x][0]
@@ -94,7 +94,7 @@ struct Trie{
 	void dfs(int x){
 		int st=dfn;
 		for(int i=head[x];~i;i=bro[i]){
-			rank[to[i]]=dfn++;
+			ranking[to[i]]=dfn++;
 		}
 		for(int i=0;i<26;i++){
 			if(~son[x][i]){
@@ -102,18 +102,18 @@ struct Trie{
 			}
 		}
 		for(int i=head[x];~i;i=bro[i]){
-			start[to[i]]=st,end[to[i]]=dfn;
+			start[to[i]]=st,last[to[i]]=dfn;
 		}
 	}
 }trie;
 inline int work(int i,int k){
-	if(k<=0||end[i]-start[i]<k){
+	if(k<=0||last[i]-start[i]<k){
 		return -1;
 	}
 	int l=1,r=n,mid;
 	while(l<r){
 		mid=(l+r)>>1;
-		if(seg.ask_sum(seg.root[mid],start[i],end[i]-1)<k){
+		if(seg.ask_sum(seg.root[mid],start[i],last[i]-1)<k){
 			l=mid+1;
 		}else{
 			r=mid;
@@ -138,9 +138,9 @@ int main(){
 	}
 	trie.dfs(0);
 	for(int i=1;i<=n;i++){
-		seg.alter(seg.root[i]=seg.root[i-1],1,n,rank[i]);
+		seg.alter(seg.root[i]=seg.root[i-1],1,n,ranking[i]);
 	}
-	for(int i=1,k;i<=n;i++){
+	for(int i=1;i<=n;i++){
 		printf("%d\n",work(i,ni()));
 	}
 }
