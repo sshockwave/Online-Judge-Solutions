@@ -108,7 +108,7 @@ inline int work(int i,int k){
 int main(){
 	n=ni();
 	char c;
-	for(int i=1,s;i<=n;i++){
+	for(int i=1;i<=n;i++){
 		scanf("%s",s);
 		trie.insert(i);
 	}
