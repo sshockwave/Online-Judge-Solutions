@@ -17,7 +17,7 @@ inline int ni(){
 	return i;
 }
 const int N=100010,L=300010,D=1700000;
-int rank[N],start[N],end[N];
+int rank[N],start[N],end[N],n;
 char pool[L],*s[N];
 struct SegmentTree{
 	#define lson(x) son[x][0]
@@ -25,7 +25,7 @@ struct SegmentTree{
 	int lend[D],rend[D],mid[D],son[D][2],sum[D],root[N],ntop;
 	SegmentTree(){
 		ntop=0;
-		memset(root,-1,sizeof(root));
+		root[0]=-1;
 		memset(son,-1,sizeof(son));
 	}
 	void alter(int &x,int l,int r,int p){
@@ -41,6 +41,7 @@ struct SegmentTree{
 			lson(ntop)=lson(x),rson(ntop)=rson(x);
 			sum[ntop]=sum[x]+1;
 			x=ntop++;
+			lend[x]=l,rend[x]=r,mid[x]=(l+r)>>1;
 		}
 		assert(l!=r);
 		if(p<=mid[x]){
@@ -68,7 +69,7 @@ struct SegmentTree{
 	}
 }seg;
 struct Trie{
-	int son[L][26],start[L],end[L],ntop,to[N],bro[N],head[L],etop,dfn;
+	int son[L][26],ntop,to[N],bro[N],head[L],etop,dfn;
 	Trie(){
 		memset(head,-1,sizeof(head));
 		memset(son,-1,sizeof(son));
@@ -85,7 +86,7 @@ struct Trie{
 			if(c==-1){
 				c=ntop++;
 			}
-			insert(c,s++,id);
+			insert(c,s+1,id);
 		}else{
 			add_edge(x,id);
 		}
@@ -106,7 +107,7 @@ struct Trie{
 	}
 }trie;
 inline int work(int i,int k){
-	if(end[i]-start[i]<k){
+	if(k<=0||end[i]-start[i]<k){
 		return -1;
 	}
 	int l=1,r=n,mid;
@@ -121,7 +122,7 @@ inline int work(int i,int k){
 	return l;
 }
 int main(){
-	int n=ni();
+	n=ni();
 	char c;
 	memset(pool,0,sizeof(pool));
 	for(int i=1,p=0;i<=n;i++){
@@ -137,7 +138,7 @@ int main(){
 	}
 	trie.dfs(0);
 	for(int i=1;i<=n;i++){
-		seg.alter(seg.root[i],1,n,rank[i]);
+		seg.alter(seg.root[i]=seg.root[i-1],1,n,rank[i]);
 	}
 	for(int i=1,k;i<=n;i++){
 		printf("%d\n",work(i,ni()));
