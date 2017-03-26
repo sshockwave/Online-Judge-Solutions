@@ -46,7 +46,7 @@ int main(){
 		int n=ni(),m=ni();
 		long long ans=0;
 		for(int l=1,r,top=min(m,n);l<=top;l=r+1){
-			r=min(top,top/(top/l));
+			r=min(top,min(n/(n/l),m/(m/l)));
 			ans+=(long long)(n/l)*(m/l)*(_lambda[r]-_lambda[l-1]);
 		}
 		printf("%lld\n",ans);
