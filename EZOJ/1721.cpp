@@ -13,12 +13,12 @@ inline int ni(){
 	return i;
 }
 const int N=10000010;
-int prime[N],ptop=0,mu[N],lambda[N];
+int prime[N],ptop=0,mu[N],lambda[N],_lambda[N];
 bool np[N];
 int main(){
 	memset(np,0,sizeof(np));
 	mu[1]=1;
-	lambda[1]=0;
+	lambda[1]=_lambda[0]=_lambda[1]=0;
 	for(int i=2;i<N;i++){
 		if(!np[i]){
 			prime[ptop++]=i;
@@ -40,12 +40,14 @@ int main(){
 				lambda[i*prime[j]]=mu[i]-lambda[i];
 			}
 		}
+		_lambda[i]=_lambda[i-1]+lambda[i];
 	}
 	for(int tot=ni();tot--;){
 		int n=ni(),m=ni();
 		long long ans=0;
-		for(int i=1,top=min(m,n);i<=top;i++){
-			ans+=(long long)(n/i)*(m/i)*lambda[i];
+		for(int l=1,r,top=min(m,n);l<=top;l=r+1){
+			r=min(top,top/(top/l));
+			ans+=(long long)(n/l)*(m/l)*(_lambda[r]-_lambda[l-1]);
 		}
 		printf("%lld\n",ans);
 	}
