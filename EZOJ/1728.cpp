@@ -14,11 +14,10 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int N=1<<17,SHIFT=17;//debug
-const double EPS=1e-8;
+const int N=1<<17,SHIFT=17;
 int rev[N],num[N];
 typedef complex<double> comp;
-comp a[N],b[N],c[N],ans[N];
+comp a[N],b[N],c[N];
 comp operator * (comp a,int b){
 	return comp(a.real()*b,a.imag()*b);
 }
@@ -69,11 +68,11 @@ int main(){
 	}
 	fft(a,1),fft(b,1),fft(c,1);
 	for(int i=0;i<N;i++){
-		ans[i]=a[i]+(a[i]*a[i]-b[i])/2+(a[i]*a[i]*a[i]-a[i]*b[i]*3+c[i]*2)/6;
+		a[i]=a[i]+(a[i]*a[i]-b[i])/2+(a[i]*a[i]*a[i]-a[i]*b[i]*3+c[i]*2)/6;
 	}
-	fft(ans,-1);
+	fft(a,-1);
 	for(int i=0,cur;i<N;i++){
-		cur=ans[i].real()+EPS;
+		cur=round(a[i].real());
 		if(cur){
 			printf("%d %d\n",i,cur);
 		}
