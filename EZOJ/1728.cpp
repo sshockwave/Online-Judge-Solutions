@@ -14,10 +14,17 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int N=131072,SHIFT=17;
-int rev[N];
+const int N=1<<17,SHIFT=17;//debug
+const double EPS=1e-8;
+int rev[N],num[N];
 typedef complex<double> comp;
-comp a[N];
+comp a[N],b[N],c[N],ans[N];
+comp operator * (comp a,int b){
+	return comp(a.real()*b,a.imag()*b);
+}
+comp operator / (comp a,int b){
+	return comp(a.real()/b,a.imag()/b);
+}
 inline void bit_rev(){
 	rev[0]=0;
 	for(int i=1;i<N;i++){
@@ -37,11 +44,11 @@ inline comp omega(int i,int n){
 }
 inline void fft(comp *a,int d){
 	bit_rev(a);
-	for(int i=1;i<SHIFT;i++){
-		int jmp=1<<i,half=jmp>>1;
+	for(int i=2;i<=N;i<<=1){
+		int half=i>>1;
 		for(int j=0;j<half;j++){
-			comp w=omega(d*j,jmp),p,q;
-			for(int k=j;k<N;k+=jmp){
+			comp w=omega(d*j,i),p,q;
+			for(int k=j;k<N;k+=i){
 				p=a[k],q=a[k+half]*w;
 				a[k]=p+q,a[k+half]=p-q;
 			}
@@ -49,27 +56,26 @@ inline void fft(comp *a,int d){
 	}
 	if(d==-1){
 		for(int i=0;i<N;i++){
-			a[i]/=n;
+			a[i]/=N;
 		}
 	}
 }
 int main(){
+	memset(num,0,sizeof(num));
 	bit_rev();
+	for(int tot=ni(),i;tot--;){
+		i=ni();
+		a[i]+=1,b[i<<1]+=1,c[i*3]+=1;
+	}
+	fft(a,1),fft(b,1),fft(c,1);
 	for(int i=0;i<N;i++){
-		a[i]=0;
+		ans[i]=a[i]+(a[i]*a[i]-b[i])/2+(a[i]*a[i]*a[i]-a[i]*b[i]*3+c[i]*2)/6;
 	}
-	for(int tot=ni();tot--;){
-		a[ni()]+=1;
-	}
-	fft(a,1);
-	for(int i=0;i<N;i++){
-		a[i]*=a[i];
-	}
-	fft(a,-1);
-	for(int i=0,j;i<N;i++){
-		j=round(a[i].real);
-		if(j){
-			printf("%d %d\n",i,j);
+	fft(ans,-1);
+	for(int i=0,cur;i<N;i++){
+		cur=ans[i].real()+EPS;
+		if(cur){
+			printf("%d %d\n",i,cur);
 		}
 	}
 }
