@@ -18,7 +18,7 @@ inline void apmin(long long &a,long long b){
 		a=b;
 	}
 }
-const int N=1010,E=22010;
+const int N=1010,E=24010;
 const long long INF=0x7f7f7f7f7f7f7f7fll;
 int to[E],bro[E],val[E],head[N],pre[N],etop=0,que[N];
 long long dis[N],cap[E];
