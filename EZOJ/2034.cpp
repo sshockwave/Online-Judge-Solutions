@@ -15,11 +15,6 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-inline void apmin(int &a,int b){
-	if(a>b){
-		a=b;
-	}
-}
 inline void apmin(long long &a,long long b){
 	if(a>b){
 		a=b;
@@ -73,9 +68,9 @@ inline int cal_len(char *s,char *t,int *len){
 inline void floyd(long long disa[N][N],long long disb[N][N],long long ndis[N][N]){
 	for(int k=1;k<=n;k++){
 		for(int i=1;i<=n;i++){
-			if(disa[i][k]<INF){
+			if(disa[i][k]<LINF){
 				for(int j=1;j<=n;j++){
-					if(disb[k][j]<INF){
+					if(disb[k][j]<LINF){
 						apmin(ndis[i][j],disa[i][k]+disb[k][j]);
 					}
 				}
