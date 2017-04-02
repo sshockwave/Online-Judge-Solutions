@@ -39,6 +39,7 @@ inline void add_edge(int u,int v){
 	}
 	to[etop]=v;
 	bro[etop]=head[u];
+	val[etop]=1;
 	head[u]=etop++;
 }
 int main(){
@@ -54,10 +55,10 @@ int main(){
 	}
 	memset(f,0,sizeof(f));
 	for(int x=1;x<=n;x++){
+		f[x]=f[x-1];
 		for(int i=head[x];~i;i=bro[i]){
 			apmax(f[x],f[to[i]-1]+min(val[i],x-to[i]+1));
 		}
-		apmax(ans,f[x]);
 	}
-	printf("%d",ans);
+	printf("%d",n-f[n]);
 }
