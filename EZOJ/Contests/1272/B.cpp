@@ -12,37 +12,74 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-inline void apmax(int &a,int b){
-	if(a<b){
-		a=b;
-	}
+const int N=100010;
+long long f[N][2][2];//f[i][len[i]-len[i-1]][len[i+1]-len[i]]
+char s[N];
+int bef[N],nf[N];
+inline void pr(int i,int j,int k,int w){
+	cout<<"("<<i<<","<<i-1<<")="<<i-1<<",("<<i<<","<<i<<")="<<i-1+j<<",("<<i<<","<<i+1<<")="<<i-1+j+k<<"     "<<w<<endl;
 }
-const int N=1010;
-int n,m,f[N][N];
-char s[N],t[N];
-inline int dfs(int i){
-	if(i>n){
-		return f[n][n]==n-1;
-	}
-	int ans=0,mx;
-	for(t[i]='a';t[i]<'a'+m;t[i]++){
-		mx=0;
-		for(int j=1;j<=n;j++){
-			if(s[i]==t[j]){
-				f[i][j]=f[i-1][j-1]+1;
-			}else{
-				f[i][j]=max(f[i-1][j],f[i][j-1]);
-			}
-			apmax(mx,f[i][j]);
-		}
-		if(mx>=i-1){
-			ans+=dfs(i+1);
+inline void dp(int i,char c,long long delta){
+	for(int t=i;t<=i+2;t++){
+		if(c==s[t]){
+			nf[t]=bef[t-1]+1;
+		}else{
+			nf[t]=max(nf[t-1],bef[t]);
 		}
 	}
-	return ans;
+	if(nf[i]<i){
+		return;
+	}
+	cout<<"\tChar=";
+	if(c){
+		cout<<c;
+	}else{
+		cout<<"E";
+	}
+	cout<<" Add to:";
+	pr(i+1,nf[i+1]-nf[i],nf[i+2]-nf[i+1],delta);
+	f[i+1][nf[i+1]-nf[i]][nf[i+2]-nf[i+1]]+=delta;
 }
 int main(){
-	n=ni(),m=ni();
+//	freopen("B.in","r",stdin);
+	int n=ni(),m=ni();
+	if(n==1){
+		printf("%d",m-1);
+		return 0;
+	}
 	scanf("%s",s+1);
-	printf("%d",dfs(1));
+	if(s[1]==s[2]){
+		f[1][0][0]=m-1;
+		f[1][0][1]=0;
+		f[1][1][0]=1;
+		f[1][1][1]=0;
+	}else{
+		f[1][0][0]=m-2;
+		f[1][0][1]=1;
+		f[1][1][0]=1;
+		f[1][1][1]=0;
+	}
+	for(int i=1;i<=n;i++){
+		for(int j=0;j<2;j++){
+			for(int k=0;k<2;k++){
+				if(f[i][j][k]==0){
+					continue;
+				}
+				pr(i,j,k,f[i][j][k]);
+				bef[i-1]=i-1,bef[i]=i-1+j,bef[i+1]=i-1+j+k,bef[i+2]=0;
+				nf[i-1]=0;
+				if(s[i-1]){
+					dp(i,s[i-1],f[i][j][k]);
+				}
+				if(s[i]!=s[i-1]){
+					dp(i,s[i],f[i][j][k]);
+				}
+				if(s[i+1]!=s[i]&&s[i+1]!=s[i-1]){
+					dp(i,s[i+1],f[i][j][k]);
+				}
+				dp(i,0,f[i][j][k]*max(0,m-(s[i-1]!=0)-(s[i]!=s[i-1])-(s[i+1]!=s[i-1]&&s[i+1]!=s[i])));
+			}
+		}
+	}
+	printf("%lld",f[n][0][0]+f[n][0][1]);
 }
