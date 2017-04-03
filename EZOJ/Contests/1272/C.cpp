@@ -85,7 +85,7 @@ int main(){
 		putchar(k?'0':'1');
 		return 0;
 	}
-	if(k<l){
+	if(l<k){
 		putchar('0');
 		return 0;
 	}
