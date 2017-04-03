@@ -12,37 +12,71 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int N=15,MOD=1000000007;
-int n,k,l,d[N],ans=0,fac[N];
-long long f[N];
-long long fpow(int x,int n){
+const int N=15,N2=200,MOD=1000000007;
+inline int add(int a,int b){
+	return (a+b)%MOD;
+}
+inline int mul(int a,int b){
+	return (long long)a*b%MOD;
+}
+inline int apadd(int &a,int b){
+	a=add(a,b);
+}
+inline int apmul(int &a,int b){
+	a=mul(a,b);
+}
+int n,k,l,num[N],lpow[N][N2],c[N][N],ans;//lpow:bigger than i
+int fpow(int x,int n){
 	if(n==0){
 		return 1;
 	}
-	long long ret=fpow(x,n>>1);
-	ret=ret*ret%MOD;
+	int ret=fpow(x,n>>1);
+	apmul(ret,ret);
 	if(n&1){
-		ret=ret*x&MOD;
+		apmul(ret,x);
 	}
 	return ret;
 }
-void dfs(int i){
-	if(d[i]>k||i==n){
-		long long mul=1,sing=l-k;
-		for(int j=2;j<=i&&mul&&sing;j++){
-			for(int k=1;k<j&&mul;k++){
-				mul=mul*max(0,l-(d[j]-d[k])+1)%MOD;
-			}
-			sing=sing*(l-(k-d[j]))%MOD;
+inline int cal(){
+	num[k]++;
+	int ret=1;
+	for(int i=1;i<=k+1;i++){
+		if(num[i]==0){
+			continue;
 		}
-		ans=(ans+mul*fpow(sing,n-i)%MOD*(fac[n]/fac[n-i])%MOD)%MOD;
-		if(i==n){
-			return;
+		apmul(ret,lpow[0][num[i]*(num[i]-1)/2]);
+		int cnt1=1,cnt2=1;
+		for(int j=0;j<i;j++){
+			if(num[j]){
+				apmul(cnt1,lpow[i-j-1][num[j]]);
+				apmul(cnt2,lpow[i-j][num[j]]);
+			}
+		}
+		if(i<k+1){
+			cnt1=(cnt1-cnt2+MOD)%MOD;
+		}
+		apmul(ret,fpow(cnt1,num[i]));
+	}
+	num[k]--;
+	int rest=n-2;
+	for(int i=1;i<=k;i++){
+		if(num[i]){
+			apmul(ret,c[rest][num[i]]);
+			rest-=num[i];
 		}
 	}
-	i++;
-	for(d[i]=max(d[i-1],k-l*(n-i));d[i]<=k+1&&d[i]-d[i-1]<=l;d[i]++){
-		dfs(i);
+	return ret;
+}
+void dfs(int pos,int rest){
+	if(pos==k+1){
+		if(rest==0){
+			apadd(ans,cal());
+		}
+		return;
+	}
+	pos++;
+	for(num[pos]=0;num[pos]<=rest;num[pos]++){
+		dfs(pos,rest-num[pos]);
 	}
 }
 int main(){
@@ -55,11 +89,21 @@ int main(){
 		putchar('0');
 		return 0;
 	}
-	fac[0]=1;
-	for(int i=1;i<=n;i++){
-		fac[i]=fac[i-1]*i;
+	memset(lpow,0,sizeof(lpow));
+	memset(c,0,sizeof(c));
+	c[0][0]=1;
+	for(int i=0;i<=n&&i<l;i++){
+		lpow[i][0]=1;
+		for(int j=1;j<N2;j++){
+			lpow[i][j]=mul(lpow[i][j-1],l-i);
+		}
+		c[i][0]=1;
+		for(int j=1;j<=i;j++){
+			c[i][j]=c[i-1][j-1]+c[i-1][j];
+		}
 	}
-	d[1]=0;
-	dfs(1);
-	printf("%lld",ans);
+	num[0]=1;
+	ans=0;
+	dfs(0,n-2);
+	printf("%d",ans);
 }
