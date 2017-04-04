@@ -117,18 +117,17 @@ int main(){
 		for(int j=i+1;j<=n;j++){
 			f[i][j]=1;
 		}
-		for(int j=i,u;j<=n;j++){
+		for(int j=1,u;j<=n;j++){
 			u=rlist[i][j];
 			if(u<i){
 				break;
 			}
 			for(int k=1,mx=0,v;k<=n;k++){
 				v=rlist[u][k];
-				if(v<i){
-					break;
-				}
 				mx=f[u][v]=max(mx,f[u][v]);
-				apmax(f[v][head[u][v]],mx+1);
+				if(head[u][v]){
+					apmax(f[v][head[u][v]],mx+1);
+				}
 			}
 		}
 		for(int j=i+1;j<=n;j++){
