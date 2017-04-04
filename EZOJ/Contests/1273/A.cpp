@@ -26,7 +26,7 @@ inline void apmin(int &a,int b){
 		a=b;
 	}
 }
-const int N=100010,M=110;
+const int N=100010,M=110,INF=0x7f7f7f7f;
 int a[N],b[N];
 long long _a[N],_b[N],_ab[N];
 inline void input(int n,int *num,long long *pre,int &mx){
@@ -43,15 +43,14 @@ inline int paint(int n,int mx,int steps){
 		for(jmpa[i]=jmpa[i-1];_a[i]-_a[jmpa[i]]>mx;jmpa[i]++);
 		for(jmpb[i]=jmpb[i-1];_b[i]-_b[jmpb[i]]>mx;jmpb[i]++);
 		for(jmpab[i]=jmpab[i-1];_ab[i]-_ab[jmpab[i]]>mx;jmpab[i]++);
-		f[i]=(i==jmpab[i]?N:(f[jmpab[i]]+1));
+		f[i]=(i==jmpab[i]?INF:(f[jmpab[i]]+1));
 		for(int j=1,pa=i,pb=i;j<=steps&&(pa||pb);j++){
 			if(pa&&jmpa[pa]>=jmpb[pb]){
-				apmin(f[i],f[jmpa[pa]]+j+(pa>=pb&&jmpa[pa]<pb));
 				pa=jmpa[pa];
 			}else{
-				apmin(f[i],f[jmpb[pb]]+j+(pb>=pa&&jmpb[pb]<pa));
 				pb=jmpb[pb];
 			}
+			apmin(f[i],f[max(pa,pb)]+j+(pa!=pb));
 		}
 	}
 	return f[n];
