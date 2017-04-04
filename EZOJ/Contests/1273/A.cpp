@@ -13,9 +13,6 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-inline int abs(int a){
-	return a>0?a:-a;
-}
 inline void apmax(int &a,int b){
 	if(a<b){
 		a=b;
@@ -26,51 +23,58 @@ inline void apmin(int &a,int b){
 		a=b;
 	}
 }
+inline int abs(int a){
+	return a>0?a:-a;
+}
 const int N=100010,M=110,INF=0x7f7f7f7f;
-int a[N],b[N];
-long long _a[N],_b[N],_ab[N];
-inline void input(int n,int *num,long long *pre,int &mx){
-	num[0]=pre[0]=0;
+long long a[N],b[N],c[N];
+inline void input(int n,long long *num,int &mx){
+	num[0]=0;
 	for(int i=1;i<=n;i++){
 		num[i]=ni();
 		apmax(mx,num[i]);
-		pre[i]=pre[i-1]+num[i];
 	}
 }
-int f[N],jmpa[N],jmpb[N],jmpab[N];
+int f[N],jmpa[N],jmpb[N],jmpc[N];
 inline int paint(int n,int mx,int steps){
 	for(int i=1;i<=n;i++){
-		for(jmpa[i]=jmpa[i-1];_a[i]-_a[jmpa[i]]>mx;jmpa[i]++);
-		for(jmpb[i]=jmpb[i-1];_b[i]-_b[jmpb[i]]>mx;jmpb[i]++);
-		for(jmpab[i]=jmpab[i-1];_ab[i]-_ab[jmpab[i]]>mx;jmpab[i]++);
-		f[i]=(i==jmpab[i]?INF:(f[jmpab[i]]+1));
-		for(int j=1,pa=i,pb=i;j<=steps&&(pa||pb);j++){
-			if(pa&&jmpa[pa]>=jmpb[pb]){
+		#define getjmp(x,jmpx) for(jmpx[i]=jmpx[i-1];x[i]-x[jmpx[i]]>mx;jmpx[i]++)
+		getjmp(a,jmpa);getjmp(b,jmpb);getjmp(c,jmpc);
+		f[i]=(i==jmpc[i]?INF:(f[jmpc[i]]+1));
+		for(int j=1,pa=i,pb=i;j<=steps;j++){
+			if(pa>pb){
 				pa=jmpa[pa];
 			}else{
 				pb=jmpb[pb];
 			}
-			apmin(f[i],f[max(pa,pb)]+j+(pa!=pb));
+			apmin(f[i],f[max(pa,pb)]+j);
+			if(pa==pb){
+				break;
+			}
+		}
+		if(f[i]>steps){
+			return false;
 		}
 	}
-	return f[n];
+	return f[n]<=steps;
 }
 int main(){
-	freopen("A.in","r",stdin);
 	int n=ni(),m=ni(),mx=0;
 	long long sum=0;
-	input(n,a,_a,mx),input(n,b,_b,mx);
-	f[0]=_ab[0]=jmpa[0]=jmpb[0]=jmpab[0]=0;
+	input(n,a,mx),input(n,b,mx);
+	f[0]=a[0]=b[0]=c[0]=jmpa[0]=jmpb[0]=jmpc[0]=0;
 	for(int i=1;i<=n;i++){
-		_ab[i]=_a[i]+_b[i];
+		a[i]+=a[i-1];
+		b[i]+=b[i-1];
+		c[i]=a[i]+b[i];
 	}
-	long long l=mx,r=_ab[n],mid;
+	long long l=mx,r=c[n],mid;
 	while(l<r){
 		mid=(l+r)>>1;
-		if(paint(n,mid,m)>m){
-			l=mid+1;
-		}else{
+		if(paint(n,mid,m)){
 			r=mid;
+		}else{
+			l=mid+1;
 		}
 	}
 	printf("%lld",l);
