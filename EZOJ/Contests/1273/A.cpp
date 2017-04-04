@@ -27,34 +27,30 @@ inline void apmin(int &a,int b){
 	}
 }
 const int N=100010,M=110;
-int a[N],b[N],mx=0,absmx=0;
-inline void input(int n,int *num){
+int a[N],b[N];
+long long _a[N],_b[N],_ab[N];
+inline void input(int n,int *num,long long *pre,int &mx){
+	num[0]=pre[0]=0;
 	for(int i=1;i<=n;i++){
-		scanf("%d",num+i);
+		num[i]=ni();
 		apmax(mx,num[i]);
-		apmax(absmx,abs(num[i]));
+		pre[i]=pre[i-1]+num[i];
 	}
 }
-int f[N],nxta[N],nxtb[N],nxtab[N];
-inline int paint(int n,long long mx){
-	long long suma=a[1],sumb=b[1],sumab=a[1]+b[1];
+int f[N],jmpa[N],jmpb[N],jmpab[N];
+inline int paint(int n,int mx,int steps){
 	for(int i=1;i<=n;i++){
-		for(nxta[i]=nxta[i-1];nxta[i]<=n&&suma<=mx;nxta[i]++,suma+=a[nxta[i]]);
-		for(nxtb[i]=nxtb[i-1];nxtb[i]<=n&&sumb<=mx;nxtb[i]++,sumb+=a[nxtb[i]]);
-		for(nxtab[i]=nxtab[i-1];nxtab[i]<=n&&sumab<=mx;nxtab[i]++,sumab+=a[nxtab[i]]+b[nxtab[i]]);
-		suma-=a[i],sumb-=b[i],sumab-=a[i]+b[i];
-	}
-	memset(f,127,sizeof(f));
-	f[0]=0;
-	for(int i=0;i<n;i++){
-		apmin(f[nxtab[i]-1],f[i]+1);
-		for(int ca=1,cb=1,pa=nxta[i+1],pb=nxtb[i+1];pa<=n||pb<=n;){
-			if(pa<pb){
-				apmin(f[pa-1],f[i]+ca+cb);
-				ca++,pa=nxta[pa];
+		for(jmpa[i]=jmpa[i-1];_a[i]-_a[jmpa[i]]>mx;jmpa[i]++);
+		for(jmpb[i]=jmpb[i-1];_b[i]-_b[jmpb[i]]>mx;jmpb[i]++);
+		for(jmpab[i]=jmpab[i-1];_ab[i]-_ab[jmpab[i]]>mx;jmpab[i]++);
+		f[i]=(i==jmpab[i]?N:(f[jmpab[i]]+1));
+		for(int j=1,pa=i,pb=i;j<=steps&&(pa||pb);j++){
+			if(pa&&jmpa[pa]>=jmpb[pb]){
+				apmin(f[i],f[jmpa[pa]]+j+(pa>=pb&&jmpa[pa]<pb));
+				pa=jmpa[pa];
 			}else{
-				apmin(f[pb-1],f[i]+ca+cb);
-				cb++,pb=nxtb[pb];
+				apmin(f[i],f[jmpb[pb]]+j+(pb>=pa&&jmpb[pb]<pa));
+				pb=jmpb[pb];
 			}
 		}
 	}
@@ -62,14 +58,17 @@ inline int paint(int n,long long mx){
 }
 int main(){
 	freopen("A.in","r",stdin);
-	int n=ni(),m=ni();
-	nxta[0]=nxtb[0]=nxtab[0]=1;
-	input(n,a),input(n,b);
-	long long l=mx,r=absmx*n,mid;
+	int n=ni(),m=ni(),mx=0;
+	long long sum=0;
+	input(n,a,_a,mx),input(n,b,_b,mx);
+	f[0]=_ab[0]=jmpa[0]=jmpb[0]=jmpab[0]=0;
+	for(int i=1;i<=n;i++){
+		_ab[i]=_a[i]+_b[i];
+	}
+	long long l=mx,r=_ab[n],mid;
 	while(l<r){
 		mid=(l+r)>>1;
-		cout<<"("<<l<<","<<mid<<","<<r<<")"<<endl;
-		if(paint(n,mid)>m){
+		if(paint(n,mid,m)>m){
 			l=mid+1;
 		}else{
 			r=mid;
