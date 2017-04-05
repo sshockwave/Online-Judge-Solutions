@@ -60,6 +60,9 @@ struct Info{
 		}
 		return c;
 	}
+	inline bool contain(int x){
+		return high+delta>=x&&low+delta<=x;
+	}
 };
 struct Segtree{
 	#define lson(x) son[x][0]
@@ -91,10 +94,16 @@ struct Segtree{
 			info[x]=info[lson(x)]+info[rson(x)];
 		}
 	}
-	inline int test(int x){
-		return x+info[segroot];
-	}
 }seg;
+inline int cal(int v2){
+	Info &F=seg.info[segroot];
+	assert(F.contain(v2));
+	v2-=F.delta;
+	if(v2==F.high){
+		return mxVal;
+	}
+	return v2;
+}
 int main(){
 	n=ni(),mxVal=ni();
 	int goal=ni();
@@ -102,13 +111,25 @@ int main(){
 	for(int i=1;i<=n;i++){
 		char c;
 		while(c=getchar(),c!='+'&&c!='-');
-		op[i]=(Operation){i,c=='+'?1:-1,ni()-op[i-1].t};
+		op[i]=(Operation){i,c=='+'?1:-1,ni()};
+	}
+	for(int i=n;i>0;i--){
+		op[i].t-=op[i-1].t;
 	}
 	segroot=seg.build();
 	sort(op+1,op+n+1,opcmp);
-	for(int i=1;i<=n;){
-		for(int t=op[i].t;t==op[i].t;i++){
+	Info &F=seg.info[segroot]; 
+	if(F.contain(goal)){
+		puts("infinity");
+		return 0;
+	}
+	for(int i=1,t;i<=n;){
+		for(t=op[i].t;i<=n&&t==op[i].t;i++){
 			seg.reset(segroot,op[i].i);
+		}
+		if(F.contain(goal)){
+			printf("%d %d",t-1,cal(goal));
+			return 0;
 		}
 	}
 }
