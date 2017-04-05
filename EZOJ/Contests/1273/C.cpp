@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <algorithm>
+#define assert
 using namespace std;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
@@ -55,8 +56,8 @@ struct Info{
 		c.low=max(a.low,b.low-a.delta);
 		if(c.high<c.low){
 			c.high=c.low=0;
-			assert(a.low+b==a.high+b);
-			c.delta=a.low+b;
+			assert(a.low+a.delta+b==a.high+a.delta+b);
+			c.delta=a.low+a.delta+b;
 		}
 		return c;
 	}
@@ -118,7 +119,7 @@ int main(){
 	}
 	segroot=seg.build();
 	sort(op+1,op+n+1,opcmp);
-	Info &F=seg.info[segroot]; 
+	Info &F=seg.info[segroot];
 	if(F.contain(goal)){
 		puts("infinity");
 		return 0;
