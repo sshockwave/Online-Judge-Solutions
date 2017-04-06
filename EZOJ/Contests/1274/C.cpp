@@ -40,8 +40,8 @@ void dfs(int x){
 		}
 	}
 }
-int que[N],dis[N];
-inline void bfs(int t){
+int que[N],dis[N],s=0,t;
+inline void bfs(){
 	int qhead=0,qtail=0;
 	memset(dis,-1,sizeof(dis));
 	que[qtail++]=t;
@@ -59,6 +59,9 @@ inline void bfs(int t){
 }
 int cur[N];
 int aug(int x,int alloc){
+	if(x==t){
+		return alloc;
+	}
 	int rest=alloc,delta;
 	if(cur[x]==INF){
 		cur[x]=hf[x];
@@ -81,47 +84,55 @@ int main(){
 	for(int tot=ni();tot--;){
 		int n=ni(),sum=0,ans=0;
 		for(int i=1;i<=n;i++){
-			scanf("%d",pval+1);
+			scanf("%d",pval+i);
 			if(pval[i]>0){
 				sum+=pval[i];
 			}
 		}
 		etop=0;
-		memset(h1,0,sizeof(h1));
-		for(int i=1,u,v;i<=n;i++){
+		memset(h1,-1,sizeof(h1));
+		for(int i=1,u,v;i<n;i++){
 			u=ni(),v=ni();
 			add_edge(u,v,h1);
 			add_edge(v,u,h1);
 		}
-		for(int i=1,u,v;i<=n;i++){
+		memset(h2,-1,sizeof(h2));
+		for(int i=1,u,v;i<n;i++){
 			u=ni(),v=ni();
 			add_edge(u,v,h2);
 			add_edge(v,u,h2);
 		}
-		int s=0,t=n+1,last=etop;
+		int last=etop;
+		t=n+1;
 		for(int i=1;i<=n;i++){
 			etop=last;
+			memset(hf,-1,sizeof(hf));
 			for(int j=1;j<=n;j++){
 				if(pval[j]>0){
 					add_edge(s,j,pval[j]);
+					add_edge(j,s,0);
 				}else if(pval[j]<0){
 					add_edge(j,t,-pval[j]);
+					add_edge(t,j,0);
 				}
 			}
-			fa[i]=0,head=h1,dfs(i);
+			fa[i]=0;
+			head=h1,dfs(i);
 			for(int j=1;j<=n;j++){
 				if(j!=i){
 					add_edge(j,fa[j],INF);
+					add_edge(fa[j],j,0);
 				}
 			}
-			fa[i]=0,head=h2,dfs(i);
+			head=h2,dfs(i);
 			for(int j=1;j<=n;j++){
 				if(j!=i){
 					add_edge(j,fa[j],INF);
+					add_edge(fa[j],j,0);
 				}
 			}
 			int flow=0;
-			while(bfs(t),~dis[s]){
+			while(bfs(),~dis[s]){
 				memset(cur,127,sizeof(int)*(n+2));
 				flow+=aug(s,INF);
 			}
