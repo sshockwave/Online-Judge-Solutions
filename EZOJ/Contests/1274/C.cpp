@@ -18,6 +18,7 @@ inline int apmax(int &a,int b){
 	}
 }
 const int N=110,E=N*2,INF=0x7f7f7f7f;
+int pval[N];
 struct Graph{
 	int to[E],bro[E],head[N],etop;
 	inline void reset(){
@@ -36,6 +37,17 @@ struct MaxFlow:Graph{
 			add_edge(v,u,0,0);
 		}
 	}
+	inline void build(int n){
+		memset(head,-1,sizeof(head));
+		etop=0;
+		for(int i=1;i<=n;i++){
+			if(pval[i]>0){
+				add_edge(s,i,pval[i],true);
+			}else if(pval[i]<0){
+				add_edge(i,t,-pval[i],true);
+			}
+		}
+	}
 	inline void bfs(){
 		int qhead=0,qtail=0;
 		memset(dis,-1,sizeof(dis));
@@ -45,7 +57,7 @@ struct MaxFlow:Graph{
 			int x=que[qhead++];
 			for(int i=head[x],v;~i;i=bro[i]){
 				v=to[i];
-				if(cap[i]&&dis[v]==-1){
+				if(cap[i^1]&&dis[v]==-1){
 					dis[v]=dis[x]+1;
 					que[qtail++]=v;
 				}
@@ -60,9 +72,10 @@ struct MaxFlow:Graph{
 		if(cur[x]==INF){
 			cur[x]=head[x];
 		}
-		for(int &i=cur[x],v;~i;i=bro[x]){
-			if(cap[i]){
-				if(delta=dfs(to[i],min(alloc,cap[i]))){
+		for(int &i=cur[x],v;~i;i=bro[i]){
+			v=to[i];
+			if(cap[i]&&dis[v]+1==dis[x]){
+				if(delta=dfs(v,min(alloc,cap[i]))){
 					cap[i]-=delta,cap[i^1]+=delta;
 					alloc-=delta,flow+=delta;
 				}
@@ -72,10 +85,10 @@ struct MaxFlow:Graph{
 	}
 	inline int dinic(){
 		int flow=0;
-		while(memset(cur,127,sizeof(cur)),bfs(),~dis[s]){
+		while(bfs(),memset(cur,127,sizeof(cur)),~dis[s]){
 			flow+=dfs(s,INF);
 		}
-		return sum;
+		return flow;
 	}
 }mf;
 struct Tree:Graph{
@@ -93,8 +106,8 @@ struct Tree:Graph{
 			v=to[i];
 			if(v!=fa[x]){
 				fa[v]=x;
-				mf.add_edge(v,x,INF,true);
 				dfs(v);
+				mf.add_edge(v,x,INF,true);
 			}
 		}
 	}
@@ -104,24 +117,20 @@ int main(){
 		t1.reset(),t2.reset(),mf.reset();
 		int n=ni(),mx=0,ans=0;
 		mf.s=0,mf.t=n+1;
-		for(int i=1,w;i<=n;i++){
-			scanf("%d",&w);
-			if(w>0){
-				mx+=w;
-				mf.add_edge(mf.s,i,w,true);
-			}else if(w<0){
-				mf.add_edge(i,mf.t,-w,true);
+		for(int i=1;i<=n;i++){
+			scanf("%d",pval+i);
+			if(pval[i]>0){
+				mx+=pval[i];
 			}
 		}
-		mf.last=mf.etop;
 		for(int i=1;i<n;i++){
 			t1.add_edge(ni(),ni(),true);
 		}
-		for(int i=1;i<=n;i++){
+		for(int i=1;i<n;i++){
 			t2.add_edge(ni(),ni(),true);
 		}
 		for(int i=1;i<=n;i++){
-			mf.etop=mf.last;
+			mf.build(n);
 			t1.fa[i]=t2.fa[i]=0;
 			t1.dfs(i),t2.dfs(i);
 			apmax(ans,mx-mf.dinic());
