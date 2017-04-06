@@ -41,7 +41,7 @@ void dfs(int x){
 	}
 }
 int que[N],dis[N],s=0,t;
-inline void bfs(){
+inline bool bfs(){
 	int qhead=0,qtail=0;
 	memset(dis,-1,sizeof(dis));
 	que[qtail++]=s;
@@ -51,27 +51,32 @@ inline void bfs(){
 		for(int i=hf[x],v;~i;i=bro[i]){
 			if(dis[v=to[i]]==-1&&cap[i]){
 				dis[v]=dis[x]+1;
+				if(v==t){
+					return true;
+				}
 				que[qtail++]=v;
 			}
 		}
 	}
+	return false;
 }
 int aug(int x,int alloc){
 	if(x==t){
 		return alloc;
 	}
 	int rest=alloc,delta;
-	for(int i=hf[x],v;~i;i=bro[i]){
+	for(int i=hf[x],v;rest&&(~i);i=bro[i]){
 		v=to[i];
 		if(cap[i]&&dis[v]==dis[x]+1){
+			assert(cap[i]>0);
 			if(delta=aug(v,min(cap[i],rest))){
 				rest-=delta;
 				cap[i]-=delta,cap[i^1]+=delta;
-				if(rest==0){
-					break;
-				}
 			}
 		}
+	}
+	if(alloc==rest){
+		dis[x]=INF;
 	}
 	return alloc-rest;
 }
@@ -114,14 +119,14 @@ int main(){
 					add_edge(t,j,0);
 				}
 				if(i!=j){
-					add_edge(j,fa[j],INF);
-					add_edge(fa[j],j,0);
-					add_edge(j,fa[j],INF);
-					add_edge(fa[j],j,0);
+					add_edge(j,f1[j],INF);
+					add_edge(f1[j],j,0);
+					add_edge(j,f2[j],INF);
+					add_edge(f2[j],j,0);
 				}
 			}
 			int flow=0;
-			while(bfs(),~dis[t]){
+			while(bfs()){
 				flow+=aug(s,INF);
 			}
 			apmax(ans,sum-flow);
