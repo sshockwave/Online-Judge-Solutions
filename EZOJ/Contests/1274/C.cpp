@@ -17,94 +17,115 @@ inline int apmax(int &a,int b){
 		a=b;
 	}
 }
-const int N=110,E=110;
-int pval[N];
-bool vis[N],choose[N];
-struct Tree{
+const int N=110,E=N*2,INF=0x7f7f7f7f;
+struct Graph{
 	int to[E],bro[E],head[N],etop;
 	inline void reset(){
-		etop=0;
 		memset(head,-1,sizeof(head));
+		etop=0;
 	}
-	inline void add_edge(int u,int v,bool d=true){
+};
+struct MaxFlow:Graph{
+	int cap[E],dis[N],que[N],cur[N],last,s,t;
+	inline void add_edge(int u,int v,int c,bool d){
+		to[etop]=v;
+		bro[etop]=head[u];
+		cap[etop]=c;
+		head[u]=etop++;
+		if(d){
+			add_edge(v,u,0,0);
+		}
+	}
+	inline void bfs(){
+		int qhead=0,qtail=0;
+		memset(dis,-1,sizeof(dis));
+		dis[t]=0;
+		que[qtail++]=t;
+		while(qhead<qtail){
+			int x=que[qhead++];
+			for(int i=head[x],v;~i;i=bro[i]){
+				v=to[i];
+				if(cap[i]&&dis[v]==-1){
+					dis[v]=dis[x]+1;
+					que[qtail++]=v;
+				}
+			}
+		}
+	}
+	int dfs(int x,int alloc){
+		if(x==t){
+			return alloc;
+		}
+		int flow=0,delta;
+		if(cur[x]==INF){
+			cur[x]=head[x];
+		}
+		for(int &i=cur[x],v;~i;i=bro[x]){
+			if(cap[i]){
+				if(delta=dfs(to[i],min(alloc,cap[i]))){
+					cap[i]-=delta,cap[i^1]+=delta;
+					alloc-=delta,flow+=delta;
+				}
+			}
+		}
+		return flow;
+	}
+	inline int dinic(){
+		int flow=0;
+		while(memset(cur,127,sizeof(cur)),bfs(),~dis[s]){
+			flow+=dfs(s,INF);
+		}
+		return sum;
+	}
+}mf;
+struct Tree:Graph{
+	int fa[N];
+	inline void add_edge(int u,int v,bool d){
 		to[etop]=v;
 		bro[etop]=head[u];
 		head[u]=etop++;
 		if(d){
-			add_edge(v,u,false);
+			add_edge(v,u,0);
 		}
 	}
-	int ask_con(int x){
-		int size=1;
-		vis[x]=true;
-		for(int i=head[x],y;~i;i=bro[i]){
-			y=to[i];
-			if(!vis[y]&&choose[y]){
-				size+=ask_con(y);
+	void dfs(int x){
+		for(int i=head[x],v;~i;i=bro[i]){
+			v=to[i];
+			if(v!=fa[x]){
+				fa[v]=x;
+				mf.add_edge(v,x,INF,true);
+				dfs(v);
 			}
 		}
-		vis[x]=false;
-		return size;
 	}
 }t1,t2;
-inline int task1(int n){
-	int ans=0,sum,root,cnt;
-	for(int state=(1<<n);state>0;state--){
-		sum=cnt=root=0;
-		for(int i=1;i<=n;i++){
-			if(choose[i]=((state>>(i-1))&1)){
-				cnt++;
-				sum+=pval[i];
-				root=i;
-			}
-		}
-		if(sum>ans&&t1.ask_con(root)==cnt&&t2.ask_con(root)==cnt){
-			ans=sum;
-		}
-	}
-	return ans;
-}
-int f[N];
-void dfs(int x){
-	f[x]=pval[x];
-	vis[x]=true;
-	for(int i=t2.head[x],y;~i;i=t2.bro[i]){
-		y=t2.to[i];
-		if(!vis[y]){
-			dfs(y);
-			if(f[y]>0){
-				f[x]+=f[y];
-			}
-		}
-	}
-	vis[x]=false;
-}
-inline int task2(int n){
-	dfs(1);
-	int ans=0;
-	for(int i=1;i<=n;i++){
-		apmax(ans,f[i]);
-	}
-	return ans;
-}
 int main(){
-	memset(vis,0,sizeof(vis));
 	for(int tot=ni();tot--;){
-		int n=ni();
+		t1.reset(),t2.reset(),mf.reset();
+		int n=ni(),mx=0,ans=0;
+		mf.s=0,mf.t=n+1;
+		for(int i=1,w;i<=n;i++){
+			scanf("%d",&w);
+			if(w>0){
+				mx+=w;
+				mf.add_edge(mf.s,i,w,true);
+			}else if(w<0){
+				mf.add_edge(i,mf.t,-w,true);
+			}
+		}
+		mf.last=mf.etop;
+		for(int i=1;i<n;i++){
+			t1.add_edge(ni(),ni(),true);
+		}
 		for(int i=1;i<=n;i++){
-			scanf("%d",pval+i);
+			t2.add_edge(ni(),ni(),true);
 		}
-		t1.reset(),t2.reset();
-		for(int i=1;i<n;i++){
-			t1.add_edge(ni(),ni());
+		for(int i=1;i<=n;i++){
+			mf.etop=mf.last;
+			t1.fa[i]=t2.fa[i]=0;
+			t1.dfs(i),t2.dfs(i);
+			apmax(ans,mx-mf.dinic());
 		}
-		for(int i=1;i<n;i++){
-			t2.add_edge(ni(),ni());
-		}
-		if(n<=15){
-			printf("%d\n",task1(n));
-		}else{
-			printf("%d\n",task2(n));
-		}
+		printf("%d\n",ans);
 	}
 }
