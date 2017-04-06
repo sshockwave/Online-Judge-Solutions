@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <complex>
+#include <set>
 using namespace std;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
@@ -20,7 +21,7 @@ inline int sqr(int x){
 const int N=27,MOD=998244353;
 const double EPS=1e-6;
 typedef complex<double> comp;
-int n,p1[N],p2[N],ans[N];
+int n,p2[N];
 inline bool is_zero(double x){
 	return x>=-EPS&&x<=EPS;
 }
@@ -42,7 +43,7 @@ inline void dft(comp *a){
 		}
 	}
 }
-inline bool check(){
+inline bool check(int *p1){
 	for(int i=0;i<n;i++){
 		int t=0;
 		for(int j=0;j<n;j++){
@@ -61,6 +62,17 @@ inline bool les(int *a,int *b){
 	for(int i=0;i<n;i++){
 		if(a[i]!=b[i]){
 			return a[i]<b[i];
+		}
+	}
+	return false;
+}
+struct Ans{
+	int *p;
+};
+inline bool operator < (Ans a,Ans b){
+	for(int i=0;i<n;i++){
+		if(a.p[i]!=b.p[i]){
+			return a.p[i]<b.p[i];
 		}
 	}
 	return false;
@@ -87,6 +99,8 @@ int main(){
 			w[i]=comp(w[i].real(),-w[i].imag());
 			rt[i]=sqrt(rt[i]);
 		}
+		int *p1=new int[n];
+		set<Ans>ans;
 		for(int state=(1<<(n+2>>1))-1;state>=0;state--){
 			for(int i=0;i<n;i++){
 				if((state>>min(i,n-i))&1){
@@ -98,10 +112,6 @@ int main(){
 			dft(cur);
 			bool flag=true;
 			for(int i=0;i<n;i++){
-				comp tmp=cur[i];
-				tmp/=n;
-			}
-			for(int i=0;i<n;i++){
 				cur[i]/=n;
 				p1[i]=round(cur[i].real());
 				if(!is_zero(cur[i].real()-p1[i])||p1[i]<0){
@@ -109,17 +119,20 @@ int main(){
 					break;
 				}
 			}
-			if(flag&&palin(p1)&&check()){
-				if(cnt==0||les(p1,ans)){
-					memcpy(ans,p1,sizeof(comp)*n);
-				}
-				cnt++;
+			if(flag&&palin(p1)&&check(p1)){
+				ans.insert((Ans){p1});
+				p1=new int[n];
 			}
 		}
-		printf("%d",cnt);
-		if(cnt){
+		delete[] p1;
+		printf("%d",ans.size());
+		if(ans.size()){
+			int *p=ans.begin()->p;
 			for(int i=0;i<n;i++){
-				printf(" %d",ans[i]);
+				printf(" %d",p[i]);
+			}
+			for(set<Ans>::iterator it=ans.begin();it!=ans.end();it++){
+				delete[] it->p;
 			}
 		}
 		putchar('\n');
