@@ -21,7 +21,7 @@ inline int sqr(int x){
 const int N=27,MOD=998244353;
 const double EPS=1e-4;
 typedef complex<double> comp;
-int n,p2[N];
+int n,p2[N],pool[32768][N];
 inline bool is_zero(double x){
 	return x>=-EPS&&x<=EPS;
 }
@@ -33,7 +33,7 @@ inline bool palin(int *p){
 	}
 	return true;
 }
-comp w[N],tmp[N],rt[N],cur[N];
+comp wpool[N][N],tmp[N],rt[N],cur[N],*w;
 inline void dft(comp *a){
 	memcpy(tmp,a,sizeof(comp)*n);
 	memset(a,0,sizeof(comp)*n);
@@ -77,22 +77,33 @@ inline bool operator < (const Ans &a,const Ans &b){
 	}
 	return false;
 }
-set<Ans>ans;
 int main(){
+	for(int i=0;i<N;i++){
+		for(int j=0;j<N;j++){
+			double angle=(2*M_PI*j)/i;
+			wpool[i][j]=comp(cos(angle),sin(angle));
+		}
+	}
 	for(int tot=ni();tot--;){
 		n=ni();
+		w=wpool[n];
+		int sum=0;
 		for(int i=0;i<n;i++){
 			p2[i]=ni();
-			double angle=(2*M_PI*i)/n;
-			w[i]=comp(cos(angle),sin(angle));
 			rt[i]=p2[i];
+			sum+=p2[i];
+		}
+		if(!is_zero(sum-sqr(sqrt(sum)))||!palin(p2)){
+			puts("0");
+			continue;
 		}
 		dft(rt);
 		for(int i=0;i<n;i++){
 			w[i]=comp(w[i].real(),-w[i].imag());
 			rt[i]=sqrt(rt[i]);
 		}
-		int *p1=new int[n];
+		set<Ans>ans;
+		int *p1=pool[0],stop=1;
 		for(int state=(1<<(n+2>>1))-1;state>=0;state--){
 			for(int i=0;i<n;i++){
 				if((state>>min(i,n-i))&1){
@@ -113,20 +124,15 @@ int main(){
 			}
 			if(flag&&palin(p1)&&check(p1)){
 				ans.insert((Ans){p1});
-				p1=new int[n];
+				p1=pool[stop++];
 			}
 		}
-		delete[] p1;
 		printf("%d",ans.size());
 		if(ans.size()){
 			int *p=ans.begin()->p;
 			for(int i=0;i<n;i++){
 				printf(" %d",p[i]);
 			}
-			for(set<Ans>::iterator it=ans.begin();it!=ans.end();it++){
-				delete[] it->p;
-			}
-			ans.clear();
 		}
 		putchar('\n');
 	}
