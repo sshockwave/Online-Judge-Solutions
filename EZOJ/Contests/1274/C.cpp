@@ -17,123 +17,115 @@ inline int apmax(int &a,int b){
 		a=b;
 	}
 }
-const int N=110,E=N*2,INF=0x7f7f7f7f;
+const int N=110,E=N*20,INF=0x7f7f7f7f;
 int pval[N];
-struct Graph{
-	int to[E],bro[E],head[N],etop;
-	inline void reset(){
-		memset(head,-1,sizeof(head));
-		etop=0;
-	}
-};
-struct MaxFlow:Graph{
-	int cap[E],dis[N],que[N],cur[N],last,s,t;
-	inline void add_edge(int u,int v,int c,bool d){
-		to[etop]=v;
-		bro[etop]=head[u];
-		cap[etop]=c;
-		head[u]=etop++;
-		if(d){
-			add_edge(v,u,0,0);
+int to[E],bro[E],cap[E],h1[N],h2[N],hf[N],etop=0;
+int fa[N];
+inline void add_edge(int u,int v,int *head){
+	to[etop]=v;
+	bro[etop]=head[u];
+	head[u]=etop++;
+}
+inline void add_edge(int u,int v,int c){
+	cap[etop]=c;
+	add_edge(u,v,hf);
+}
+int *head;
+void dfs(int x){
+	for(int i=head[x],v;~i;i=bro[i]){
+		v=to[i];
+		if(v!=fa[x]){
+			fa[v]=x;
+			dfs(v);
 		}
 	}
-	inline void build(int n){
-		memset(head,-1,sizeof(head));
-		etop=0;
-		for(int i=1;i<=n;i++){
-			if(pval[i]>0){
-				add_edge(s,i,pval[i],true);
-			}else if(pval[i]<0){
-				add_edge(i,t,-pval[i],true);
+}
+int que[N],dis[N];
+inline void bfs(int t){
+	int qhead=0,qtail=0;
+	memset(dis,-1,sizeof(dis));
+	que[qtail++]=t;
+	dis[t]=0;
+	while(qhead<qtail){
+		int x=que[qhead++];
+		for(int i=hf[x],v;~i;i=bro[i]){
+			v=to[i];
+			if(dis[v]==-1&&cap[i^1]){
+				dis[v]=dis[x]+1;
+				que[qtail++]=v;
 			}
 		}
 	}
-	inline void bfs(){
-		int qhead=0,qtail=0;
-		memset(dis,-1,sizeof(dis));
-		dis[t]=0;
-		que[qtail++]=t;
-		while(qhead<qtail){
-			int x=que[qhead++];
-			for(int i=head[x],v;~i;i=bro[i]){
-				v=to[i];
-				if(cap[i^1]&&dis[v]==-1){
-					dis[v]=dis[x]+1;
-					que[qtail++]=v;
+}
+int cur[N];
+int aug(int x,int alloc){
+	int rest=alloc,delta;
+	if(cur[x]==INF){
+		cur[x]=hf[x];
+	}
+	for(int i=cur[x],v;~i;i=bro[i]){
+		v=to[i];
+		if(cap[i]&&dis[v]+1==dis[x]){
+			if(delta=aug(v,min(cap[i],rest))){
+				rest-=delta;
+				cap[i]-=delta,cap[i^1]+=delta;
+				if(rest==0){
+					break;
 				}
 			}
 		}
 	}
-	int dfs(int x,int alloc){
-		if(x==t){
-			return alloc;
-		}
-		int flow=0,delta;
-		if(cur[x]==INF){
-			cur[x]=head[x];
-		}
-		for(int &i=cur[x],v;~i;i=bro[i]){
-			v=to[i];
-			if(cap[i]&&dis[v]+1==dis[x]){
-				if(delta=dfs(v,min(alloc,cap[i]))){
-					cap[i]-=delta,cap[i^1]+=delta;
-					alloc-=delta,flow+=delta;
-				}
-			}
-		}
-		return flow;
-	}
-	inline int dinic(){
-		int flow=0;
-		while(bfs(),memset(cur,127,sizeof(cur)),~dis[s]){
-			flow+=dfs(s,INF);
-		}
-		return flow;
-	}
-}mf;
-struct Tree:Graph{
-	int fa[N];
-	inline void add_edge(int u,int v,bool d){
-		to[etop]=v;
-		bro[etop]=head[u];
-		head[u]=etop++;
-		if(d){
-			add_edge(v,u,0);
-		}
-	}
-	void dfs(int x){
-		for(int i=head[x],v;~i;i=bro[i]){
-			v=to[i];
-			if(v!=fa[x]){
-				fa[v]=x;
-				dfs(v);
-				mf.add_edge(v,x,INF,true);
-			}
-		}
-	}
-}t1,t2;
+	return alloc-rest;
+}
 int main(){
 	for(int tot=ni();tot--;){
-		t1.reset(),t2.reset(),mf.reset();
-		int n=ni(),mx=0,ans=0;
-		mf.s=0,mf.t=n+1;
+		int n=ni(),sum=0,ans=0;
 		for(int i=1;i<=n;i++){
-			scanf("%d",pval+i);
+			scanf("%d",pval+1);
 			if(pval[i]>0){
-				mx+=pval[i];
+				sum+=pval[i];
 			}
 		}
-		for(int i=1;i<n;i++){
-			t1.add_edge(ni(),ni(),true);
+		etop=0;
+		memset(h1,0,sizeof(h1));
+		for(int i=1,u,v;i<=n;i++){
+			u=ni(),v=ni();
+			add_edge(u,v,h1);
+			add_edge(v,u,h1);
 		}
-		for(int i=1;i<n;i++){
-			t2.add_edge(ni(),ni(),true);
+		for(int i=1,u,v;i<=n;i++){
+			u=ni(),v=ni();
+			add_edge(u,v,h2);
+			add_edge(v,u,h2);
 		}
+		int s=0,t=n+1,last=etop;
 		for(int i=1;i<=n;i++){
-			mf.build(n);
-			t1.fa[i]=t2.fa[i]=0;
-			t1.dfs(i),t2.dfs(i);
-			apmax(ans,mx-mf.dinic());
+			etop=last;
+			for(int j=1;j<=n;j++){
+				if(pval[j]>0){
+					add_edge(s,j,pval[j]);
+				}else if(pval[j]<0){
+					add_edge(j,t,-pval[j]);
+				}
+			}
+			fa[i]=0,head=h1,dfs(i);
+			for(int j=1;j<=n;j++){
+				if(j!=i){
+					add_edge(j,fa[j],INF);
+				}
+			}
+			fa[i]=0,head=h2,dfs(i);
+			for(int j=1;j<=n;j++){
+				if(j!=i){
+					add_edge(j,fa[j],INF);
+				}
+			}
+			int flow=0;
+			while(bfs(t),~dis[s]){
+				memset(cur,127,sizeof(int)*(n+2));
+				flow+=aug(s,INF);
+			}
+			apmax(ans,sum-flow);
 		}
 		printf("%d\n",ans);
 	}
