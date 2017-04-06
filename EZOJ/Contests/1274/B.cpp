@@ -32,7 +32,7 @@ inline bool palin(int *p){
 	}
 	return true;
 }
-comp w[N],tmp[N],rt[2][N],cur[N];
+comp w[N],tmp[N],rt[N],cur[N];
 inline void dft(comp *a){
 	memcpy(tmp,a,sizeof(comp)*n);
 	memset(a,0,sizeof(comp)*n);
@@ -80,20 +80,27 @@ int main(){
 		for(int i=0;i<n;i++){
 			double angle=(2*M_PI*i)/n;
 			w[i]=comp(cos(angle),sin(angle));
-			rt[0][i]=p2[i];
+			rt[i]=p2[i];
 		}
-		dft(rt[0]);
+		dft(rt);
 		for(int i=0;i<n;i++){
 			w[i]=comp(w[i].real(),-w[i].imag());
-			rt[0][i]=sqrt(rt[0][i]);
-			rt[1][i]=-rt[0][i];
+			rt[i]=sqrt(rt[i]);
 		}
-		for(int state=(1<<(n>>1))-1;state>=0;state--){
+		for(int state=(1<<(n+2>>1))-1;state>=0;state--){
 			for(int i=0;i<n;i++){
-				cur[i]=rt[(state>>min(i,n-i))&1][i];
+				if((state>>min(i,n-i))&1){
+					cur[i]=-rt[i];
+				}else{
+					cur[i]=rt[i];
+				}
 			}
 			dft(cur);
 			bool flag=true;
+			for(int i=0;i<n;i++){
+				comp tmp=cur[i];
+				tmp/=n;
+			}
 			for(int i=0;i<n;i++){
 				cur[i]/=n;
 				p1[i]=round(cur[i].real());
