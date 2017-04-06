@@ -19,7 +19,7 @@ inline int sqr(int x){
 	return x*x;
 }
 const int N=27,MOD=998244353;
-const double EPS=1e-6;
+const double EPS=1e-4;
 typedef complex<double> comp;
 int n,p2[N];
 inline bool is_zero(double x){
@@ -69,7 +69,7 @@ inline bool les(int *a,int *b){
 struct Ans{
 	int *p;
 };
-inline bool operator < (Ans a,Ans b){
+inline bool operator < (const Ans &a,const Ans &b){
 	for(int i=0;i<n;i++){
 		if(a.p[i]!=b.p[i]){
 			return a.p[i]<b.p[i];
@@ -77,19 +77,12 @@ inline bool operator < (Ans a,Ans b){
 	}
 	return false;
 }
+set<Ans>ans;
 int main(){
 	for(int tot=ni();tot--;){
 		n=ni();
-		int sum=0,cnt=0;
 		for(int i=0;i<n;i++){
 			p2[i]=ni();
-			sum+=p2[i];
-		}
-		if(!is_zero(sum-sqr((int)sqrt(sum)))||!palin(p2)){
-			puts("0");
-			continue;
-		}
-		for(int i=0;i<n;i++){
 			double angle=(2*M_PI*i)/n;
 			w[i]=comp(cos(angle),sin(angle));
 			rt[i]=p2[i];
@@ -100,7 +93,6 @@ int main(){
 			rt[i]=sqrt(rt[i]);
 		}
 		int *p1=new int[n];
-		set<Ans>ans;
 		for(int state=(1<<(n+2>>1))-1;state>=0;state--){
 			for(int i=0;i<n;i++){
 				if((state>>min(i,n-i))&1){
@@ -134,6 +126,7 @@ int main(){
 			for(set<Ans>::iterator it=ans.begin();it!=ans.end();it++){
 				delete[] it->p;
 			}
+			ans.clear();
 		}
 		putchar('\n');
 	}
