@@ -99,7 +99,6 @@ int main(){
 		}
 		dft(rt);
 		for(int i=0;i<n;i++){
-			w[i]=comp(w[i].real(),-w[i].imag());
 			rt[i]=sqrt(rt[i]);
 		}
 		set<Ans>ans;
@@ -135,5 +134,8 @@ int main(){
 			}
 		}
 		putchar('\n');
+		for(int i=0;i<n;i++){
+			w[i]=comp(w[i].real(),-w[i].imag());
+		}
 	}
 }
