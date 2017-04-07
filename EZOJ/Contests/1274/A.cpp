@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 using namespace std;
+typedef long long lint;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
 }
@@ -12,99 +13,76 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-inline long long nl(){
-	long long i=0;char c;
+inline lint nl(){
+	lint i=0;char c;
 	while(!is_num(c=getchar()));
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
+const int D=1000010;
 int MOD;
-long long p;
-long long fpow(long long x,long long n){
-	if(n==0){
-		return 1;
-	}
-	long long ret=fpow(x,n>>1);
-	ret=ret*ret%p;
-	if(n&1){
-		ret=ret*x%p;
+inline int add(int a,int b){
+	return (a+b)%MOD;
+}
+inline int sub(int a,int b){
+	return (a-b+MOD)%MOD;
+}
+inline int mul(int a,int b){
+	return (lint)a*b%MOD;
+}
+inline lint sqr(int a){
+	return (lint)a*a;
+}
+inline int apadd(int &a,int b){
+	a=add(a,b);
+}
+inline int apmul(int &a,int b){
+	a=mul(a,b);
+}
+inline int fpow(int x,int n){
+	int ret=1;
+	for(;n;n>>=1,apmul(x,x)){
+		if(n&1){
+			apmul(ret,x);
+		}
 	}
 	return ret;
 }
-inline int brute(){
-	long long top=p*(p-1);
-	int ans=0;
-	for(long long i=1;i<=top;i++){
-		for(long long j=1;j<=top;j++){
-			if(fpow(i,j)==fpow(j,i)){
-				ans=(ans+1)%MOD;
-			}
-		}
-	}
-	return ans;
+int prime[D],ptop=0;
+bool np[D];
+lint p,ans;
+inline int cal(int p,int e){
+	return sub(mul(fpow(p,e*3-1),p+1),fpow(p,e*2-1));
 }
-inline int n4(){
-	int ans=0;
-	for(long long a=0;a<p;a++){
-		for(long long b=0;b<p;b++){
-			for(long long m=1;m<p;m++){
-				for(long long n=1;n<p;n++){
-					if(fpow(a,m)==fpow(b,n)){
-						ans++;
-						if(ans==MOD){
-							ans=0;
-						}
-					}
-				}
-			}
-		}
-	}
-	return ans;
-}
-inline bool is_prime(int n){
-	for(int i=2;i*i<=n;i++){
-		if(n%i==0){
-			return false;
-		}
-	}
-	return true;
-}
-int ans[100];
 int main(){
-	int tot=ni();
-	MOD=ni();
-    ans[2]=2;
-    ans[3]=14;
-    ans[5]=104;
-    ans[7]=366;
-    ans[11]=1550;
-    ans[13]=3048;
-    ans[17]=6272;
-    ans[19]=9774;
-    ans[23]=14894;
-    ans[29]=34664;
-    ans[31]=48750;
-    ans[37]=84456;
-    ans[41]=108320;
-    ans[43]=128814;
-    ans[47]=128846;
-    ans[53]=209768;
-    ans[59]=255374;
-    ans[61]=424680;
-    ans[67]=479886;
-    ans[71]=563150;
-    ans[73]=700704;
-    ans[79]=782574;
-    ans[83]=712334;
-    ans[89]=1068320;
-    ans[97]=1614336;
-	while(tot--){
-		p=nl();
-		if(p<100){
-			printf("%d\n",ans[p]%MOD);
-		}else{
-//			printf("%d\n",brute());
-			printf("%d\n",n4());
+	memset(np,0,sizeof(np));
+	for(int i=2;i<D;i++){
+		if(!np[i]){
+			prime[ptop++]=i;
 		}
+		for(int j=0;j<ptop&&i*prime[j]<D;j++){
+			np[i*prime[j]]=true;
+			if(i%prime[j]==0){
+				break;
+			}
+		}
+	}
+	int tot=ni(),e,ans,ans2;
+	MOD=ni();
+	while(tot--){
+		p=nl()-1;
+		ans2=mul(p%MOD,p%MOD);
+		ans=1;
+		for(int j=0,cur=2;sqr(cur)<=p;cur=prime[++j]){
+			if(p%cur==0){
+				e=0;
+				for(;p%cur==0;p/=cur,e++);
+				apmul(ans,cal(cur,e));
+			}
+		}
+		if(p!=1){
+			apmul(ans,cal(p%MOD,1));
+		}
+		printf("%d\n",add(ans,ans2));
 	}
 }
