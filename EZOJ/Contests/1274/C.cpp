@@ -20,7 +20,7 @@ inline int apmax(int &a,int b){
 const int N=110,E=N*20,INF=0x7f7f7f7f;
 int pval[N];
 int to[E],bro[E],cap[E],h1[N],h2[N],hf[N],etop=0;
-int f1[N],f2[N],*fa;
+int f1[N],f2[N],*fa,size;
 inline void add_edge(int u,int v,int *head){
 	to[etop]=v;
 	bro[etop]=head[u];
@@ -43,7 +43,7 @@ void dfs(int x){
 int que[N],dis[N],s=0,t;
 inline bool bfs(){
 	int qhead=0,qtail=0;
-	memset(dis,-1,sizeof(dis));
+	memset(dis,-1,size);
 	que[qtail++]=s;
 	dis[s]=0;
 	while(qhead<qtail){
@@ -83,6 +83,7 @@ int aug(int x,int alloc){
 int main(){
 	for(int tot=ni();tot--;){
 		int n=ni(),sum=0,ans=0;
+		size=(n+2)<<2;
 		for(int i=1;i<=n;i++){
 			scanf("%d",pval+i);
 			if(pval[i]>0){
@@ -90,13 +91,13 @@ int main(){
 			}
 		}
 		etop=0;
-		memset(h1,-1,sizeof(h1));
+		memset(h1,-1,size);
 		for(int i=1,u,v;i<n;i++){
 			u=ni(),v=ni();
 			add_edge(u,v,h1);
 			add_edge(v,u,h1);
 		}
-		memset(h2,-1,sizeof(h2));
+		memset(h2,-1,size);
 		for(int i=1,u,v;i<n;i++){
 			u=ni(),v=ni();
 			add_edge(u,v,h2);
@@ -106,7 +107,7 @@ int main(){
 		t=n+1;
 		for(int i=1;i<=n;i++){
 			etop=last;
-			memset(hf,-1,sizeof(hf));
+			memset(hf,-1,size);
 			f1[i]=f2[i]=0;
 			head=h1,fa=f1,dfs(i);
 			head=h2,fa=f2,dfs(i);
