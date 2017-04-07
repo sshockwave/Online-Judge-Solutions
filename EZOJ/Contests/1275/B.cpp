@@ -35,15 +35,15 @@ int root[N],son[D][2],prod[D],ntop=1;
 inline void push_up(int x){
 	prod[x]=mul(prod[lson(x)],prod[rson(x)]);
 }
-inline int replace(int x,int nx){
+inline int renew(int x){
 	if(x){
-		lson(nx)=lson(x),rson(nx)=lson(x);
+		lson(ntop)=lson(x),rson(ntop)=rson(x);
 	}
-	prod[nx]=prod[x];
-	return nx;
+	prod[ntop]=prod[x];
+	return ntop++;
 }
 int assign(int x,int p,int val,int l=1,int r=n){
-	x=replace(x,ntop++);
+	x=renew(x);
 	if(l==r){
 		prod[x]=val;
 		return x;
@@ -58,7 +58,7 @@ int assign(int x,int p,int val,int l=1,int r=n){
 	return x;
 }
 int divide(int x,int p,int val,int l=1,int r=n){
-	x=replace(x,ntop++);
+	x=renew(x);
 	if(l==r){
 		assert(prod[x]%val==0);
 		prod[x]/=val;
@@ -94,14 +94,13 @@ inline void add_edge(int u,int v,int cnt){
 	amt[etop]=cnt;
 	head[u]=etop++;
 }
-inline void del_edge(int p,int n,int e){
-	int pr=prime[p];
-	for(int *i=head+p,delta;e&&(~(*i));i=bro+(*i)){
-		delta=min(amt[*i],e);
-		amt[*i]-=delta;
-		root[n]=divide(root[n],to[*i],fpow(pr,e));
-		if(amt[*i]==0){
-			*i=bro[*i];
+inline void del_edge(int p,int root,int e){
+	for(int i=head[p],delta,*pt=head+p;e&&(~i);i=bro[i],pt=bro+i){
+		delta=min(amt[i],e);
+		amt[i]-=delta,e-=delta;
+		root=divide(root,to[i],fpow(p,delta));
+		if(amt[i]==0){
+			*pt=bro[i];
 		}
 	}
 }
@@ -125,6 +124,7 @@ int main(){
 	root[0]=0;
 	prod[0]=1;
 	memset(son,0,sizeof(son));
+	memset(head,-1,sizeof(head));
 	for(int i=1;i<=n;i++){
 		if(!np[i]){
 			prime[ptop++]=i;
@@ -135,17 +135,20 @@ int main(){
 				break;
 			}
 		}
-		assign(root[i]=root[i-1],i,i);
+		root[i]=assign(root[i-1],i,i);
 		int p=i;
 		for(int j=0,cur=2;j<ptop&&sqr(cur)<=p;cur=prime[++j]){
 			if(p%cur==0){
 				int e=0;
 				for(;p%cur==0;e++,p/=cur);
-				del_edge(i,j,e);
-				add_edge(j,i,e);
+				del_edge(cur,root[i],e);
+				add_edge(cur,i,e);
 			}
 		}
-		assert(p==1);
+		if(p!=1){
+			del_edge(p,root[i],1);
+			add_edge(p,i,1);
+		}
 	}
 	putans(c[1],d[1]);
 	for(int i=2;i<=tot;i++){
