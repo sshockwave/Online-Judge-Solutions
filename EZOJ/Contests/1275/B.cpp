@@ -15,7 +15,7 @@ inline int ni(){
 inline int sqr(int x){
 	return x*x;
 }
-const int MOD=1000000007,N=100010,Q=200010,D=20000010;
+const int MOD=1000000007,N=100010,Q=200010,D=10000010,E=2000000;
 inline int mul(int a,int b){
 	return (long long)a*b%MOD;
 }
@@ -31,14 +31,18 @@ inline int fpow(int x,int n){
 int n,c[Q],d[Q];
 #define lson(x) son[x][0]
 #define rson(x) son[x][1]
-int root[N],son[D][2],prod[D],ntop=1;
+int root[N],son[D][2],prod[D],tag[D],tim,ntop=1;
 inline void push_up(int x){
 	prod[x]=mul(prod[lson(x)],prod[rson(x)]);
 }
 inline int renew(int x){
+	if(tag[x]==tim){
+		return x;
+	}
 	if(x){
 		lson(ntop)=lson(x),rson(ntop)=rson(x);
 	}
+	tag[ntop]=tim;
 	prod[ntop]=prod[x];
 	return ntop++;
 }
@@ -85,25 +89,38 @@ int ask_prod(int x,int a,int b,int l=1,int r=n){
 	}
 	return mul(ask_prod(lson(x),a,mid,l,mid),ask_prod(rson(x),mid+1,b,mid+1,r));
 }
-int prime[N],ptop=0;
-int to[N],bro[N],amt[N],head[N],etop=0;
-bool np[N];
-inline void add_edge(int u,int v,int cnt){
-	to[etop]=v;
-	bro[etop]=head[u];
-	amt[etop]=cnt;
-	head[u]=etop++;
+int to[E],bro[E],amt[E],head[N];
+inline void init_stk(){
+	memset(head,-1,sizeof(head));
+	head[0]=0;
+	for(int i=0;i<E;i++){
+		bro[i]=i+1;
+	}
+	bro[E-1]=-1;
 }
-inline void del_edge(int p,int root,int e){
-	for(int i=head[p],delta,*pt=head+p;e&&(~i);i=bro[i],pt=bro+i){
-		delta=min(amt[i],e);
-		amt[i]-=delta,e-=delta;
-		root=divide(root,to[i],fpow(p,delta));
+inline void push(int p,int exp){
+	int e=head[0];
+	head[0]=bro[e];
+	to[e]=tim;
+	bro[e]=head[p];
+	amt[e]=exp;
+	head[p]=e;
+}
+inline void pop(int p,int e){
+	for(int i=head[p],*pt=head+p;e&&(~i);){
+		int delta=min(e,amt[i]);
+		e-=delta,amt[i]-=delta;
+		divide(root[tim],to[i],fpow(p,delta));
 		if(amt[i]==0){
 			*pt=bro[i];
+			bro[i]=head[0];
+			head[0]=i;
+			i=*pt;
 		}
 	}
 }
+int prime[N],ptop=0;
+bool np[N];
 int ans;
 inline void putans(int n,int k){
 	printf("%d\n",ans=ask_prod(root[n],n-k+1,n));
@@ -121,10 +138,10 @@ int main(){
 	}
 	memset(np,0,sizeof(np));
 	np[1]=true;
-	root[0]=0;
+	root[0]=tag[0]=0;
 	prod[0]=1;
 	memset(son,0,sizeof(son));
-	memset(head,-1,sizeof(head));
+	init_stk();
 	for(int i=1;i<=n;i++){
 		if(!np[i]){
 			prime[ptop++]=i;
@@ -135,19 +152,20 @@ int main(){
 				break;
 			}
 		}
+		tim=i;
 		root[i]=assign(root[i-1],i,i);
 		int p=i;
 		for(int j=0,cur=2;j<ptop&&sqr(cur)<=p;cur=prime[++j]){
 			if(p%cur==0){
 				int e=0;
 				for(;p%cur==0;e++,p/=cur);
-				del_edge(cur,root[i],e);
-				add_edge(cur,i,e);
+				pop(cur,e);
+				push(cur,e);
 			}
 		}
-		if(p!=1){
-			del_edge(p,root[i],1);
-			add_edge(p,i,1);
+		if(p>1){
+			pop(p,1);
+			push(p,1);
 		}
 	}
 	putans(c[1],d[1]);
