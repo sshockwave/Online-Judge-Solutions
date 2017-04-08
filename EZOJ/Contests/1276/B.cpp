@@ -20,13 +20,12 @@ inline lint nl(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int MOD=258280327,_N=10000010;
-const lint N=10000000010ll;
+const int MOD=258280327,N=10000010;
 inline int add(int a,int b){
 	return (a+b)%MOD;
 }
 inline int sub(int a,int b){
-	return (a-b+MOD)%MOD;
+	return add(a,MOD-b);
 }
 inline int mul(int a,int b){
 	return (long long)a*b%MOD;
@@ -40,11 +39,11 @@ inline int fpow(int x,int n){
 	}
 	return ret;
 }
-int mu[_N],prime[_N],_g[_N],ptop=0;
-bool np[_N];
+int mu[N],prime[N],_g[N],ptop=0;
+bool np[N];
 map<lint,int>gcache;
-inline int g(lint n){
-	if(n<_N){
+int g(lint n){
+	if(n<N){
 		return _g[n];
 	}
 	map<lint,int>::iterator it=gcache.find(n);
@@ -52,9 +51,10 @@ inline int g(lint n){
 		return it->second;
 	}
 	int ans=1;
-	for(lint i=2,l,r;i<=n;i=r+1){
-		l=i,r=(n/(n/i));
-		ans=sub(ans,g(n/i)*(r-l+1));
+	static int rev=(MOD+1)>>1;
+	for(lint l=2,r;l<=n;l=r+1){
+		r=n/(n/l);
+		ans=sub(ans,mul(g(n/l),(r-l+1)%MOD*(l+r)%MOD*rev%MOD));
 	}
 	return gcache[n]=ans;
 }
@@ -67,13 +67,19 @@ inline void init(){
 	mu[1]=1;
 	_g[0]=0;
 	_g[1]=1;
-	for(int i=2;i<_N;i++){
+	for(int i=2;i<N;i++){
 		if(!np[i]){
 			prime[ptop++]=i;
 			mu[i]=-1;
 		}
-		_g[i]=add(_g[i-1],mu[i]*i);
-		for(int j=0,cur=2;j<ptop&&i*cur<_N;cur=prime[++j]){
+		if(mu[i]>0){
+			_g[i]=add(_g[i-1],i);
+		}else if(mu[i]<0){
+			_g[i]=sub(_g[i-1],i);
+		}else{
+			_g[i]=_g[i-1];
+		}
+		for(int j=0,cur=2;j<ptop&&i*cur<N;cur=prime[++j]){
 			np[i*cur]=true;
 			if(i%prime[j]==0){
 				mu[i*cur]=0;
@@ -88,9 +94,9 @@ int main(){
 	init();
 	lint n=nl();
 	int ans=0;
-	for(lint i=1,l,r;i<=n;i=r+1){
-		l=i,r=min(n,(n/(n/i)));
-		ans=add(ans,mul(t(n/i),sub(g(r),g(l-1))));
+	for(lint l=1,r;l<=n;l=r+1){
+		r=n/(n/l);
+		ans=add(ans,mul(t(n/l),sub(g(r),g(l-1))));
 	}
 	printf("%d\n",ans);
 }
