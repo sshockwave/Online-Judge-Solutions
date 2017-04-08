@@ -39,7 +39,7 @@ inline int fpow(int x,int n){
 	}
 	return ret;
 }
-int mu[N],prime[N],_g[N],ptop=0;
+int mu[N],prime[N/100],_g[N],ptop=0;
 bool np[N];
 map<lint,int>gcache;
 int g(lint n){
@@ -60,7 +60,8 @@ int g(lint n){
 }
 inline int t(lint n){
 	static int rev=fpow(9,MOD-2);
-	return mul(add(mul(n%MOD,fpow(10,(n+1)%(MOD-1))),mul(sub(10,fpow(10,(n+1)%(MOD-1))),rev)),rev);
+	int fac=fpow(10,(n+1)%(MOD-1));
+	return mul(add(mul(n%MOD,fac),mul(sub(10,fac),rev)),rev);
 }
 inline void init(){
 	memset(np,0,sizeof(np));
