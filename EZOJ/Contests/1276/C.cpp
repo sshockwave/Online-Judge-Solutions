@@ -24,7 +24,7 @@ inline long long nl(){
 const int K=65;
 const lint N=1000000000000000010ll;
 vector<lint>f[K];
-inline int solve2(lint n){
+inline lint solve2(lint n){
 	lint i=(sqrt(n*8+1)-1)/2;
 	for(;i*(i+1)<n*2;i++);
 	return i;
@@ -59,9 +59,9 @@ int main(){
 		if(n==0){
 			puts("0");
 		}else if(k==1){
-			printf("%d\n",n);
+			printf("%lld\n",n);
 		}else if(k==2){
-			printf("%d\n",solve2(n));
+			printf("%lld\n",solve2(n));
 		}else{
 			printf("%d\n",solve(n,f[k]));
 		}
