@@ -91,9 +91,11 @@ struct Undirected:Graph{
 			if(v==fa){
 				continue;
 			}
-			con[v]=i>>1;
-			if(vis[v]){
-				assert(bln[v]==0);
+			if(!vis[v]){
+				con[v]=i>>1;
+				dfs(v,x);
+			}else if(bln[v]==0){
+				con[v]=i>>1;
 				static int ptop=1;
 				st[v]=ptop;
 				int u;
@@ -104,8 +106,6 @@ struct Undirected:Graph{
 					pos[con[u]]=ptop++;
 				}while(u!=v);
 				end[v]=ptop-1;
-			}else{
-				dfs(v,x);
 			}
 		}
 		if(bln[x]==0){
@@ -185,7 +185,6 @@ struct Tree:Graph{
 			if(dep[top[bln[u]]]<dep[top[bln[v]]]){
 				swap(u,v);
 			}
-			assert(dep[top[bln[u]]]>dep[top[bln[v]]]);
 			if(u!=bln[u]){
 				apmin(ans,G.ring(u,bln[u]));
 				u=bln[u];
@@ -200,20 +199,21 @@ struct Tree:Graph{
 		if(bln[u]==bln[v]){
 			return min(ans,G.ring(u,v));
 		}
-		if(dep[bln[u]]<dep[bln[u]]){
+		if(dep[bln[u]]<dep[bln[v]]){
 			swap(u,v);
 		}
 		if(u!=bln[u]){
 			apmin(ans,G.ring(u,bln[u]));
 			u=bln[u];
 		}
-		if(dfn[u]>dfn[v]+1){
-			apmin(ans,tseg.ask(dfn[v]+2,dfn[u]));
-			u=son[v];
+		if(dfn[u]>dfn[bln[v]]+1){
+			apmin(ans,tseg.ask(dfn[bln[v]]+2,dfn[u]));
+			u=son[bln[v]];
 		}
-		assert(u==son[v]);
+		assert(u==son[bln[v]]);
 		apmin(ans,e[con[u]].w);
 		u=fa[u];
+		assert(bln[u]==bln[v]);
 		return min(ans,G.ring(u,v));
 	}
 }T;
