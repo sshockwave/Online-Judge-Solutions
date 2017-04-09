@@ -42,7 +42,7 @@ inline int fpow(int x,int n){
 int mu[N],prime[N/10],_g[N],ptop=0;
 bool np[N];
 map<lint,int>gcache;
-int g(lint n){
+inline int g(lint n){
 	if(n<N){
 		return _g[n];
 	}
@@ -52,9 +52,10 @@ int g(lint n){
 	}
 	int ans=1;
 	static int rev=(MOD+1)>>1;
-	for(lint l=2,r;l<=n;l=r+1){
-		r=n/(n/l);
-		ans=sub(ans,mul(g(n/l),(r-l+1)%MOD*(l+r)%MOD*rev%MOD));
+	for(lint l=2,r,x;l<=n;l=r+1){
+		x=n/l;
+		r=n/x;
+		ans=sub(ans,mul(x<N?_g[x]:gcache[x],(r-l+1)%MOD*(l+r)%MOD*rev%MOD));
 	}
 	return gcache[n]=ans;
 }
