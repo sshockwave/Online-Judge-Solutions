@@ -82,23 +82,22 @@ struct Graph{
 struct Undirected:Graph{
 	int stk[N],stop,dfn[N],low[N],tim,bln[N],fa[N],con[N];
 	bool instk[N];
-	int pos[N],ptop,st[N],end[N];//pos[eid]
+	int pos[N],ptop,st[N],end[N],ntop;//pos[eid]
 	Undirected(){
-		stop=0;
+		stop=ntop=0;
 		ptop=tim=1;
 		memset(dfn,0,sizeof(dfn));
 		memset(con,0,sizeof(con));
 		memset(instk,0,sizeof(instk));
 	}
 	void tarjan(int x){
-		dfn[x]=low[x]=tim;
+		dfn[x]=low[x]=tim++;
 		stk[stop++]=x;
 		instk[x]=true;
 		for(int i=head[x],v;~i;i=bro[i]){
 			v=to[i];
 			if(instk[v]){
-				if(v!=fa[x]){
-					assert(low[x]>dfn[v]);
+				if(v!=fa[x]&&dfn[v]<dfn[x]){
 					low[x]=dfn[v];
 					con[v]=i>>1;
 				}
@@ -111,13 +110,16 @@ struct Undirected:Graph{
 			}
 		}
 		if(dfn[x]==low[x]){
+			ntop++;
 			st[x]=ptop;
 			int v;
 			do{
 				assert(stop>0);
 				v=stk[--stop];
 				bln[v]=x;
-				rseg.alter(ptop,e[con[v]].w);
+				if(con[v]){
+					rseg.alter(ptop,e[con[v]].w);
+				}
 				pos[con[v]]=ptop++;
 			}while(x!=v);
 			end[x]=ptop-1;
@@ -136,11 +138,11 @@ struct Undirected:Graph{
 		}
 		int ans=INF;
 		if(u!=s){
+			assert(u>s);
 			apmin(ans,rseg.ask_min(s,u-1));
 		}
-		if(v!=t){
-			apmin(ans,rseg.ask_min(v,t));
-		}
+		apmin(ans,rseg.ask_min(v,t));
+		assert(u<v);
 		return ans+rseg.ask_min(u,v-1);
 	}
 }g;
@@ -192,28 +194,29 @@ struct Tree:Graph{
 			}
 		}
 	}
-	inline int approach(int &u,int v){
+	inline int approach(int &u,int v,int w){
 		int ans=INF;
-		if(g.bln[u]==g.bln[v]){
-			ans=g.ring(u,v);
-			u=v;
+		if(g.bln[u]==g.bln[w]){
+			ans=g.ring(u,w);
+			u=w;
 			return ans;
 		}
-		assert(dep[g.bln[u]]>dep[g.bln[v]]);
+		assert(dep[g.bln[u]]>dep[g.bln[w]]);
 		if(u!=g.bln[u]){
 			apmin(ans,g.ring(u,g.bln[u]));
 			u=g.bln[u];
 		}
-		int to=dfn[g.bln[v]]+1;
+		assert(w==g.bln[w]);
+		int to=dfn[v];
 		if(dfn[u]>to){
-			apmin(ans,tseg.ask_min(dfn[u],to+1));
-			u=rdfn[to];
+			apmin(ans,tseg.ask_min(to,dfn[u]));
+			u=v;
 		}
 		assert(dfn[u]==to);
 		apmin(ans,e[con[u]].w);
 		u=fa[u];
-		apmin(ans,g.ring(u,v));
-		u=v;
+		apmin(ans,g.ring(u,w));
+		u=w;
 		return ans;
 	}
 	inline int query(int u,int v){
@@ -222,12 +225,12 @@ struct Tree:Graph{
 			if(dep[top[g.bln[u]]]<dep[top[g.bln[v]]]){
 				swap(u,v);
 			}
-			apmin(ans,approach(u,fa[top[g.bln[u]]]));
+			apmin(ans,approach(u,top[g.bln[u]],fa[top[g.bln[u]]]));
 		}
 		if(dep[g.bln[u]]<dep[g.bln[v]]){
 			swap(u,v);
 		}
-		apmin(ans,approach(u,v));
+		apmin(ans,approach(u,rdfn[dfn[v]+1],v));
 		return ans;
 	}
 }t;
@@ -249,8 +252,8 @@ int main(){
 		}
 	}
 	assert(g.bln[1]==1);
+	tseg.build(1,g.ntop);
 	t.dfs1(1),t.dfs2(1);
-	tseg.build(1,t.tim-1);
 	for(int tot=ni(),op,u,v;tot--;){
 		if(ni()){
 			int eid=ni();
