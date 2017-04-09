@@ -39,7 +39,7 @@ inline int fpow(int x,int n){
 	}
 	return ret;
 }
-int mu[N],prime[N/100],_g[N],ptop=0;
+int mu[N],prime[N/10],_g[N],ptop=0;
 bool np[N];
 map<lint,int>gcache;
 int g(lint n){
