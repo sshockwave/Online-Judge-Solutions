@@ -18,6 +18,9 @@ const int MOD=258280327,N=53,M=9;
 inline int add(int a,int b){
 	return (a+b)%MOD;
 }
+inline int sub(int a,int b){
+	return add(a,MOD-b);
+}
 inline int mul(int a,int b){
 	return (lint)a*b%MOD;
 }
@@ -72,7 +75,6 @@ int getg(int s,int t,int m){
 	for(int i=(1<<m)-1;i>0;i--){
 		apadd(res,getp(s,t,m,i));
 	}
-	cout<<"g["<<s<<"]["<<t<<"]["<<m<<"]="<<res<<endl;
 	return g[s][t][m]=g[t][s][m]=res;
 }
 int getf(int n,int m){
@@ -82,10 +84,11 @@ int getf(int n,int m){
 	if(~f[n][m]){
 		return f[n][m];
 	}
-	int res=add(mul(2,getf(n,m-1)),pow2[n*(n+1)*(m-1)]);
+	int res=add(mul(2,getf(n,m-1)),mul(pow2[(n+1)*(m-1)],sub(pow2[n],2)));
 	for(int i=1;i<n;i++){
-		apadd(res,mul(c[n][i],add(add(mul(pow2[(m-1)*(n-i)],f[i][m-1]),mul(pow2[(m-1)*i],f[n-i][m-1])),getg(i,n-i,m-1))));
+		apadd(res,mul(c[n][i],add(add(mul(pow2[(m-1)*(n-i)],getf(i,m-1)),mul(pow2[(m-1)*i],getf(n-i,m-1))),getg(i,n-i,m-1))));
 	}
+	return f[n][m]=res;
 }
 int main(){
 	pow2[0]=1;
