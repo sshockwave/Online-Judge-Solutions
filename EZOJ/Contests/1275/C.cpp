@@ -139,7 +139,7 @@ struct Tree:Graph{
 		memset(son,0,sizeof(son));
 	}
 	inline int ask(int x){
-		return min(e[con[x]].v,G.ring(fa[x],bln[fa[x]]));
+		return min(e[con[x]].w,G.ring(fa[x],bln[fa[x]]));
 	}
 	void dfs1(int x,int f){
 		assert(bln[x]==x);
