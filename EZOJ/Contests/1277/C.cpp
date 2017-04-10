@@ -56,6 +56,14 @@ struct SegmentTree{
 	inline void push_up(){
 		sum=lson->sum+rson->sum;
 	}
+	inline void push_down(){
+		if(delta){
+			lson->delta=rson->delta=delta;
+			lson->sum=delta*(mid-lend+1);
+			rson->sum=delta*(rend-mid);
+			delta=0;
+		}
+	}
 	char operator [] (int i){
 		assert(lend<=i&&i<=rend);
 		if(c){
@@ -89,12 +97,7 @@ struct SegmentTree{
 			sum=val*(r-l+1);
 			return;
 		}
-		if(delta){
-			lson->delta=rson->delta=delta;
-			lson->sum=delta*(mid-l+1);
-			rson->sum=delta*(r-mid);
-			delta=0;
-		}
+		push_down();
 		if(r<=mid){
 			lson->cover(l,r,val);
 		}else if(l>mid){
@@ -109,7 +112,9 @@ struct SegmentTree{
 		if(lend==rend){
 			assert(lend==x);
 			sum=v;
+			delta=0;
 		}else{
+			push_down();
 			(x<=mid?lson:rson)->alter(x,v);
 			push_up();
 		}
