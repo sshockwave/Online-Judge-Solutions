@@ -2,7 +2,9 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <bitset>
 using namespace std;
+typedef long long lint;
 inline bool is_num(char c){
 	return c>='0'&&c<='9';
 }
@@ -12,54 +14,80 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int MOD=123456789,N=610;
-inline int add(int a,int b){
-	return (a+b)%MOD;
+const int MOD=123456789,N=610,D=1810;
+inline int mul(int a,int b){
+	return (lint)a*b;
 }
-inline void apadd(int &a,int b){
-	a=add(a,b);
+inline int fpow(int x,int n){
+	int ret=1;
+	for(;n;n>>=1,x=mul(x,x)){
+		if(n&1){
+			ret=mul(ret,x);
+		}
+	}
+	return ret;
 }
-int n,m,ans=0,mx[8]={-2,-1,1,2,2,1,-1,-2},my[8]={1,2,2,1,-1,-2,-2,-1};
-bool mat[N][N];
+int n,m,dx[]={2,2,1,-1,-2,-2,-1,1},dy[]={1,-1,-2,-2,-1,1,2,2};
+bitset<D>stat[N][N],eqn[N];
 inline bool valid(int x,int y){
 	return x>=1&&x<=n&&y>=1&&y<=m;
 }
-inline bool valid2(int x,int y){
-	bool res=mat[x][y];
-	for(int i=0;i<8;i++){
-		int tx=x+mx[i],ty=y+my[i];
-		if(valid(tx,ty)){
-			res^=mat[tx][ty];
+inline int gauss(int n){
+	int cnt=0;
+	for(int i=1,j;i<=n;i++){
+		for(j=i;j<=n;j++){
+			if(eqn[j][i]){
+				break;
+			}
 		}
-	}
-	return res;
-}
-void check(){
-	for(int i=1;i<=n;i++){
-		for(int j=1;j<=m;j++){
-			if(!valid2(i,j)){
-				return;
+		if(j>n){
+			cnt++;
+			continue;
+		}
+		if(i!=j){
+			swap(eqn[i],eqn[j]);
+		}
+		for(j=i+1;j<=n;j++){
+			if(eqn[j][i]){
+				eqn[j]^=eqn[i];
 			}
 		}
 	}
-	apadd(ans,1);
-}
-void dfs(int x,int y){
-	if(y>m){
-		x++;
-		y=1;
-	}
-	if(x>n){
-		check();
-		return;
-	}
-	mat[x][y]=false;
-	dfs(x,y+1);
-	mat[x][y]=true;
-	dfs(x,y+1);
+	return cnt;
 }
 int main(){
 	n=ni(),m=ni();
-	dfs(1,1);
-	printf("%d\n",ans);
+	int xid=0;
+	if(n<2||m<2){
+		printf("%d\n",fpow(2,n*m));
+	}
+	for(int i=1;i<=2;i++){
+		for(int j=1;j<=m;j++){
+			stat[i][j].set(++xid);
+		}
+	}
+	for(int i=3;i<=n;i++){
+		stat[i][1].set(xid++);
+		for(int j=2;j<=m;j++){
+			for(int d=1;d<8;d++){
+				int tx=i-2+dx[d],ty=j-1+dy[d];
+				if(valid(tx,ty)){
+					stat[i][j]^=stat[tx][ty];
+				}
+			}
+		}
+	}
+	xid=0;
+	for(int i=3;i<=n;i++){
+		for(int j=(i<=n-2)?m:1;j<=m;j++){
+			eqn[++xid]=stat[i][j];
+			for(int d=0;d<8;d++){
+				int tx=i+dx[d],ty=j+dy[d];
+				if(valid(tx,ty)){
+					eqn[xid]^=stat[tx][ty];
+				}
+			}
+		}
+	}
+	printf("%d\n",fpow(2,gauss(xid)));
 }
