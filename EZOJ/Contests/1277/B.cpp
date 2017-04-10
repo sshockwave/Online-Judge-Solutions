@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <bitset>
 using namespace std;
 typedef long long lint;
 inline bool is_num(char c){
@@ -27,21 +28,7 @@ inline int fpow(int x,int n){
 	return ret;
 }
 int n,m,dx[]={2,2,1,-1,-2,-2,-1,1},dy[]={1,-1,-2,-2,-1,1,2,2};
-struct bit{
-	static const int D=60;
-	int digit[D];
-	inline int operator [] (int i){
-		return (digit[i>>5]>>(i&31))&1;
-	}
-	inline void set(int i){
-		digit[i>>5]|=1<<(i&31);
-	}
-	inline void operator ^= (bit b){
-		for(int i=0;i<D;i++){
-			digit[i]^=b.digit[i];
-		}
-	}
-}stat[N][N],eqn[D];
+bitset<D>stat[N][N],eqn[D];
 inline bool valid(int x,int y){
 	return x>=1&&x<=n&&y>=1&&y<=m;
 }
