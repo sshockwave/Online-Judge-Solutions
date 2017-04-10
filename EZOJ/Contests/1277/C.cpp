@@ -179,13 +179,15 @@ int main(){
 			int div=r-k+1,ans=0,ctop=0;
 			if(l<=div){
 				ans+=seg.query(l,div);
+			}else{
+				div=l-1;
 			}
 			for(int i=div+1;i<=r;i++){
 				cur[ctop++]=seg[i];
 			}
 			manacher(cur,ctop);
 			for(int i=1;i<=ctop;i++){
-				ans+=res[i];
+				ans+=pcnt[i];
 			}
 			printf("%d\n",ans);
 		}
