@@ -17,8 +17,23 @@ inline int ni(){
 }
 const int L=50010,K=55;
 int res[L*2];
+char tmp[L*2];
 inline void manacher(char *s,int n){
-	
+	memset(res,0,sizeof(res));
+	for(int i=0;i<n;i++){
+		tmp[i<<1]='*';
+		tmp[(i<<1)|1]=s[i];
+	}
+	tmp[n<<1]='*';
+	for(int i=1,top=n<<1,p=0;i<=top;i++){
+		if(p+res[p]>=i){
+			res[i]=min(res[p*2-i],min(p+res[p]-i,i-p));
+		}
+		for(;i>res[i]&&i+res[i]<top&&tmp[i-res[i]]==tmp[i+res[i]];res[i]++);
+		if(i+res[i]>p+res[p]){
+			p=i;
+		}
+	}
 }
 struct SegmentTree{
 	typedef SegmentTree node;
