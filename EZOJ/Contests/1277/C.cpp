@@ -16,134 +16,174 @@ inline int ni(){
 	return i;
 }
 const int L=50010,K=55;
-int k;
-char s[L];
+int res[L*2];
+inline void manacher(char *s,int n){
+	
+}
 struct SegmentTree{
 	typedef SegmentTree node;
-	struct Info{
-		char sl[K*2],sr[K*2];
-		int lenl[K],lenr[K],intl,top,sum;//[0,ll)[0,lr)
-		inline void init(char c){
-			intl=1;
-			sl[0]=sr[0]=sl[2]=sr[2]='*';
-			sl[1]=sr[1]=c;
-			lenl[0]=lenr[0]=lenl[2]=lenr[2]=0;
-			lenl[1]=lenr[1]=intl=sum=1;
-			top=min(k,intl);
-		}
-		inline void setall(char c){
-			if(top==k){
-				sum=(intl-k+1)*(k-1)+(k-1)*(k-2)/2;
-			}else{
-				sum=intl*(intl-1)/2;
-			}
-			for(int i=0;i<top;i++){
-				sl[(i<<1)|1]=sr[(i<<1)|1]=c;
-				lenl[i]=lenr[i]=min(i,(intl<<1)-i);
-			}
-			lenl[top]=lenr[top]=min(top,(intl<<1)-top);
-		}
-		inline void update(Info l,Info r){
-			intl=l.intl+r.intl;
-			sum=l.sum+r.sum;
-			top=min(k,intl);
-			if(l.top==k){
-				memcpy(sl,l.sl,(k<<1)|1);
-				memcpy(lenl,l.lenl,(k+1)<<2);
-			}else{
-				memcpy(sl,l.sl,l.top<<1);
-				memcpy(sl+(l.top<<1),r.sl,(r.top<<1)|1);
-				memcpy(lenl,l.top<<1);
-			}
-			if(r.top==k){
-				memcpy(sr,r.sr,(k<<1)|1);
-				memcpy(lenr,r.lenr,(k+1)<<2);
-			}else{
-				
-			}
-		}
-	}info;
-	int lend,rend,mid;
+	int lend,rend,mid,sum,delta;
+	char c;
 	node *lson,*rson;
-	bool flag;
 	void build(int,int);
-	void cover(int l,int r,char c){
+	inline void push_up(){
+		sum=lson->sum+rson->sum;
+	}
+	char operator [] (int i){
+		assert(lend<=i&&i<=rend);
+		if(c){
+			return c;
+		}
+		if(i<=mid){
+			return (*lson)[i];
+		}else{
+			return (*rson)[i];
+		}
+	}
+	void cover(int l,int r,char val){
 		assert(lend<=l&&r<=rend);
 		if(l==lend&&r==rend){
-			flag=true;
-			info.setall(c);
+			c=val;
+		}
+		if(c){
+			lson->c=rson->c=c;
+			c=0;
+		}
+		if(r<=mid){
+			lson->cover(l,r,val);
+		}else if(l>mid){
+			rson->cover(l,r,val);
+		}else{
+			lson->cover(l,mid,val);
+			rson->cover(mid+1,r,val);
+		}
+	}
+	void cover(int l,int r,int val){
+		assert(lend<=l&&r<=rend);
+		if(l==lend&&r==rend){
+			delta=val;
+			sum=val*(r-l+1);
 			return;
 		}
+		if(delta){
+			lson->delta=rson->delta=delta;
+			lson->sum=delta*(mid-l+1);
+			rson->sum=delta*(r-mid);
+			delta=0;
+		}
 		if(r<=mid){
-			lson->cover(l,r,c);
+			lson->cover(l,r,val);
 		}else if(l>mid){
-			rson->cover(l,r,c);
+			rson->cover(l,r,val);
 		}else{
-			lson->cover(l,mid,c);
-			rson->cover(mid+1,r,c);
+			lson->cover(l,mid,val);
+			rson->cover(mid+1,r,val);
 		}
-		info.update(lson->info,rson->info);
+		push_up();
 	}
-	Info ask(int l,int r){
+	void alter(int x,int v){
+		if(lend==rend){
+			assert(lend==x);
+			sum=v;
+		}else{
+			(x<=mid?lson:rson)->alter(x,v);
+			push_up();
+		}
+	}
+	int query(int l,int r){
 		assert(lend<=l&&r<=rend);
+		if(delta){
+			return delta*(r-l+1);
+		}
 		if(l==lend&&r==rend){
-			return info;
+			return sum;
 		}
 		if(r<=mid){
-			return lson->ask(l,r);
+			return lson->query(l,r);
 		}
 		if(l>mid){
-			return rson->ask(l,r);
+			return rson->query(l,r);
 		}
-		Info ans;
-		ans.update(lson->ask(l,mid),rson->ask(mid+1,r));
-		return ans;
+		return lson->query(l,mid)+rson->query(mid+1,r);
 	}
 }seg,pool[L*2];
+char s[L],cur[L];
+int pcnt[L];
 void SegmentTree::build(int l,int r){
-	static node *n=pool;
+	static node* n=pool;
 	lend=l,rend=r,mid=(l+r)>>1;
-	flag=false;
+	delta=0;
 	if(l==r){
-		info.init(s[l]);
+		c=s[l],sum=pcnt[l];
 	}else{
 		(lson=n++)->build(l,mid);
 		(rson=n++)->build(mid+1,r);
-		info.update(lson->info,rson->info);
+		c=0,sum=lson->sum+rson->sum;
 	}
-}
-inline bool is_palin(char *s,char *t){
-	for(;s<t;s++,t--){
-		if((*s)!=(*t)){
-			return false;
-		}
-	}
-	return true;
-}
-inline int query(int l,int r){
-	int cnt=0;
-	for(int i=l;i<=r;i++){
-		for(int j=i,top=min(r,i+k-1);j<=top;j++){
-			if(is_palin(s+i,s+j)){
-				cnt++;
-			}
-		}
-	}
-	return cnt;
 }
 int main(){
 	scanf("%s%d",s+1,&k);
+	int totlen=strlen(s+1);
+	manacher(s+1,totlen);
+	memset(pcnt,0,sizeof(pcnt));
+	for(int i=1;i<=n;i++){
+		for(int j=(i<<1)-1,top=k+j;j<=top;j++){
+			if(i+res[j]>=j){
+				pcnt[i]++;
+			}
+		}
+	}
 	for(int tot=ni(),l,r;tot--;){
 		if(ni()==1){
 			l=ni(),r=ni();
 			char c;
 			while(!is_letter(c=getchar()));
-			for(int i=l;i<=r;i++){
-				s[i]=c;
+			seg.cover(l,r,c);
+			int div=r-k+1,ctop=0;
+			if(l<=div){
+				seg.cover(l,div,k);
+			}
+			for(int i=max(l-k+1,0),top=min(totlen,l+k-1);i<=top;i++){
+				cur[ctop++]=seg[i];
+			}
+			manacher(cur,ctop);
+			for(int from=max(l-k+1,0),i=from;i<=l;i++){
+				int val=0;
+				for(int st=((i-from)<<1)|1,j=st,top=min(k+j,ctop<<1);j<=top;j++){
+					if(st+res[j]>=j){
+						val++;
+					}
+				}
+				seg.alter(i,val);
+			}
+			ctop=0;
+			for(int i=max(r-k+1,0),top=min(totlen,r+k-1);i<=top;i++){
+				cur[ctop++]=seg[i];
+			}
+			manacher(cur,ctop);
+			for(int from=max(r-k+1,0),i=from;i<=r;i++){
+				int val=0;
+				for(int st=((i-from)<<1)|1,j=st,top=min(k+j,ctop<<1);j<=top;j++){
+					if(st+res[j]>=j){
+						val++;
+					}
+				}
+				seg.alter(i,val);
 			}
 		}else{
 			l=ni(),r=ni();
-			printf("%d\n",query(l,r));
+			int div=r-k+1,ans=0,ctop=0;
+			if(l<=div){
+				ans+=seg.query(l,div);
+			}
+			for(int i=div+1;i<=r;i++){
+				cur[ctop++]=seg[i];
+			}
+			manacher(cur,ctop);
+			for(int i=0,top=ctop<<1;i<=top;i++){
+				ans+=res[i];
+			}
+			printf("%d\n",ans);
 		}
 	}
 }
