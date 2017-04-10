@@ -16,8 +16,18 @@ inline int ni(){
 	return i;
 }
 const int L=50010,K=55;
-int res[L*2];
+int res[L*2],k,pcnt[L];
 char tmp[L*2];
+inline void count_palin(int n){
+	memset(pcnt+1,0,n<<2);
+	for(int i=1;i<=n;i++){
+		for(int j=(i<<1)-1,top=min(j+k-1,n<<1);j<=top;j++){
+			if(j-res[j]<(i<<1)-1){
+				pcnt[i]++;
+			}
+		}
+	}
+}
 inline void manacher(char *s,int n){
 	memset(res,0,sizeof(res));
 	for(int i=0;i<n;i++){
@@ -29,11 +39,13 @@ inline void manacher(char *s,int n){
 		if(p+res[p]>=i){
 			res[i]=min(res[p*2-i],min(p+res[p]-i,i-p));
 		}
-		for(;i>res[i]&&i+res[i]<top&&tmp[i-res[i]]==tmp[i+res[i]];res[i]++);
+		for(;i>=res[i]&&i+res[i]<=top&&tmp[i-res[i]]==tmp[i+res[i]];res[i]++);
+		res[i]--;
 		if(i+res[i]>p+res[p]){
 			p=i;
 		}
 	}
+	count_palin(n);
 }
 struct SegmentTree{
 	typedef SegmentTree node;
@@ -49,16 +61,13 @@ struct SegmentTree{
 		if(c){
 			return c;
 		}
-		if(i<=mid){
-			return (*lson)[i];
-		}else{
-			return (*rson)[i];
-		}
+		return (*(i<=mid?lson:rson))[i];
 	}
 	void cover(int l,int r,char val){
 		assert(lend<=l&&r<=rend);
 		if(l==lend&&r==rend){
 			c=val;
+			return;
 		}
 		if(c){
 			lson->c=rson->c=c;
@@ -123,7 +132,6 @@ struct SegmentTree{
 	}
 }seg,pool[L*2];
 char s[L],cur[L];
-int pcnt[L];
 void SegmentTree::build(int l,int r){
 	static node* n=pool;
 	lend=l,rend=r,mid=(l+r)>>1;
@@ -140,14 +148,7 @@ int main(){
 	scanf("%s%d",s+1,&k);
 	int totlen=strlen(s+1);
 	manacher(s+1,totlen);
-	memset(pcnt,0,sizeof(pcnt));
-	for(int i=1;i<=n;i++){
-		for(int j=(i<<1)-1,top=k+j;j<=top;j++){
-			if(i+res[j]>=j){
-				pcnt[i]++;
-			}
-		}
-	}
+	seg.build(1,totlen);
 	for(int tot=ni(),l,r;tot--;){
 		if(ni()==1){
 			l=ni(),r=ni();
@@ -158,32 +159,20 @@ int main(){
 			if(l<=div){
 				seg.cover(l,div,k);
 			}
-			for(int i=max(l-k+1,0),top=min(totlen,l+k-1);i<=top;i++){
+			for(int i=max(l-k+1,1),top=min(totlen,l+k-2);i<=top;i++){
 				cur[ctop++]=seg[i];
 			}
 			manacher(cur,ctop);
-			for(int from=max(l-k+1,0),i=from;i<=l;i++){
-				int val=0;
-				for(int st=((i-from)<<1)|1,j=st,top=min(k+j,ctop<<1);j<=top;j++){
-					if(st+res[j]>=j){
-						val++;
-					}
-				}
-				seg.alter(i,val);
+			for(int i=max(l-k+1,1),j=1;i<l;i++,j++){
+				seg.alter(i,pcnt[j]);
 			}
 			ctop=0;
-			for(int i=max(r-k+1,0),top=min(totlen,r+k-1);i<=top;i++){
+			for(int i=max(r-k+2,1),top=min(totlen,r+k-1);i<=top;i++){
 				cur[ctop++]=seg[i];
 			}
 			manacher(cur,ctop);
-			for(int from=max(r-k+1,0),i=from;i<=r;i++){
-				int val=0;
-				for(int st=((i-from)<<1)|1,j=st,top=min(k+j,ctop<<1);j<=top;j++){
-					if(st+res[j]>=j){
-						val++;
-					}
-				}
-				seg.alter(i,val);
+			for(int i=max(r-k+2,1),j=1;i<=r;i++,j++){
+				seg.alter(i,pcnt[j]);
 			}
 		}else{
 			l=ni(),r=ni();
@@ -195,7 +184,7 @@ int main(){
 				cur[ctop++]=seg[i];
 			}
 			manacher(cur,ctop);
-			for(int i=0,top=ctop<<1;i<=top;i++){
+			for(int i=1;i<=ctop;i++){
 				ans+=res[i];
 			}
 			printf("%d\n",ans);
