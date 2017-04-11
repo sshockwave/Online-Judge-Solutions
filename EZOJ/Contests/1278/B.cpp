@@ -13,12 +13,6 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-inline int nl(){
-	lint i=0;char c;
-	while(!is_num(c=getchar()));
-	while(i=i*10-'0'+c,is_num(c=getchar()));
-	return i;
-}
 const int N=200010,MOD=1000000007;
 inline int add(int a,int b){
 	return (a+b)%MOD;
@@ -41,8 +35,8 @@ struct SegmentTree{
 	void build(int,int,bool);
 	inline void up(){
 		assert(lend!=rend);
-		sum=lson->sum+rson->sum;
-		isum=lson->isum+rson->isum;
+		sum=add(lson->sum,rson->sum);
+		isum=add(lson->isum,rson->isum);
 	}
 	void alter(int x,int val){
 		assert(lend<=x&&x<=rend);
@@ -126,31 +120,31 @@ inline int ask_isum(int l,lint r){
 	lint sec=r/n-1;
 	static int rev2=(MOD>>1)+1;
 	if(n&1){
-		lint half=sec>>1;
-		apadd(ans,mul(half%MOD,add(seg[0].isum,seg[1].isum)));
-		apadd(ans,mul(seg[!d].rend+1,mul(mul(half%MOD,half%MOD),n)));
-		apadd(ans,mul(seg[d].rend+1,mul(mul(half%MOD,(half+1)%MOD),n)));
+		lint half=(sec>>1)%MOD;
+		apadd(ans,mul(half,add(seg[0].isum,seg[1].isum)));
+		apadd(ans,mul(seg[!d].sum,mul(n,mul(half,half))));
+		apadd(ans,mul(seg[d].sum,mul(n,mul(half,add(half,1)))));
 		if(sec&1){
 			apadd(ans,seg[!d].isum);
-			apadd(ans,mul(seg[!d].rend+1,mul(sec%MOD,n)));
+			apadd(ans,mul(seg[!d].sum,mul(sec%MOD,n)));
 			assert(((r%n)&1)==(l&1));
 			apadd(ans,seg[d].ask_isum(0,(r%n)>>1));
-			apadd(ans,mul(((r%n)>>1)+1,mul((sec+1)%MOD,n)));
+			apadd(ans,mul(seg[d].ask_sum(0,(r%n)>>1),mul((sec+1)%MOD,n)));
 		}else{
 			assert(((r%n)&1)!=(l&1));
 			apadd(ans,seg[!d].ask_isum(0,(r%n)>>1));
-			apadd(ans,mul(((r%n)>>1)+1,mul((sec+1)%MOD,n)));
+			apadd(ans,mul(seg[!d].ask_sum(0,(r%n)>>1),mul((sec+1)%MOD,n)));
 		}
 	}else{
+		sec%=MOD;
 		apadd(ans,mul(sec%MOD,seg[d].isum));
-		apadd(ans,mul(seg[d].rend+1,mul(mul((sec+1)%MOD,sec%MOD),mul(n,rev2))));
+		apadd(ans,mul(seg[d].sum,mul(mul(sec,add(sec,1)),mul(n,rev2))));
 		apadd(ans,seg[d].ask_isum(0,(r%n)>>1));
-		apadd(ans,mul(((r%n)>>1)+1,mul((sec+1)%MOD,n)));
+		apadd(ans,mul(seg[d].ask_sum(0,(r%n)>>1),mul(n,add(sec,1))));
 	}
 	return ans;
 }
 int main(){
-	freopen("B.in","r",stdin);
 	n=ni();
 	scanf("%s",s);
 	seg[0].build(0,(n-1)>>1,0);
@@ -160,8 +154,10 @@ int main(){
 			int pos=ni()-1;
 			seg[pos&1].alter(pos>>1,ni());
 		}else{
-			lint l=nl(),r=nl(),qr=r-((r-l)&1);
+			lint l,r;
+			scanf("%lld%lld",&l,&r);
 			r-=l--,l%=n,r+=l;
+			lint qr=l+(r-l)/2*2;
 			printf("%d\n",sub(mul((r+1)%MOD,ask_sum(l,qr)),ask_isum(l,qr)));
 		}
 	}
