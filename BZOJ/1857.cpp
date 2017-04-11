@@ -25,10 +25,10 @@ double P,Q,R;
 inline point operator + (point a,point b){
 	return (point){a.x+b.x,a.y+b.y};
 }
-inline point operator * (point a,int b){
+inline point operator * (point a,double b){
 	return (point){a.x*b,a.y*b};
 }
-inline point operator / (point a,int b){
+inline point operator / (point a,double b){
 	return (point){a.x/b,a.y/b};
 }
 inline ostream & operator << (ostream & out,point a){
@@ -42,7 +42,7 @@ inline double chop2(point x){
 	point l=c,r=d,m1,m2;
 	while(dist(l,r)>EPS){
 		m1=(l*2+r)/3,m2=(l+r*2)/3;
-		if(dist(m1,x)*R+dist(m1,d)*Q>dist(m2,x)*R+dist(m2,d)*Q){
+		if(dist(m1,x)/R+dist(m1,d)/Q>dist(m2,x)/R+dist(m2,d)/Q){
 			l=m1;
 		}else{
 			r=m2;
@@ -54,13 +54,13 @@ inline double chop1(){
 	point l=a,r=b,m1,m2;
 	while(dist(l,r)>EPS){
 		m1=(l*2+r)/3,m2=(l+r*2)/3;
-		if(dist(a,m1)*P+chop2(m1)>dist(a,m2)*P+chop2(m2)){
+		if(dist(a,m1)/P+chop2(m1)>dist(a,m2)/P+chop2(m2)){
 			l=m1;
 		}else{
 			r=m2;
 		}
 	}
-	return dist(a,l)*P+chop2(l);
+	return dist(a,l)/P+chop2(l);
 }
 int main(){
 	cin>>a.x>>a.y>>b.x>>b.y>>c.x>>c.y>>d.x>>d.y>>P>>Q>>R;
