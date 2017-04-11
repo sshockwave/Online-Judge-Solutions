@@ -17,7 +17,7 @@ inline int ni(){
 inline double sqr(double x){
 	return x*x;
 }
-const double EPS=1e-4;
+const double EPS=1e-7;
 struct point{
 	double x,y;
 }a,b,c,d;
@@ -48,7 +48,7 @@ inline double chop2(point x){
 			r=m2;
 		}
 	}
-	return dist(l,x)*R+dist(l,d)*Q;
+	return dist(l,x)/R+dist(l,d)/Q;
 }
 inline double chop1(){
 	point l=a,r=b,m1,m2;
@@ -63,6 +63,8 @@ inline double chop1(){
 	return dist(a,l)/P+chop2(l);
 }
 int main(){
-	cin>>a.x>>a.y>>b.x>>b.y>>c.x>>c.y>>d.x>>d.y>>P>>Q>>R;
+	scanf("%lf%lf%lf%lf",&a.x,&a.y,&b.x,&b.y);
+	scanf("%lf%lf%lf%lf",&c.x,&c.y,&d.x,&d.y);
+	scanf("%lf%lf%lf",&P,&Q,&R);
 	printf("%.2lf",chop1());
 }
