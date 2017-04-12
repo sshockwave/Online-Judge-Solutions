@@ -15,12 +15,10 @@ inline int ni(){
 	return i;
 }
 int main(){
-	ios::sync_with_stdio(false);
-	cin.tie(0);
-	long double a,b,l,r,sqrtb;
+	double a,b,l,r,sqrtb;
 	for(int tot=ni();tot--;){
-		cin>>l>>r>>a>>b;
+		scanf("%lf%lf%lf%lf",&l,&r,&a,&b);
 		sqrtb=sqrt(b);
-		cout<<sqrt(a/b)*(r*sqrt(b-r*r)+b*(acos(l/sqrtb)-acos(r/sqrtb))-l*sqrt(b-l*l))/2<<endl;
+		printf("%.8lf\n",sqrt(a/b)*(r*sqrt(b-r*r)+b*(acos(l/sqrtb)-acos(r/sqrtb))-l*sqrt(b-l*l))/2);
 	}
 }
