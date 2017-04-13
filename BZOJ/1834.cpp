@@ -30,6 +30,26 @@ inline void add_edge(int u,int v,int c,int w){
 }
 int que[N],dis[N],pre[N];
 bool inque[N],use[N];
+inline bool bfs(int s,int t){
+	memset(dis,127,sizeof(dis));
+	dis[s]=0;
+	int qhead=0,qtail=0;
+	que[qtail++]=s;
+	while(qhead<qtail){
+		int x=que[qhead++];
+		for(int i=head[x],v;~i;i=bro[i]){
+			v=to[i];
+			if(cap[i]&&dis[v]==INF){
+				dis[v]=dis[x]+1;
+				if(v==t){
+					return true;
+				}
+				que[qtail++]=v;
+			}
+		}
+	}
+	return false;
+}
 inline void spfa(int s,int t){
 	memset(dis,127,sizeof(dis));
 	memset(inque,0,sizeof(inque));
@@ -46,8 +66,8 @@ inline void spfa(int s,int t){
 		}
 		for(int i=head[x],v;~i;i=bro[i]){
 			v=to[i];
-			if(dis[v]>dis[x]+(cap[i]?0:val[i])){
-				dis[v]=dis[x]+(cap[i]?0:val[i]);
+			if(dis[v]>dis[x]+(cap[i]>0?0:val[i])){
+				dis[v]=dis[x]+(cap[i]>0?0:val[i]);
 				if(dis[v]==dis[x]+val[i]){
 					use[i]=true;
 				}
@@ -64,20 +84,20 @@ inline void spfa(int s,int t){
 		inque[x]=false;
 	}
 }
-inline int amtcnt(int p){
-	int delta=INF;
-	for(;~pre[p];p=to[pre[p]]){
-		apmin(delta,cap[pre[p]^1]);
+int dinic(int x,int t,int alloc){
+	if(x==t){
+		return alloc;
 	}
-	return delta;
-}
-inline int amtcnt2(int p){
-	int delta=INF;
-	for(;~pre[p];p=to[pre[p]]){
-		if(!use[pre[p]^1]){
-			apmin(delta,cap[pre[p]^1]);
+	int rest=alloc,delta;
+	for(int i=head[x],v;rest&&(~i);i=bro[i]){
+		v=to[i];
+		if(cap[i]&&dis[v]==dis[x]+1){
+			delta=dinic(v,t,min(rest,cap[i]));
+			cap[i]-=delta,cap[i^1]+=delta;
+			rest-=delta;
 		}
 	}
+	return alloc-rest;
 }
 inline void aug(int p,int delta){
 	for(;~pre[p];p=to[pre[p]]){
@@ -92,15 +112,18 @@ int main(){
 		add_edge(u,v,c,w);
 		add_edge(v,u,0,INF);
 	}
-	int flow=0,delta,cost;
-	while(spfa(1,n),dis[n]==0){
-		delta=amtcnt(n);
-		aug(n,delta);
-		flow+=delta;
+	int flow=0,delta,cost=0;
+	while(bfs(1,n)){
+		flow+=dinic(1,n,INF);
 	}
 	while(k){
 		spfa(1,n);
-		delta=min(k,amtcnt2(n));
+		delta=k;
+		for(int p=n;~pre[p];p=to[pre[p]]){
+			if(!use[pre[p]^1]){
+				apmin(delta,cap[pre[p]^1]);
+			}
+		}
 		aug(n,delta);
 		k-=delta;
 		cost+=delta*dis[n];
