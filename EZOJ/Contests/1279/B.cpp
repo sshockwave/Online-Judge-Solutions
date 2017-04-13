@@ -19,7 +19,7 @@ inline void apmax(int &a,int b){
 	}
 }
 const int N=200010,logN=20,M=310,INF=0x7f7f7f7f;
-int fa[N][logN],hash[N][logN],dep[N],ldep[N],ch[N];
+int fa[N][logN],hush[N][logN],dep[N],ldep[N],ch[N];
 namespace SA{
 	int sa[N],w[N],*rank,*sa2;//rank[i>0]>=0 sa[i>=0]>0
 	inline bool equal(int a,int b,int j){
@@ -27,36 +27,36 @@ namespace SA{
 	}
 	inline int extend(int n,int m,int j){
 		rank[0]=0;
-		memset(w,0,m<<2);
+		memset(w,0,(m+1)<<2);
 		for(int i=1;i<=n;i++){
 			w[rank[fa[i][j]]]++;
 		}
-		for(int i=1;i<m;i++){
+		for(int i=1;i<=m;i++){
 			w[i]+=w[i-1];
 		}
 		for(int i=n;i>=1;i--){
-			sa2[--w[rank[fa[i][j]]]]=i;
+			sa2[w[rank[fa[i][j]]]--]=i;
 		}
-		memset(w,0,m<<2);
+		memset(w,0,(m+1)<<2);
 		for(int i=1;i<=n;i++){
 			w[rank[i]]++;
 		}
-		for(int i=1;i<m;i++){
+		for(int i=1;i<=m;i++){
 			w[i]+=w[i-1];
 		}
-		for(int i=n-1;i>=0;i--){
-			sa[--w[rank[sa2[i]]]]=sa2[i];
+		for(int i=n;i>=1;i--){
+			sa[w[rank[sa2[i]]]--]=sa2[i];
 		}
-		int p=0;
-		sa2[sa[0]]=0;
-		for(int i=1;i<n;i++){
+		int p=1;
+		sa2[1]=1;
+		for(int i=2;i<=n;i++){
 			sa2[sa[i]]=equal(sa[i],sa[i-1],j)?p:++p;
 		}
 		swap(rank,sa2);
-		return p+1;
+		return p;
 	}
 	int len[N],tmp[N];
-	inline void work(int n){
+	inline void work(int n,int maxdep){
 		rank=ch,sa2=tmp;
 		memset(w,0,M<<2);
 		for(int i=1;i<=n;i++){
@@ -76,14 +76,17 @@ namespace SA{
 			w[i]+=w[i-1];
 		}
 		for(int i=n;i>=1;i--){
-			sa[--w[rank[i]]]=i;
+			sa[w[rank[i]]--]=i;
 		}
-		for(int j=1,m=M;(m=extend(n,m,j))<n;j<<=1);
+		for(int j=1,m=M;j<=maxdep&&(m=extend(n,m,j))<n;j<<=1);
+		for(int i=1;i<=n;i++){
+			rank[sa[i]]=i;
+		}
 		memset(len,0,sizeof(len));
-		for(int i=1;i+1<n;i++){
+		for(int i=1;i<n;i++){
 			int u=sa[i],v=sa[i+1];
 			for(int j=min(ldep[u],ldep[v]);j>=0;j--){
-				if(hash[u][j]==hash[v][j]){
+				if(hush[u][j]==hush[v][j]){
 					len[i]|=1<<j;
 					u=fa[u][j],v=fa[v][j];
 				}
@@ -116,6 +119,7 @@ struct SegmentTree{
 	void set(int x,InfoSegmentTree* val){
 		if(val->l==val->r){
 			tol=INF,tor=val->val;
+			return;
 		}
 		static node* pool=new node[N*logN];
 		if(x<=val->mid){
@@ -123,7 +127,7 @@ struct SegmentTree{
 			tol=lson->tol;
 			tor=min(val->rson->val,lson->tor);
 		}else{
-			(rson=pool++)->set(x,val->rson);//todo
+			(rson=pool++)->set(x,val->rson);
 			tol=min(val->lson->val,rson->tol);
 			tor=rson->tor;
 		}
@@ -139,7 +143,11 @@ struct SegmentTree{
 		x->rson=merge(x->rson,y->rson,d);
 		apmax(x->tol,y->tol);
 		apmax(x->tor,y->tor);
-		apmax(ans,d+min(x->lson->tor,x->rson->tol));
+		int lv=INF,rv=INF;
+		if(x->lson&&x->rson){
+			apmax(ans,d+min(x->lson->tor,x->rson->tol));
+			return x;
+		}
 	}
 }T[N];
 int main(){
@@ -154,15 +162,18 @@ int main(){
 	for(int i=1;i<=n;i++){
 		pw[i]=(lint)pw[i-1]*M%MOD;
 	}
+	ch[0]=0;
+	int maxdep=0;
 	for(int i=2;i<=n;i++){
 		dep[i]=dep[fa[i][0]=ni()]+1;
-		hash[i][0]=ch[i]=ni();
+		hush[i][0]=ch[i]=ni();
 		for(int &k=ldep[i];fa[i][k+1]=fa[fa[i][k]][k];k++){
-			hash[i][k+1]=((lint)pw[1<<k]*hash[fa[i][k]][k]%MOD+hash[i][k])%MOD;
+			hush[i][k+1]=((lint)pw[1<<k]*hush[fa[i][k]][k]%MOD+hush[i][k])%MOD;
 		}
+		apmax(maxdep,ldep[i]);
 	}
-	SA::work(n);
-	I.build(0,n-1);
+	SA::work(n,maxdep);
+	I.build(1,n);
 	for(int i=1;i<=n;i++){
 		T[i].set(SA::rank[i],&I);
 	}
