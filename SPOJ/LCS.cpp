@@ -51,7 +51,7 @@ struct SuffixAutomaton{
 		nq->val=p->val+1;
 		nq->lnk=q->lnk;
 		tail->lnk=q->lnk=nq;
-		for(;p&&p->go[c]==0;p=p->lnk){
+		for(;p&&p->go[c]==q;p=p->lnk){
 			p->go[c]=nq;
 		}
 	}
@@ -67,10 +67,18 @@ struct SuffixAutomaton{
 				p=p->go[c];
 				apmax(ans,++f);
 			}else{
-				for(;p!=&ini&&p->go[c]==0;p=p->lnk);
-				f=p->val;
+				for(;p&&p->go[c]==0;p=p->lnk);
+				if(p){
+					f=p->val;
+					p=p->go[c];
+					apmax(ans,++f);
+				}else{
+					f=0;
+					p=&ini;
+				}
 			}
 		}
+		return ans;
 	}
 }SAM;
 int main(){
