@@ -1,3 +1,4 @@
+//Score:100/100
 #include <iostream>
 #include <cstdio>
 #include <cstring>
