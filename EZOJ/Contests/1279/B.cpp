@@ -59,6 +59,7 @@ namespace SA{
 	inline void work(int n,int maxdep){
 		rank=ch,sa2=tmp;
 		memset(w,0,M<<2);
+		rank[1]=305;
 		for(int i=1;i<=n;i++){
 			w[rank[i]]=1;
 		}
@@ -79,9 +80,6 @@ namespace SA{
 			sa[w[rank[i]]--]=i;
 		}
 		for(int j=1,m=M;j<=maxdep&&(m=extend(n,m,j))<n;j<<=1);
-		for(int i=1;i<=n;i++){
-			rank[sa[i]]=i;
-		}
 		memset(len,0,sizeof(len));
 		for(int i=1;i<n;i++){
 			int u=sa[i],v=sa[i+1];
@@ -146,8 +144,8 @@ struct SegmentTree{
 		int lv=INF,rv=INF;
 		if(x->lson&&x->rson){
 			apmax(ans,d+min(x->lson->tor,x->rson->tol));
-			return x;
 		}
+		return x;
 	}
 }T[N];
 int main(){
