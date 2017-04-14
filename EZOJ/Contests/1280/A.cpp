@@ -47,10 +47,21 @@ struct SegmentTree{
 	void build(int l,int r){
 		static node *n=new node[N*2];
 		lend=l,rend=r,mid=(l+r)>>1;
-		delta=mn=0,mn2=INF,mnc=mnc2=1;
+		delta=0,mn=mn2=INF,mnc=mnc2=1;
 		if(l!=r){
 			(lson=n++)->build(l,mid);
 			(rson=n++)->build(mid+1,r);
+			up();
+		}
+	}
+	void set(int x,int v){
+		assert(lend<=x&&x<=rend);
+		if(lend==rend){
+			mn=v;
+			delta=0;
+		}else{
+			down();
+			(x<=mid?lson:rson)->set(x,v);
 			up();
 		}
 	}
@@ -95,12 +106,15 @@ int main(){
 		pos[perm[i]=ni()]=i;
 	}
 	lint ans=0;
-	for(int i=n;i>=1;i--){//tocheck
+	seg.build(1,n);
+	for(int i=n;i>=1;i--){
+		seg.set(i,0);
 		int p1=perm[pos[i]-1],p2=perm[pos[i]+1];
 		if(p1>p2){
 			swap(p1,p2);
 		}
 		if(p1==0){
+			assert(p2!=0);
 			if(p2<i){
 				seg.add(i,n,1);
 			}else{
@@ -118,5 +132,5 @@ int main(){
 		}
 		ans+=ask();
 	}
-	printf("%d",ans);
+	printf("%d\n",ans-n);
 }
