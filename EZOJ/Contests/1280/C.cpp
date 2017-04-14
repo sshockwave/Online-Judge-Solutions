@@ -23,7 +23,7 @@ inline void apmax(int &a,int b){
 		a=b;
 	}
 }
-const int N=100010,M=100010,E=N*2,logN=20;
+const int N=100010,M=N,E=N*2,logN=20;
 int to[E],bro[E],head[N];
 inline void add_edge(int u,int v){
 	static int etop=0;
@@ -31,33 +31,44 @@ inline void add_edge(int u,int v){
 	bro[etop]=head[u];
 	head[u]=etop++;
 }
-int fa[N][logN],dep[N],ldep[N];
-void dfs(int x,int f){
+int color[N],fa[N][logN],ldep[N],dep[N];
+int d1[M],d2[M],diam[M];
+void dfs1(int x,int f){
 	fa[x][0]=f;
 	for(int &j=ldep[x];fa[x][j+1]=fa[fa[x][j]][j];j++);
 	for(int i=head[x],v;~i;i=bro[i]){
-		v=to[i];
-		if(v!=f){
+		if((v=to[i])!=f){
 			dep[v]=dep[x]+1;
-			dfs(v,x);
+			dfs1(v,x);
 		}
 	}
 }
-inline int lca(int u,int v){
-	if(dep[u]<dep[v]){
-		swap(u,v);
+inline int go_up(int x,int n){
+	if(n<0){
+		return x;
 	}
-	for(int j=ldep[u];j>=0;j--){
-		if(dep[fa[u][j]]>=dep[v]){
-			u=fa[u][j];
+	for(int j=ldep[x];j>=0;j--){
+		if((n>>j)&1){
+			x=fa[x][j];
+		}
+	}
+	return x;
+}
+inline int lca(int u,int v){
+	if(dep[u]!=dep[v]){
+		if(dep[u]>dep[v]){
+			u=go_up(u,dep[v]-dep[u]);
+		}else{
+			v=go_up(v,dep[u]-dep[v]);
 		}
 	}
 	if(u==v){
 		return u;
 	}
 	for(int j=min(ldep[u],ldep[v]);j>=0;j--){
-		if(fa[u][j]!=fa[v][j]){
-			u=fa[u][j],v=fa[v][j];
+		if(fa[u][j]&&fa[v][j]&&fa[u][j]!=fa[v][j]){
+			u=fa[u][j];
+			v=fa[v][j];
 		}
 	}
 	assert(fa[u][0]==fa[v][0]);
@@ -66,79 +77,106 @@ inline int lca(int u,int v){
 inline int dist(int u,int v){
 	return dep[u]+dep[v]-2*dep[lca(u,v)];
 }
-int color[N],cdis[M];
-int lmost[M],rmost[M],diff[N];
-inline void solvechain(int n,int m){
-	memset(lmost+1,127,m<<2);
-	memset(rmost+1,0,m<<2);
-	for(int i=1;i<=n;i++){
-		apmin(lmost[color[i]],i);
-		apmax(rmost[color[i]],i);
-	}
-	memset(diff,0,sizeof(diff));
-	for(int i=1;i<=m;i++){
-		int l=lmost[i],r=rmost[i],mid=(l+r)>>1;
-		if(r){
-			diff[0]--;
-			diff[mid+1]++;
-			if((l+r)&1){
-				diff[mid+2]++;
-			}else{
-				diff[mid+1]++;
+void dfs2(int x,int f){
+	int c=color[x];
+	if(d1[c]==0){
+		d1[c]=x;
+	}else if(d2[c]==0){
+		d2[c]=x;
+		diam[c]=dist(x,d1[c]);
+	}else{
+		int nd1=dist(x,d1[c]),nd2=dist(x,d2[c]);
+		if(nd1>nd2){
+			if(nd1>diam[c]){
+				diam[c]=nd1,d2[c]=x;
+			}
+		}else{
+			if(nd2>diam[c]){
+				diam[c]=nd2,d1[c]=x;
 			}
 		}
 	}
-	for(int i=1;i<=n;i++){
-		diff[i]+=diff[i-1];
-	}
-	diff[0]=0;
-	for(int i=1;i<=m;i++){
-		if(rmost[i]){
-			diff[0]+=rmost[i];
+	for(int i=head[x],v;~i;i=bro[i]){
+		if((v=to[i])!=f){
+			dfs2(v,x);
 		}
 	}
-	for(int i=1;i<=n;i++){
-		diff[i]+=diff[i-1];
+}
+inline int calc(int x,int c){
+	if(d2[c]){
+		return max(dist(x,d1[c]),dist(x,d2[c]));
+	}else{
+		return dist(x,d1[c]);
 	}
-	for(int i=1;i<=n;i++){
-		diff[i]-=max(i-lmost[color[i]],rmost[color[i]]-i);
-		printf("%d\n",diff[i]);
+}
+int dval[E],mids[N],ccnt=0;
+inline void mark(int x1,int x2){
+	int len=dist(x1,x2);
+	if(dep[x1]<dep[x2]){
+		swap(x1,x2);
+	}
+	if((len&1)==0){
+		mids[go_up(x1,len>>1)]+=2;
+	}else{
+		int mid1=go_up(x1,len>>1),mid2=fa[mid1][0];
+		mids[mid1]++;
+		mids[mid2]++;
+	}
+}
+int dfs3(int x,int f){
+	int cnt=mids[x],cur;
+	for(int i=head[x],v;~i;i=bro[i]){
+		v=to[i];
+		if(v!=f){
+			cur=dfs3(v,x);
+			dval[i]=ccnt-cur;
+			cnt+=cur;
+		}
+	}
+	return cnt;
+}
+int ans[N];
+void dfs4(int x,int val){
+	ans[x]=val;
+	for(int i=head[x],v;~i;i=bro[i]){
+		v=to[i];
+		if(v!=f){
+			dfs4(v,val+dval[i]);
+		}
 	}
 }
 int main(){
+	memset(ldep,0,sizeof(ldep));
+	memset(head,-1,sizeof(head));
+	memset(d1,0,sizeof(d1));
+	memset(d2,0,sizeof(d2));
+	memset(diam,0,sizeof(diam));
 	int n=ni(),m=ni();
 	for(int i=1;i<=n;i++){
 		color[i]=ni();
 	}
-	memset(head,-1,sizeof(head));
-	bool flag=true;
-	for(int i=1,u,v,w;i<n;i++){
-		u=ni(),v=ni();
+	for(int i=1;i<n;i++){
+		int u=ni(),v=ni();
 		add_edge(u,v);
 		add_edge(v,u);
-		if(u!=i||v!=i+1){
-			flag=false;
-		}
 	}
-	if(flag){
-		solvechain(n,m);
-		return 0;
-	}
-	memset(fa,0,sizeof(fa));
-	memset(ldep,0,sizeof(ldep));
 	dep[1]=1;
-	dfs(1,0);
-	for(int i=1;i<=n;i++){
-		memset(cdis+1,0,m<<2);
-		for(int j=1;j<=n;j++){
-			if(color[j]!=color[i]){
-				apmax(cdis[color[j]],dist(i,j));
+	dfs1(1,0),dfs2(1,0);
+	memset(mids,0,sizeof(mids));
+	memset(dval,0,sizeof(dval));
+	for(int i=1;i<=m;i++){
+		if(d1[i]){
+			ccnt++;
+			if(d2[i]){
+				mark(d1[i],d2[i]);
+			}else{
+				mids[d1[i]]+=2;
 			}
 		}
-		int ans=0;
-		for(int j=1;j<=m;j++){
-			ans+=cdis[j];
-		}
-		printf("%d\n",ans);
+	}
+	dfs3(1,0),dfs4(1,0);
+	for(int i=1;i<=n;i++){
+		ans[i]-=calc(i,color[i]);
+		printf("%d\n",ans[i]);
 	}
 }
