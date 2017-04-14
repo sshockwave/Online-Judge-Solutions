@@ -16,7 +16,8 @@ inline int ni(){
 const int N=300010,INF=0x7f7f7f7f;
 struct SegmentTree{
 	typedef SegmentTree node;
-	int lend,rend,mid,mn,mn2,mnc,mnc2,delta;
+	int lend,rend,mid,mn,mn2,delta;
+	lint mnc,mnc2;
 	node *lson,*rson;
 	inline void up(){
 		assert(lend!=rend);
@@ -83,8 +84,8 @@ struct SegmentTree{
 		up();
 	}
 }seg;
-inline int ask(){
-	int ans=0;
+inline lint ask(){
+	lint ans=0;
 	if(seg.mn<=2){
 		ans+=seg.mnc;
 		if(seg.mn2<=2){
@@ -132,5 +133,5 @@ int main(){
 		}
 		ans+=ask();
 	}
-	printf("%d\n",ans-n);
+	printf("%lld\n",ans-n);
 }
