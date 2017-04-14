@@ -57,9 +57,9 @@ inline int go_up(int x,int n){
 inline int lca(int u,int v){
 	if(dep[u]!=dep[v]){
 		if(dep[u]>dep[v]){
-			u=go_up(u,dep[v]-dep[u]);
+			u=go_up(u,dep[u]-dep[v]);
 		}else{
-			v=go_up(v,dep[u]-dep[v]);
+			v=go_up(v,dep[v]-dep[u]);
 		}
 	}
 	if(u==v){
@@ -135,19 +135,20 @@ int dfs3(int x,int f){
 	}
 	return cnt;
 }
-int ans[N];
-void dfs4(int x,int val){
+lint ans[N];
+void dfs4(int x,int f,lint val){
 	ans[x]=val;
 	for(int i=head[x],v;~i;i=bro[i]){
 		v=to[i];
 		if(v!=f){
-			dfs4(v,val+dval[i]);
+			dfs4(v,x,val+dval[i]);
 		}
 	}
 }
 int main(){
 	memset(ldep,0,sizeof(ldep));
 	memset(head,-1,sizeof(head));
+	memset(fa,0,sizeof(fa));
 	memset(d1,0,sizeof(d1));
 	memset(d2,0,sizeof(d2));
 	memset(diam,0,sizeof(diam));
@@ -164,9 +165,11 @@ int main(){
 	dfs1(1,0),dfs2(1,0);
 	memset(mids,0,sizeof(mids));
 	memset(dval,0,sizeof(dval));
+	int ini=0;
 	for(int i=1;i<=m;i++){
 		if(d1[i]){
 			ccnt++;
+			ini+=calc(1,i);
 			if(d2[i]){
 				mark(d1[i],d2[i]);
 			}else{
@@ -174,9 +177,8 @@ int main(){
 			}
 		}
 	}
-	dfs3(1,0),dfs4(1,0);
+	dfs3(1,0),dfs4(1,0,ini);
 	for(int i=1;i<=n;i++){
-		ans[i]-=calc(i,color[i]);
 		printf("%d\n",ans[i]);
 	}
 }
