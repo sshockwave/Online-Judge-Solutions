@@ -62,10 +62,10 @@ int main(){
 	}
 	int sx,sy,tx,ty;
 	scanf("%d%d%d%d",&sx,&sy,&tx,&ty);
-	if(n>200){
-		printf("%d\n",labs((lint)sx-tx)+labs((lint)sy-ty));
+//	if(n>200){
+		printf("%lld\n",labs((lint)sx-tx)+labs((lint)sy-ty));
 		return 0;
-	}
+//	}
 	for(int i=1;i<=n;i++){
 		for(int j=i+1;j<=n;j++){
 			if(intersect(line[i],line[j])){
