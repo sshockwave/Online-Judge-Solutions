@@ -37,7 +37,7 @@ struct Graph{
 	}
 	int dis[D],que[D];
 	inline bool bfs(){
-		memset(dis,-1,ntop<<1);
+		memset(dis,-1,ntop<<2);
 		int qhead=0,qtail=0;
 		dis[s]=0;
 		que[qtail++]=s;
@@ -97,19 +97,11 @@ struct SegmentTree{
 	}
 	int put(int x,int p,int node,int l,int r){
 		assert(l<=p&&p<=r);
+		x=renew(x);
 		if(l==r){
-			if(~x){
-				G.add(x,ntop,INF);
-				G.add(node,ntop,INF);
-				node=ntop++;
-			}
-			return node;
+			G.add(node,x,INF);
+			return x;
 		}
-		if(~x){
-			G.add(x,ntop,INF);
-			lson(ntop)=lson(x),rson(ntop)=rson(x);
-		}
-		x=ntop++;
 		int mid=(l+r)>>1;
 		if(p<=mid){
 			G.add(lson(x)=put(lson(x),p,node,l,mid),x,INF);
