@@ -52,8 +52,8 @@ struct Graph{
 			}
 			for(int i=head[x],v;~i;i=bro[i]){
 				v=to[i];
-				if(dis[v]>dis[i]+val[i]){
-					dis[v]=dis[i]+val[i];
+				if(dis[v]>dis[x]+val[i]){
+					dis[v]=dis[x]+val[i];
 					push(v);
 				}
 			}
@@ -63,9 +63,9 @@ struct Graph{
 }G;
 int f[1<<P][N];
 int main(){
-	for(int tot=ni();tot--;){
-		p=ni(),n=p+ni();
-		int e=ni();
+	int e;
+	while(scanf("%d%d%d",&p,&n,&e)!=EOF){
+		n+=p;
 		G.reset();
 		for(int i=1,w;i<=n;i++){
 			w=ni();
@@ -82,10 +82,10 @@ int main(){
 			f[1<<i][i]=0;
 		}
 		for(int i=0,_=1<<(p+1);i<_;i++){
-			for(int j=1;j<=n;j++){
-				for(int k=i;k=(k-1)&i,k;){
-					if(f[i][k]<INF&&f[i][k^i]<INF){
-						apmin(f[i][j],f[i][k]+f[i][k^i]);
+			for(int j=0;j<=n;j++){
+				for(int k=i;k=(k-1)&i;){
+					if(f[k][j]<INF&&f[k^i][j]<INF){
+						apmin(f[i][j],f[k][j]+f[k^i][j]);
 					}
 				}
 				if(f[i][j]<INF){
@@ -94,10 +94,6 @@ int main(){
 			}
 			G.spfa(f[i]);
 		}
-		int ans=INF;
-		for(int i=0,_=(1<<(p+1))-1;i<=n;i++){
-			apmin(ans,f[_][i]);
-		}
-		printf("%d\n",ans);
+		printf("%d\n",f[(1<<(p+1))-1][0]);
 	}
 }
