@@ -19,7 +19,7 @@ inline void apmin(int &a,int b){
 	}
 }
 const int N=1010,P=5,E=10010,INF=0x7f7f7f7f;
-int n,p;
+int n,p,dis[N][N];
 struct Graph{
 	int to[E],bro[E],val[E],head[N],etop;
 	inline void reset(){
@@ -64,7 +64,7 @@ struct Graph{
 int f[1<<P][N];
 int main(){
 	int e;
-	while(scanf("%d%d%d",&p,&n,&e)!=EOF){
+	while(scanf("%d%d%d",&p,&n,&e)>0){
 		n+=p;
 		G.reset();
 		for(int i=1,w;i<=n;i++){
@@ -77,6 +77,12 @@ int main(){
 			G.add_edge(u,v,w);
 			G.add_edge(v,u,w);
 		}
+		memset(dis,127,sizeof(dis));
+		for(int i=0;i<=n;i++){
+			G.push(i);
+			dis[i][i]=0;
+			G.spfa(dis[i]);
+		}
 		memset(f,127,sizeof(f));
 		for(int i=0;i<=p;i++){
 			f[1<<i][i]=0;
@@ -88,11 +94,16 @@ int main(){
 						apmin(f[i][j],f[k][j]+f[k^i][j]);
 					}
 				}
+			}
+			for(int j=0;j<=n;j++){
 				if(f[i][j]<INF){
-					G.push(j);
+					for(int k=0;k<=n;k++){
+						if(dis[j][k]<INF){
+							apmin(f[i][k],f[i][j]+dis[j][k]);
+						}
+					}
 				}
 			}
-			G.spfa(f[i]);
 		}
 		printf("%d\n",f[(1<<(p+1))-1][0]);
 	}
