@@ -14,7 +14,7 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int N=5010,D=73000,E=D*4,INF=0x7f7f7f7f;
+const int N=5010,D=75000,E=D*4,INF=0x7f7f7f7f;
 int ntop;
 struct Graph{
 	int to[E],cap[E],bro[E],head[D];
@@ -30,8 +30,10 @@ struct Graph{
 	}
 	int s,t;
 	inline void add(int u,int v,int c){
-		add_edge(u,v,c);
-		add_edge(v,u,0);
+		if(c){
+			add_edge(u,v,c);
+			add_edge(v,u,0);
+		}
 	}
 	int dis[D],que[D];
 	inline bool bfs(){
@@ -97,7 +99,9 @@ struct SegmentTree{
 		assert(l<=p&&p<=r);
 		if(l==r){
 			if(~x){
-				G.add(x,node,INF);
+				G.add(x,ntop,INF);
+				G.add(node,ntop,INF);
+				node=ntop++;
 			}
 			return node;
 		}
@@ -117,6 +121,9 @@ struct SegmentTree{
 	void ask(int x,int node,int lend,int rend,int l,int r){
 		assert(l<=r);
 		assert(lend<=l&&r<=rend);
+		if(x==-1){
+			return;
+		}
 		if(lend==l&&rend==r){
 			G.add(x,node,INF);
 			return;
@@ -135,29 +142,51 @@ struct SegmentTree{
 struct Info{
 	int a,b,w,l,r,p;
 }info[N];
-int *vals[N];
+int *vals[N],seq[N];
 inline bool valcmp(int *a,int *b){
 	return (*a)<(*b);
 }
-inline int putval(int n){
-	int p=1;
-	for(int i=0,l1=INF,l2;i<n;i++){
-		l2=*vals[i];
-		(*vals[i])=l1==l2?p:++p;
-		l1=l2;
+inline int bitchop1(int x,int l,int r){
+	int mid;
+	r++;
+	while(l<r){
+		mid=(l+r)>>1;
+		if(seq[mid]<x){
+			l=mid+1;
+		}else{
+			r=mid;
+		}
 	}
-	return p;
+	return l;
+}
+inline int bitchop2(int x,int l,int r){
+	int mid;
+	l--;
+	while(l<r){
+		mid=((l+r)>>1)+1;
+		if(seq[mid]>x){
+			r=mid-1;
+		}else{
+			l=mid;
+		}
+	}
+	return l;
 }
 int main(){
-	int n=ni(),vtop=0;
+	int n=ni();
 	for(int i=1;i<=n;i++){
 		info[i]=(Info){ni(),ni(),ni(),ni(),ni(),ni()};
-		vals[vtop++]=&info[i].a;
-		vals[vtop++]=&info[i].l;
-		vals[vtop++]=&info[i].r;
+		vals[i]=&info[i].a;
 	}
-	sort(vals,vals+vtop,valcmp);
-	int mx=putval(vtop);
+	sort(vals+1,vals+n+1,valcmp);
+	int mx=0;
+	seq[0]=-1;
+	for(int i=1,last;i<=n;i++){
+		last=*vals[i];
+		(*vals[i])=last==seq[mx]?mx:++mx;
+		seq[mx]=last;
+	}
+	seq[mx+1]=INF;
 	G.s=0,G.t=(n<<1)|1,ntop=(n+1)<<1;
 	int ans=0,root=-1;
 	for(int i=1;i<=n;i++){
@@ -165,7 +194,11 @@ int main(){
 		G.add(G.s,i,info[i].w);
 		G.add(i,G.t,info[i].b);
 		G.add(i+n,i,info[i].p);
-		seg.ask(root,i+n,1,mx,info[i].l,info[i].r);
+		info[i].l=bitchop1(info[i].l,1,mx);
+		info[i].r=bitchop2(info[i].r,1,mx);
+		if(info[i].l<=info[i].r){
+			seg.ask(root,i+n,1,mx,info[i].l,info[i].r);
+		}
 		root=seg.put(root,info[i].a,i,1,mx);
 	}
 	printf("%d\n",ans-G.dinic());
