@@ -14,7 +14,7 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int N=5010,D=???,E=???,INF=0x7f7f7f7f;
+const int N=5010,D=73000,E=D*4,INF=0x7f7f7f7f;
 int ntop;
 struct Graph{
 	int to[E],cap[E],bro[E],head[D];
@@ -30,8 +30,8 @@ struct Graph{
 	}
 	int s,t;
 	inline void add(int u,int v,int c){
-		G.add_edge(u,v,c);
-		G.add_edge(v,u,0);
+		add_edge(u,v,c);
+		add_edge(v,u,0);
 	}
 	int dis[D],que[D];
 	inline bool bfs(){
@@ -139,7 +139,7 @@ int *vals[N];
 inline bool valcmp(int *a,int *b){
 	return (*a)<(*b);
 }
-inline void putval(int n){
+inline int putval(int n){
 	int p=1;
 	for(int i=0,l1=INF,l2;i<n;i++){
 		l2=*vals[i];
