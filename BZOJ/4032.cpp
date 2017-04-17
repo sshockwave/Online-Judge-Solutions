@@ -85,6 +85,31 @@ inline int solve(state* p1,state* p2){
 	}
 	return -1;
 }
+bool vis[N][N];
+inline int solve4(state* p1,state* p2){
+	memset(vis,0,sizeof(vis));
+	queue<snode>q;
+	q.push((snode){p1,p2,0});
+	while(!q.empty()){
+		p1=q.front().p1;
+		p2=q.front().p2;
+		int len=q.front().len+1;
+		q.pop();
+		for(int i=0;i<26;i++){
+			if(p1->go[i]){
+				if(p2->go[i]){
+					int i1=p1->go[i]-seq_a.st,i2=p2->go[i]-seq_b.st;
+					if(!vis[i1][i2]){
+						vis[i1][i2]=true;
+						q.push((snode){p1->go[i],p2->go[i],len});
+					}
+				}else{
+					return len;
+				}
+			}
+		}
+	}
+}
 char a[N],b[N];
 int main(){
 	cin>>a>>b;
@@ -100,5 +125,5 @@ int main(){
 	cout<<solve(&sam_a.ini,&sam_b.ini)<<endl;
 	cout<<solve(&sam_a.ini,&seq_b.ini)<<endl;
 	cout<<solve(&seq_a.ini,&sam_b.ini)<<endl;
-	cout<<solve(&seq_a.ini,&seq_b.ini)<<endl;
+	cout<<solve4(&seq_a.ini,&seq_b.ini)<<endl;
 }
