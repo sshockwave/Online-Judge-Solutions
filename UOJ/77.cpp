@@ -14,7 +14,7 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int N=5010,D=75000,E=D*4,INF=0x7f7f7f7f;
+const int N=5010,D=100000,E=D*6,INF=0x7f7f7f7f;
 int ntop;
 struct Graph{
 	int to[E],cap[E],bro[E],head[D];
