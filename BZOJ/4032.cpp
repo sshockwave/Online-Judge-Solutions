@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
-#include <algorithm>
+#include <queue>
 using namespace std;
 typedef long long lint;
 inline bool is_num(char c){
@@ -15,14 +15,15 @@ inline int ni(){
 	return i;
 }
 const int N=2010;
+struct state{
+	state *lnk,*go[26];
+	int val;
+	state():lnk(0),val(0){
+		memset(go,0,sizeof(go));
+	}
+};
 struct SAM{
-	struct state{
-		state *lnk,*go[26];
-		int val;
-		state():lnk(0),val(0){
-			memset(go,0,sizeof(go));
-		}
-	}ini,*tail;
+	state ini,*tail;
 	SAM():tail(&ini){}
 	inline void extend(int c){
 		static state *pool=new state[N*5];
@@ -52,12 +53,7 @@ struct SAM{
 	}
 }sam_a,sam_b;
 struct QAM{
-	struct state{
-		state *go[26];
-		state(){
-			memset(go,0,sizeof(go));
-		}
-	}ini,st[N];
+	state ini,st[N];
 	inline void build(char *s,int n){
 		for(int i=n-1;i>=0;i--){
 			st[i]=ini;
@@ -65,23 +61,22 @@ struct QAM{
 		}
 	}
 }seq_a,seq_b;
-template<typename T1,typename T2>
-	inline int solve(T1 p1,T2 p2){
-	struct state{
-		T1 p1;
-		T2 p2;
-		int len;
-	}*que=new state[N*N],*qtail=que;
-	*(qtail++)=(state){p1,p2,0};
-	while(que<qtail){
-		p1=que->p1;
-		p2=que->p2;
-		int len=que->len+1;
-		que++;
+struct snode{
+	state *p1,*p2;
+	int len;
+};
+inline int solve(state* p1,state* p2){
+	queue<snode>q;
+	q.push((snode){p1,p2,0});
+	while(!q.empty()){
+		p1=q.front().p1;
+		p2=q.front().p2;
+		int len=q.front().len+1;
+		q.pop();
 		for(int i=0;i<26;i++){
 			if(p1->go[i]){
 				if(p2->go[i]){
-					*(qtail++)=(state){p1->go[i],p2->go[i],len};
+					q.push((snode){p1->go[i],p2->go[i],len});
 				}else{
 					return len;
 				}
