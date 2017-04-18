@@ -19,7 +19,7 @@ char s[N];
 int n,len;
 inline int add(int a,int b){
 	a+=b;
-	if(a>b){
+	if(a>=n){
 		a-=n;
 	}
 	return a;
@@ -70,14 +70,24 @@ struct RoundSA{
 			sa[--w[rank[i]]]=i;
 		}
 		for(int j=1,m=10;(m=extend(j,m))<n&&j<n;j<<=1);
+		for(int i=0;i<n;i++){
+			cout<<sa[i]<<" ";
+		}
+		cout<<"\tSA"<<endl;
+		for(int i=0;i<n;i++){
+			cout<<rank[i]<<" ";
+		}
+		cout<<"\tRANK"<<endl;
 	}
-	inline void check(int p){
+	inline int check(int p){
+		cout<<"check:"<<s+p<<endl;
 		bool flag=false;
 		int j=p,cnt=0;
 		while(true){
 			if(j>=p&&flag){
 				break;
 			}
+			cout<<"\t["<<j<<",";
 			if(rank[j]<=rank[p]){
 				j+=len;
 			}else{
@@ -85,9 +95,10 @@ struct RoundSA{
 			}
 			cnt++;
 			if(j>=n){
-				j=0;
+				j-=n;
 				flag=true;
 			}
+			cout<<j<<")"<<endl;
 		}
 		return cnt;
 	}
@@ -99,15 +110,28 @@ int main(){
 	if(n%k){
 		len++;
 	}
+	cout<<"Anslen="<<len<<endl;
 	scanf("%s",s);
+	cout<<"S="<<s<<endl;
 	worker.work(s);
+	if(n==k){
+		putchar(s[worker.sa[n-1]]);
+		return 0;
+	}
 	int l=0,r=n-1,mid;
 	while(l<r){
 		mid=(l+r)>>1;
+		cout<<"("<<l<<","<<mid<<","<<r<<")"<<endl;
 		if(worker.check(worker.sa[mid])>k){
 			l=mid+1;
 		}else{
 			r=mid;
 		}
 	}
+	cout<<"("<<l<<","<<l<<","<<l<<")"<<endl;
+	cout<<"sa[l]="<<worker.sa[l]<<endl;
+	for(int i=worker.sa[l],j=0;j<len;i=add(i,1),j++){
+		putchar(s[i]);
+	}
+	putchar('\n');
 }
