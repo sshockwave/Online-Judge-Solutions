@@ -14,51 +14,100 @@ inline int ni(){
 	while(i=i*10-'0'+c,is_num(c=getchar()));
 	return i;
 }
-const int N=2010;
-char s[N],store[N];
-struct intl{
-	int l,r;
-}f[N][N];
-inline bool operator < (intl a,intl b){
-	if(a.r-a.l==b.r-b.l){
-		for(int i=a.l,j=b.l;i<=a.r;i++,j++){
-			if(s[i]!=s[j]){
-				return s[i]<s[j];
+const int N=100010,logN=20;
+char s[N];
+int n,len;
+inline int add(int a,int b){
+	a+=b;
+	if(a>b){
+		a-=n;
+	}
+	return a;
+}
+inline int sub(int a,int b){
+	a-=b;
+	if(a<0){
+		a+=n;
+	}
+	return a;
+}
+struct RoundSA{
+	int sa[N],*sa2,*rank,w[N];
+	inline bool equal(int a,int b,int j){
+		return rank[a]==rank[b]&&rank[add(a,j)]==rank[add(b,j)];
+	}
+	inline int extend(int j,int m){
+		memset(w,0,m<<2);
+		for(int i=0;i<n;i++){
+			sa2[i]=sub(sa[i],j);
+			w[rank[i]]++;
+		}
+		for(int i=1;i<m;i++){
+			w[i]+=w[i-1];
+		}
+		for(int i=n-1;i>=0;i--){
+			sa[--w[rank[sa2[i]]]]=sa2[i];
+		}
+		int p=0;
+		sa2[sa[0]]=0;
+		for(int i=1;i<n;i++){
+			sa2[sa[i]]=equal(sa[i],sa[i-1],j)?p:++p;
+		}
+		swap(sa2,rank);
+		return p+1;
+	}
+	int tmp[2][N];
+	inline void work(char *s){
+		sa2=tmp[0],rank=tmp[1];
+		memset(w,0,10<<2);
+		for(int i=0;i<n;i++){
+			w[rank[i]=s[i]-'0']++;
+		}
+		for(int i=1;i<10;i++){
+			w[i]+=w[i-1];
+		}
+		for(int i=n-1;i>=0;i--){
+			sa[--w[rank[i]]]=i;
+		}
+		for(int j=1,m=10;(m=extend(j,m))<n&&j<n;j<<=1);
+	}
+	inline void check(int p){
+		bool flag=false;
+		int j=p,cnt=0;
+		while(true){
+			if(j>=p&&flag){
+				break;
+			}
+			if(rank[j]<=rank[p]){
+				j+=len;
+			}else{
+				j+=len-1;
+			}
+			cnt++;
+			if(j>=n){
+				j=0;
+				flag=true;
 			}
 		}
+		return cnt;
 	}
-	return a.r-a.l<b.r-b.l;
-}
-char ans[N];
-int anslen;
-inline bool judge(intl f){
-	if(f.r-f.l+1<anslen){
-		return true;
-	}
-	
-}
+}worker;
 int main(){
-	int n=ni(),k=ni();
-	scanf("%s",store);
-	store[n/k]=0;
-	puts(store);
-	return 0;
-	anslen=100000000;
-	for(int i=1;i<=n;i++){
-		for(int j=0;j<n;j++){
-			s[(i+j-1)%n+1]=store[j];
-		}
-		for(int k=0,j=1;j<=n;j++){
-			f[j]=(intl){k+1,j};
-			for(;k<j&&f[k]<(intl){k+1,j};k++){
-				f[j]=min(f[j],max(f[k],(intl){k+1,j}));
-			}
-		}
-		if(judge(f[n][k])){
-			anslen=f[n][k].r-f[n][k].l+1;
-			memcpy(ans,s+f[n][k].l,anslen);
+	n=ni();
+	int k=ni();
+	len=n/k;
+	if(n%k){
+		len++;
+	}
+	scanf("%s",s);
+	worker.work(s);
+	int l=0,r=n-1,mid;
+	while(l<r){
+		mid=(l+r)>>1;
+		if(worker.check(worker.sa[mid])>k){
+			l=mid+1;
+		}else{
+			r=mid;
 		}
 	}
-	ans[anslen]=0;
-	puts(ans);
 }
