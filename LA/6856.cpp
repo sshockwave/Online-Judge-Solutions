@@ -80,21 +80,12 @@ struct RoundSA{
 	inline int check(int rk){
 		int ans=INF;
 		for(int i=0;i<len;i++){
-			bool flag=false;
-			int j=i,cnt=0;
-			while(true){
-				if(j>=i&&flag){
-					break;
-				}
-				if(rank[j]<=rk){
-					j+=len;
+			int cnt=0;
+			for(int k=i,top=n+i;k<top;cnt++){
+				if(rank[k%n]<=rk){
+					k+=len;
 				}else{
-					j+=len-1;
-				}
-				cnt++;
-				if(j>=n){
-					j-=n;
-					flag=true;
+					k+=len-1;
 				}
 			}
 			apmin(ans,cnt);
@@ -103,29 +94,31 @@ struct RoundSA{
 	}
 }worker;
 int main(){
-	n=ni();
-	int k=ni();
-	len=n/k;
-	if(n%k){
-		len++;
-	}
-	scanf("%s",s);
-	worker.work(s);
-	if(n==k){
-		putchar(s[worker.sa[n-1]]);
-		return 0;
-	}
-	int l=0,r=n-1,mid;
-	while(l<r){
-		mid=(l+r)>>1;
-		if(worker.check(mid)>k){
-			l=mid+1;
-		}else{
-			r=mid;
+	int k;
+	while(scanf("%d%d",&n,&k)!=EOF){
+		len=n/k;
+		if(n%k){
+			len++;
 		}
+		scanf("%s",s);
+		worker.work(s);
+		if(n==k){
+			putchar(s[worker.sa[n-1]]);
+			putchar('\n');
+			continue;
+		}
+		int l=0,r=n-1,mid;
+		while(l<r){
+			mid=(l+r)>>1;
+			if(worker.check(mid)>k){
+				l=mid+1;
+			}else{
+				r=mid;
+			}
+		}
+		for(int i=worker.sa[l],j=0;j<len;i=add(i,1),j++){
+			putchar(s[i]);
+		}
+		putchar('\n');
 	}
-	for(int i=worker.sa[l],j=0;j<len;i=add(i,1),j++){
-		putchar(s[i]);
-	}
-	putchar('\n');
 }
