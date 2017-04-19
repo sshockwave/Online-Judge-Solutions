@@ -47,7 +47,7 @@ struct SAM{
 		tail=pool++;
 		tail->val=p->val+1;
 		tail->right=1;
-		for(;p&&p->go[c];p=p->lnk){
+		for(;p&&p->go[c]==0;p=p->lnk){
 			p->go[c]=tail;
 		}
 		if(p==0){
@@ -55,7 +55,7 @@ struct SAM{
 			return tail;
 		}
 		State *q=p->go[c];
-		if(q->val==p->val){
+		if(q->val==p->val+1){
 			tail->lnk=q;
 			return tail;
 		}
@@ -80,15 +80,19 @@ struct Query{
 	int l,r,y,bln;
 	bool end;
 	static Query q[N],*qid;
-	static void add(State* a,State* b,int i){
-		*qid++=(Query){a->dfn,a->dfe,b->dfn-1,i,0};
-		*qid++=(Query){a->dfn,a->dfe,b->dfe,i,1};
+	static bool add(State* a,State* b,int i){
+		if(a==0||b==0){
+			return false;
+		}
+		*(qid++)=(Query){a->dfn,a->dfe,b->dfn-1,i,0};
+		*(qid++)=(Query){a->dfn,a->dfe,b->dfe,i,1};
+		return true;
 	}
 	inline friend bool operator < (const Query &a,const Query &b){
 		return a.y<b.y;
 	}
 };
-Query Query::q[N],*Query::qid=q;
+Query Query::q[N],*Query::qid=Query::q;
 struct BIT{
 	int c[N],n;
 	BIT(){
@@ -141,9 +145,7 @@ int main(){
 		int n=strlen(s+1);
 		for(int i=1;i<=n&&(gor[i]=gor[i-1]->go[s[i]-'a']);i++);
 		for(int i=n;i>=1&&(gol[i]=gol[i+1]->go[s[i]-'a']);i--);
-		for(int i=1;i<=n;i++){
-			Query::add(gor[i-1],gol[i+1],toti);
-		}
+		for(int i=1;i<=n&&Query::add(gor[i-1],gol[i+1],toti);i++);
 		if(gor[n]){
 			ans[toti]=-gor[n]->right*(n-1);
 		}
