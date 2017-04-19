@@ -16,7 +16,7 @@ inline void apmin(int &a,int b){
 		a=b;
 	}
 }
-const int D=55,N=250,E=100000,INF=0x7f7f7f7f;
+const int D=55,N=350,E=100000,INF=0x7f7f7f7f;
 struct Graph{
 	int to[E],cap[E],val[E],bro[E],head[N],etop,ntop;
 	inline void reset(){
@@ -49,7 +49,7 @@ struct Graph{
 		dis[s]=0;
 		que[qtail++]=s;
 		inque[s]=true;
-		while(qhead<qtail){
+		while(qhead!=qtail){
 			int x=que[qhead++];
 			if(qhead==N){
 				qhead=0;
@@ -58,7 +58,7 @@ struct Graph{
 				v=to[i];
 				if(cap[i]&&dis[v]>dis[x]+val[i]){
 					dis[v]=dis[x]+val[i];
-					pre[v]=i^1;
+					pre[v]=i;
 					if(!inque[v]){
 						inque[v]=true;
 						que[qtail++]=v;
@@ -77,13 +77,14 @@ struct Graph{
 		int delta;
 		while(spfa(s,t),dis[t]<INF){
 			delta=INF;
-			for(int p=t;p!=s;p=to[pre[p]]){
-				apmin(delta,cap[pre[p]^1]);
+			for(int p=pre[t];~p;p=pre[to[p^1]]){
+				apmin(delta,cap[p]);
 			}
 			flow+=delta;
 			cost+=delta*dis[t];
-			for(int p=t;p!=s;p=to[pre[p]]){
-				cap[pre[p]]+=delta,cap[pre[p]^1]-=delta;
+			for(int p=pre[t];~p;p=pre[to[p^1]]){
+				assert(val[p]==-val[p^1]);
+				cap[p]-=delta,cap[p^1]+=delta;
 			}
 		}
 	}
