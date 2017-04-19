@@ -39,7 +39,7 @@ int main(){
 			ans[i]=dispp[i][0]=0;
 		}
 		if(n==1){
-			puts("1.00000000");
+			puts("1.000000");
 			continue;
 		}
 		double mul1,mul2,delta;
@@ -61,8 +61,8 @@ int main(){
 			}
 		}
 		for(int i=1;i<=n;i++){
-			printf("%.8lf ",ans[i]);
+			printf("%.6lf",ans[i]);
+			putchar(" \n"[i==n]);
 		}
-		putchar('\n');
 	}
 }
