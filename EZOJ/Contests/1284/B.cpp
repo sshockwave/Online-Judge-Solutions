@@ -12,17 +12,17 @@ inline int ni(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return i;
 }
-const int N=600010;
+const int N=200010;
 struct State{
 	State *lnk,*go[26];
 	int val,right,head,dfn,dfe;
 	State():lnk(0),val(0),right(0),head(-1){
 		memset(go,0,sizeof(go));
 	}
-}pools[N],*pool=pools;
+}pools[N*6],*pool=pools;
 struct Graph{
-	State* to[N];
-	int bro[N],tim;
+	State* to[N*6];
+	int bro[N*6],tim;
 	inline void add_edge(State* u,State* v){
 		static int eid=0;
 		to[eid]=v;
@@ -79,22 +79,20 @@ struct Point{
 struct Query{
 	int l,r,y,bln;
 	bool end;
-	static Query q[N],*qid;
-	static bool add(State* a,State* b,int i){
-		if(a==0||b==0){
-			return false;
+	static Query q[N*2],*qid;
+	static void add(State* a,State* b,int i){
+		if(a&&b){
+			*(qid++)=(Query){a->dfn,a->dfe,b->dfn-1,i,0};
+			*(qid++)=(Query){a->dfn,a->dfe,b->dfe,i,1};
 		}
-		*(qid++)=(Query){a->dfn,a->dfe,b->dfn-1,i,0};
-		*(qid++)=(Query){a->dfn,a->dfe,b->dfe,i,1};
-		return true;
 	}
 	inline friend bool operator < (const Query &a,const Query &b){
 		return a.y<b.y;
 	}
 };
-Query Query::q[N],*Query::qid=Query::q;
+Query Query::q[N*2],*Query::qid=Query::q;
 struct BIT{
-	int c[N],n;
+	int c[N*2],n;
 	BIT(){
 		memset(c,0,sizeof(c));
 	}
@@ -143,9 +141,14 @@ int main(){
 	for(int toti=1;toti<=tot;toti++){
 		scanf("%s",s+1);
 		int n=strlen(s+1);
+		memset(gor,0,(n+1)<<2);
+		memset(gol+1,0,(n+1)<<2);
+		gor[0]=&sam1.ini,gol[n+1]=&sam2.ini;
 		for(int i=1;i<=n&&(gor[i]=gor[i-1]->go[s[i]-'a']);i++);
 		for(int i=n;i>=1&&(gol[i]=gol[i+1]->go[s[i]-'a']);i--);
-		for(int i=1;i<=n&&Query::add(gor[i-1],gol[i+1],toti);i++);
+		for(int i=1;i<=n;i++){
+			Query::add(gor[i-1],gol[i+1],toti);
+		}
 		if(gor[n]){
 			ans[toti]=-gor[n]->right*(n-1);
 		}
@@ -154,6 +157,7 @@ int main(){
 	sort(Query::q,Query::qid);
 	bt.n=sam1.n;
 	Query *q=Query::q;
+	for(;q<Query::qid&&q->y==0;q++);
 	for(int i=1,j=1;i<=sam2.n;i++){
 		for(;j<=n&&pt[j].y==i;bt.add(pt[j].x,1),j++);
 		for(;q<Query::qid&&q->y==i;q++){
