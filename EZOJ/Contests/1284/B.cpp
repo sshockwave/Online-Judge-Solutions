@@ -141,8 +141,9 @@ int main(){
 	for(int toti=1;toti<=tot;toti++){
 		scanf("%s",s+1);
 		int n=strlen(s+1);
-		memset(gor,0,(n+1)<<2);
-		memset(gol+1,0,(n+1)<<2);
+		for(int i=1;i<=n;i++){
+			gor[i]=gol[i]=0;
+		}
 		gor[0]=&sam1.ini,gol[n+1]=&sam2.ini;
 		for(int i=1;i<=n&&(gor[i]=gor[i-1]->go[s[i]-'a']);i++);
 		for(int i=n;i>=1&&(gol[i]=gol[i+1]->go[s[i]-'a']);i--);
