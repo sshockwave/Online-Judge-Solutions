@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <set>
 #include <algorithm>
 using namespace std;
 typedef long long lint;
@@ -14,51 +13,23 @@ inline int ni(){
 	return i;
 }
 const int N=600010;
-struct state{
-	state *lnk,*go[26];
-	int val,dfn,dfe,right,head;
-	state():lnk(0),right(0),head(-1){
+struct State{
+	State *lnk,*go[26];
+	int val,right,head,dfn,dfe;
+	State():lnk(0),val(0),right(0),head(-1){
 		memset(go,0,sizeof(go));
 	}
-}pol[N],*to[N],*pool=pol;
-int bro[N];
-inline void add_edge(state* u,state* v){
-	static int etop=0;
-	to[etop]=v;
-	bro[etop]=u->head;
-	u->head=etop++;
-}
-struct SAM{
-	state ini,*tail;
-	SAM():tail(&ini),tim(0){}
-	inline void extend(int c,int pos){
-		state *p=tail;
-		tail=pool++;
-		tail->val=p->val+1;
-		tail->right=1;
-		for(;p&&p->go[c]==0;p=p->lnk){
-			p->go[c]=tail;
-		}
-		if(p==0){
-			tail->lnk=&ini;
-			return;
-		}
-		state *q=p->go[c];
-		if(q->val==p->val+1){
-			tail->lnk=q;
-			return;
-		}
-		state *nq=pool++;
-		memcpy(nq->go,q->go,sizeof(q->go));
-		nq->lnk=q->lnk;
-		nq->val=p->val+1;
-		q->lnk=tail->lnk=nq;
-		for(;p&&p->go[c]==q;p=p->lnk){
-			p->go[c]=nq;
-		}
+}pools[N],*pool=pools;
+struct Graph{
+	State* to[N];
+	int bro[N],tim;
+	inline void add_edge(State* u,State* v){
+		static int eid=0;
+		to[eid]=v;
+		bro[eid]=u->head;
+		u->head=eid++;
 	}
-	int tim,pos[N];
-	void dfs(state *x){
+	void dfs(State *x){
 		x->dfn=++tim;
 		for(int i=x->head;~i;i=bro[i]){
 			dfs(to[i]);
@@ -66,29 +37,58 @@ struct SAM{
 		}
 		x->dfe=tim;
 	}
-}sam1,sam2;
-struct point{
-	int x,y;
-}pt[N];
-inline bool operator < (const point &a,const point &b){
-	return a.y<b.y;
-}
-struct query{
-	int y,l,r,bln;
-	bool end;
-}q[N*26];
-inline bool operator < (const query &a,const query &b){
-	return a.y<b.y;
-}
-int ans[N],qtop=0;
-inline void add_query(state* s1,state* s2,int i){
-	if(s1==0||s2==0){
-		return;
+}T;
+struct SAM{
+	State ini,*tail;
+	int n;
+	SAM():tail(&ini){}
+	inline State* extend(int c){
+		State *p=tail;
+		tail=pool++;
+		tail->val=p->val+1;
+		tail->right=1;
+		for(;p&&p->go[c];p=p->lnk){
+			p->go[c]=tail;
+		}
+		if(p==0){
+			tail->lnk=&ini;
+			return tail;
+		}
+		State *q=p->go[c];
+		if(q->val==p->val){
+			tail->lnk=q;
+			return tail;
+		}
+		State *nq=pool++;
+		*nq=*q;
+		nq->right=0;
+		nq->val=p->val+1;
+		tail->lnk=q->lnk=nq;
+		for(;p&&p->go[c]==q;p=p->lnk){
+			p->go[c]=nq;
+		}
+		return tail;
 	}
-	q[qtop++]=(query){s2->dfn-1,s1->dfn,s1->dfe,i,0};
-	q[qtop++]=(query){s2->dfe,s1->dfn,s1->dfe,i,1};
-}
-state *gor[N],*gol[N];
+}sam1,sam2;
+struct Point{
+	int x,y;
+	inline friend bool operator < (const Point &a,const Point &b){
+		return a.y<b.y;
+	}
+}pt[N];
+struct Query{
+	int l,r,y,bln;
+	bool end;
+	static Query q[N],*qid;
+	static void add(State* a,State* b,int i){
+		*qid++=(Query){a->dfn,a->dfe,b->dfn-1,i,0};
+		*qid++=(Query){a->dfn,a->dfe,b->dfe,i,1};
+	}
+	inline friend bool operator < (const Query &a,const Query &b){
+		return a.y<b.y;
+	}
+};
+Query Query::q[N],*Query::qid=q;
 struct BIT{
 	int c[N],n;
 	BIT(){
@@ -104,66 +104,61 @@ struct BIT{
 	}
 	inline int sum(int x){
 		int ans=0;
-		for(;x>0;x-=lowbit(x)){
+		for(;x;x^=lowbit(x)){
 			ans+=c[x];
 		}
 		return ans;
 	}
-	inline int ask(int l,int r){
+	inline int sum(int l,int r){
 		return sum(r)-sum(l-1);
 	}
 }bt;
+State *gor[N],*gol[N];
 char s[N];
-inline void addall(){
-	int i=0;
-	for(;s[i];i++){
-		sam1.extend(s[i]-'a',i);
-	}
-	while(--i>=0){
-		sam2.extend(s[i]-'a',i);
-	}
-	for(state *p=pol;p<pool;p++){
-		add_edge(p->lnk,p);
-	}
-	sam1.dfs(&sam1.ini);
-	sam2.dfs(&sam2.ini);
-	bt.n=sam1.tim;
-}
+int ans[N];
 int main(){
-	scanf("%s",s);
-	cout<<"T="<<s<<endl;
-	int tn=strlen(s);
-	addall();
-	cout<<"Add to automaton complete"<<endl;
-	for(int i=0;s[i];i++){
-		pt[i]=(point){sam1.pos[i],sam2.pos[i]};
+	scanf("%s",s+1);
+	int n=strlen(s+1),tot=ni();
+	gor[0]=&sam1.ini;
+	for(int i=1;i<=n;i++){
+		gor[i]=sam1.extend(s[i]-'a');
+	}
+	gol[n+1]=&sam2.ini;
+	for(int i=n;i>=1;i--){
+		gol[i]=sam2.extend(s[i]-'a');
+	}
+	for(State* i=pools;i<pool;i++){
+		T.add_edge(i->lnk,i);
+	}
+	T.tim=0,T.dfs(&sam1.ini),sam1.n=T.tim;
+	T.tim=0,T.dfs(&sam2.ini),sam2.n=T.tim;
+	for(int i=1;i<=n;i++){
+		pt[i]=(Point){gor[i-1]->dfn,gol[i+1]->dfn};
 	}
 	memset(ans,0,sizeof(ans));
-	int tot=ni();
 	for(int toti=1;toti<=tot;toti++){
 		scanf("%s",s+1);
 		int n=strlen(s+1);
-		gor[0]=&sam1.ini,gol[n+1]=&sam2.ini;
 		for(int i=1;i<=n&&(gor[i]=gor[i-1]->go[s[i]-'a']);i++);
-		for(int i=n;i>=1&&(gol[i]=gol[i+1]->go[s[i]-'a']);i++);
-		if(gor[n]){
-			ans[toti]=-(n-1)*gor[n]->right;
-		}
+		for(int i=n;i>=1&&(gol[i]=gol[i+1]->go[s[i]-'a']);i--);
 		for(int i=1;i<=n;i++){
-			for(int j=0;j<26;j++){
-				add_query(gor[i-1]->go[j],gol[i+1]->go[j],toti);
-			}
+			Query::add(gor[i-1],gol[i+1],toti);
+		}
+		if(gor[n]){
+			ans[toti]=-gor[n]->right*(n-1);
 		}
 	}
-	sort(pt,pt+tn);
-	sort(q,q+qtop);
-	for(int i=1,pp=0,pq=0;i<=sam2.tim;i++){
-		for(;pp<tn&&pt[pp].y==i;bt.add(pt[pp++].x,1));
-		for(;pq<qtop&&q[pq].y==i;pq++){
-			if(q[pq].end){
-				ans[q[pq].bln]+=bt.ask(q[pq].l,q[pq].r);
+	sort(pt+1,pt+n+1);
+	sort(Query::q,Query::qid);
+	bt.n=sam1.n;
+	Query *q=Query::q;
+	for(int i=1,j=1;i<=sam2.n;i++){
+		for(;j<=n&&pt[j].y==i;bt.add(pt[j].x,1),j++);
+		for(;q<Query::qid&&q->y==i;q++){
+			if(q->end){
+				ans[q->bln]+=bt.sum(q->l,q->r);
 			}else{
-				ans[q[pq].bln]-=bt.ask(q[pq].l,q[pq].r);
+				ans[q->bln]-=bt.sum(q->l,q->r);
 			}
 		}
 	}
