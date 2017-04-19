@@ -14,18 +14,24 @@ inline int ni(){
 	return i;
 }
 const int N=600010;
+struct state{
+	state *lnk,*go[26];
+	int val,dfn,dfe,right,head;
+	state():lnk(0),right(0),head(-1){
+		memset(go,0,sizeof(go));
+	}
+}pol[N],*to[N],*pool=pol;
+int bro[N];
+inline void add_edge(state* u,state* v){
+	static int etop=0;
+	to[etop]=v;
+	bro[etop]=u->head;
+	u->head=etop++;
+}
 struct SAM{
-	struct state{
-		state *lnk,*go[26];
-		int val,dfn,dfe,leaf,right;
-		set<state*>son;
-		state():lnk(0),leaf(-1),right(0){
-			memset(go,0,sizeof(go));
-		}
-	}ini,*tail;
+	state ini,*tail;
 	SAM():tail(&ini),tim(0){}
 	inline void extend(int c,int pos){
-		static state *pool=new state[N];
 		state *p=tail;
 		tail=pool++;
 		tail->val=p->val+1;
@@ -35,28 +41,18 @@ struct SAM{
 		}
 		if(p==0){
 			tail->lnk=&ini;
-			ini.leaf=-1;
-			tail->leaf=pos;
-			ini.son.insert(tail);
 			return;
 		}
 		state *q=p->go[c];
 		if(q->val==p->val+1){
 			tail->lnk=q;
-			q->leaf=-1;
-			tail->leaf=pos;
-			q->son.insert(tail);
 			return;
 		}
 		state *nq=pool++;
 		memcpy(nq->go,q->go,sizeof(q->go));
 		nq->lnk=q->lnk;
 		nq->val=p->val+1;
-		q->lnk->son.erase(q);
-		q->lnk->son.insert(nq);
 		q->lnk=tail->lnk=nq;
-		nq->son.insert(q);
-		nq->son.insert(tail);
 		for(;p&&p->go[c]==q;p=p->lnk){
 			p->go[c]=nq;
 		}
@@ -64,26 +60,13 @@ struct SAM{
 	int tim,pos[N];
 	void dfs(state *x){
 		x->dfn=++tim;
-		if(~x->leaf){
-			pos[x->leaf]=tim;
-		}
-		for(set<state*>::iterator it=x->son.begin();it!=x->son.end();it++){
-			dfs(*it);
-			x->right+=(*it)->right;
+		for(int i=x->head;~i;i=bro[i]){
+			dfs(to[i]);
+			x->right+=to[i]->right;
 		}
 		x->dfe=tim;
 	}
 }sam1,sam2;
-char s[N];
-inline void addall(){
-	int i=0;
-	for(;s[i];i--){
-		sam1.extend(s[i]-'a',i);
-	}
-	while(--i>=0){
-		sam2.extend(s[i]-'a',i);
-	}
-}
 struct point{
 	int x,y;
 }pt[N];
@@ -98,14 +81,14 @@ inline bool operator < (const query &a,const query &b){
 	return a.y<b.y;
 }
 int ans[N],qtop=0;
-inline void add_query(SAM::state* s1,SAM::state* s2,int i){
+inline void add_query(state* s1,state* s2,int i){
 	if(s1==0||s2==0){
 		return;
 	}
 	q[qtop++]=(query){s2->dfn-1,s1->dfn,s1->dfe,i,0};
 	q[qtop++]=(query){s2->dfe,s1->dfn,s1->dfe,i,1};
 }
-SAM::state *gor[N],*gol[N];
+state *gor[N],*gol[N];
 struct BIT{
 	int c[N],n;
 	BIT(){
@@ -130,13 +113,28 @@ struct BIT{
 		return sum(r)-sum(l-1);
 	}
 }bt;
-int main(){
-	scanf("%s",s);
-	int tn=strlen(s);
-	addall();
+char s[N];
+inline void addall(){
+	int i=0;
+	for(;s[i];i++){
+		sam1.extend(s[i]-'a',i);
+	}
+	while(--i>=0){
+		sam2.extend(s[i]-'a',i);
+	}
+	for(state *p=pol;p<pool;p++){
+		add_edge(p->lnk,p);
+	}
 	sam1.dfs(&sam1.ini);
 	sam2.dfs(&sam2.ini);
 	bt.n=sam1.tim;
+}
+int main(){
+	scanf("%s",s);
+	cout<<"T="<<s<<endl;
+	int tn=strlen(s);
+	addall();
+	cout<<"Add to automaton complete"<<endl;
 	for(int i=0;s[i];i++){
 		pt[i]=(point){sam1.pos[i],sam2.pos[i]};
 	}
