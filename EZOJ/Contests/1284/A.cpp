@@ -20,22 +20,22 @@ inline void apmax(int &a,const int &b){
 }
 typedef pair<int,int> pii;
 const int N=200010;
-int n,f[N],g[N],mid,mx,ans[N],val[N];
-pii pval[N];
+int n,f[N],g[N],mid,ans[N],val[N],pos[N];
 inline void up(int x){
 	f[x]=val[x];
-	if((x<<1)<=n&&f[x<<1]>0){
-		f[x]+=f[x<<1];
+	int l=x<<1,r=l|1;
+	if(l<=n&&f[l]>0){
+		f[x]+=f[l];
 	}
-	if(((x<<1)|1)<=n&&f[(x<<1)|1]>0){
-		f[x]+=f[(x<<1)|1];
+	if(r<=n&&f[r]>0){
+		f[x]+=f[r];
 	}
 	g[x]=f[x];
-	if((x<<1)<=n){
-		apmax(g[x],f[x<<1]);
-	}
-	if(((x<<1)|1)<=n){
-		apmax(g[x],f[(x<<1)|1]);
+	if(l<=n){
+		apmax(g[x],g[l]);
+		if(r<=n){
+			apmax(g[x],g[r]);
+		}
 	}
 }
 inline void update(int x){
@@ -43,22 +43,20 @@ inline void update(int x){
 	val[x]=1;
 	for(;x>=1;x>>=1){
 		up(x);
-		apmax(mx,g[x]);
 	}
 }
 int main(){
-	int n=ni();
+	n=ni();
 	for(int i=1;i<=n;i++){
-		pval[i]=make_pair(ni(),i);
+		pos[ni()]=i;
 	}
-	sort(pval+1,pval+n+1);
 	memset(f+1,-1,n<<2);
 	memset(g+1,-1,n<<2);
 	memset(val+1,-1,n<<2);
 	for(int i=n,a=0;i>=1;i--){
-		mid=pval[i].first;
-		update(pval[i].second);
-		for(;a<=mx;a++){
+		mid=i;
+		update(pos[i]);
+		for(;a<=g[1];a++){
 			ans[a]=mid;
 		}
 	}
