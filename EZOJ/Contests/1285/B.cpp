@@ -145,10 +145,10 @@ struct Tree{
 			}
 		}else{
 			if(setv){
-				fromu=seg.ask(dfn[u],dfn[v])+fromu;
+				fromv=seg.ask(dfn[u],dfn[v])+fromv;
 			}else{
 				setv=true;
-				fromu=seg.ask(dfn[u],dfn[v]);
+				fromv=seg.ask(dfn[u],dfn[v]);
 			}
 		}
 		if(setu&&setv){
@@ -176,7 +176,7 @@ struct Tree{
 		ccnt[color[u]]++;
 		int ans=0;
 		for(int i=0;i<N;i++){
-			apmax(ans,color[i]);
+			apmax(ans,ccnt[i]);
 		}
 		return ans;
 	}
