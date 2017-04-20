@@ -50,21 +50,15 @@ struct SAM{
 		}
 	}
 };
-State *gor[N];
 inline int getans(char *s,int n){
 	pool=pol;
 	SAM sam;
-	cout<<"Ask ";
 	for(int i=0;i<n;i++){
 		sam.extend(s[i]-'a');
-		gor[i]=sam.tail;
-		cout<<s[i];
 	}
-	cout<<endl;
 	int ans=0;
-	for(int i=0;i<n;i++){
-		cout<<"End with "<<s[i]<<":"<<gor[i]->val-gor[i]->lnk->val<<endl;
-		ans+=gor[i]->val-gor[i]->lnk->val;
+	for(State *p=pol;p<pool;p++){
+		ans+=p->val-p->lnk->val;
 	}
 	return ans;
 }
