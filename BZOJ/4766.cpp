@@ -5,28 +5,28 @@
 #include <cctype>
 using namespace std;
 typedef long long lint;
-inline int nl(){
+inline lint nl(){
 	lint i=0;char c;
 	while(!isdigit(c=getchar()));
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return i;
 }
-const double EPS=1e-2;
+const long double EPS=1e-2;
 lint MOD;
-inline lint round(double x){
-	return x+EPS;
-}
-inline double fmod(double x){
-	return x-(double)round(x/MOD)*MOD;
-}
-inline lint mul(lint a,lint b){
-	return round(fmod((double)a*b));
+inline lint fmul(lint x,lint n){
+	lint ret=0;
+	for(;n;n>>=1,x=(x<<1)%MOD){
+		if(n&1){
+			ret=(ret+x)%MOD;
+		}
+	}
+	return ret;
 }
 inline lint fpow(lint x,lint n){
 	lint ret=1;
-	for(;n;n>>=1,x=mul(x,x)){
+	for(;n;n>>=1,x=fmul(x,x)){
 		if(n&1){
-			ret=mul(ret,x);
+			ret=fmul(ret,x);
 		}
 	}
 	return ret;
@@ -35,5 +35,5 @@ int main(){
 	lint n=nl(),m=nl();
 	MOD=nl();
 	n%=MOD,m%=MOD;
-	printf("%lld",mul(fpow(n,(m+MOD-1)%MOD),fpow(m,(n+MOD-1)%MOD)));
+	printf("%lld",fmul(fpow(n,(m+MOD-1)%MOD),fpow(m,(n+MOD-1)%MOD)));
 }
