@@ -34,7 +34,7 @@ int main(){
 	memset(rad,0,sizeof(rad));
 	for(int i=1,j,p=0,mx=0;i<n;i++){
 		if(mx>i){
-			j=min(min(i-p,mx-i),rad[(p<<1)-i]);
+			j=min(mx-i,rad[(p<<1)-i]);
 		}else{
 			j=0;
 		}
