@@ -13,14 +13,20 @@ template<typename T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return i;
 }
-const int N=10010;
+const int N=100010;
 struct State{
-	State *lnk,*go[N];
+	State *lnk,*go[26];
 	int val;
-}pol[N*3],*pool=pol;
+	State():lnk(0),val(0){
+		memset(go,0,sizeof(go));
+	}
+}pol[N*3],*pool;
 struct SAM{
 	State ini,*tail;
-	SAM():tail(&ini){}
+	SAM():tail(&ini){
+		pool=pol;
+		memset(pol,0,sizeof(pol));
+	}
 	inline void extend(int c){
 		State *p=tail;
 		tail=pool++;
@@ -48,15 +54,16 @@ struct SAM{
 };
 char s[N];
 int main(){
-	memset(pol,0,sizeof(pol));
-	SAM sam;
-	scanf("%s",s);
-	for(int i=0;s[i];i++){
-		sam.extend(s[i]-'a');
-	}
 	int ans=0;
-	for(State *p=pol;p<pool;p++){
-		ans+=p->val-p->lnk->val;
+	for(int tot=ni;tot--;){
+		scanf("%s",s);
+		SAM sam;
+		for(int i=0;s[i];i++){
+			sam.extend(s[i]-'a');
+		}
+		for(State *p=pol;p<pool;p++){
+			ans+=p->val-p->lnk->val;
+		}
 	}
-	printf("%d",ans);
+	printf("%d\n",ans);
 }
