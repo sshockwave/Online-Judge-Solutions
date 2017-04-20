@@ -31,7 +31,12 @@ int main(){
 	valid[0]=true;
 	len[0]=0,len[n+1]=N;
 	for(int i=1;i<=n;i++){
-		apmax(ans,len[i]+len[i-1]+f[totlen-len[i]]);
+		if(totlen>=len[i]){
+			apmax(ans,len[i]+len[i-1]+f[totlen-len[i]]);
+		}else{
+			apmax(ans,len[i]);
+			continue;
+		}
 		for(int j=0,top=totlen-len[i];j<=top;j++){
 			f[j]=valid[j]?j:f[j-1];
 		}
