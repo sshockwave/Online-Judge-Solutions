@@ -99,7 +99,7 @@ int main(){
 			}
 			x=H.root[uf.root(x)];
 			printf("%d\n",pval[x]);
-			H.root[x]=H.del(x);
+			H.root[uf.root(x)]=H.del(x);
 		}
 	}
 }
