@@ -20,67 +20,38 @@ inline char nc(){
 }
 const int N=1000010;
 bool dead[N];
-int pval[N];
-struct unifind{
-	int fa[N],rank[N];
-	unifind(){
-		memset(fa,0,sizeof(fa));
-		memset(rank,0,sizeof(rank));
+int pval[N],fa[N],dis[N],lson[N],rson[N];
+int root(int x){
+	if(fa[x]==x){
+		return x;
 	}
-	int root(int x){
-		if(fa[x]==0){
-			return x;
-		}
-		return fa[x]=root(fa[x]);
+	return fa[x]=root(fa[x]);
+}
+inline int merge(int u,int v){
+	if(u==0||v==0){
+		return u+v;
 	}
-	inline int uni(int u,int v){
-		u=root(u),v=root(v);
-		if(u==v){
-			return u;
-		}
-		if(rank[u]<rank[v]){
-			swap(u,v);
-		}
-		fa[v]=u;
-		if(rank[u]==rank[v]){
-			rank[u]++;
-		}
+	if(u==v){
 		return u;
 	}
-}uf;
-struct LHeap{
-	int dis[N],lson[N],rson[N],root[N];
-	LHeap(){
-		memset(dis,0,sizeof(dis));
-		memset(lson,0,sizeof(lson));
-		memset(rson,0,sizeof(rson));
+	if(pval[u]>pval[v]){
+		swap(u,v);
 	}
-	inline int merge(int u,int v){
-		if(u==0||v==0){
-			return u+v;
-		}
-		if(u==v){
-			return u;
-		}
-		if(pval[u]>pval[v]){
-			swap(u,v);
-		}
-		rson[u]=merge(rson[u],v);
-		if(dis[rson[u]]>dis[lson[u]]){
-			swap(lson[u],rson[u]);
-		}
-		dis[u]=dis[rson[u]]+1;
-		return u;
+	rson[u]=merge(rson[u],v);
+	if(dis[rson[u]]>dis[lson[u]]){
+		swap(lson[u],rson[u]);
 	}
-	inline int del(int u){
-		return merge(lson[u],rson[u]);
-	}
-}H;
+	dis[u]=dis[rson[u]]+1;
+	return u;
+}
+inline int del(int u){
+	return merge(lson[u],rson[u]);
+}
 int main(){
 	int n=ni;
 	for(int i=1;i<=n;i++){
 		pval[i]=ni;
-		H.root[i]=i;
+		fa[i]=i;
 	}
 	memset(dead,0,sizeof(dead));
 	for(int tot=ni;tot--;){
@@ -89,17 +60,19 @@ int main(){
 			if(dead[u]||dead[v]){
 				continue;
 			}
-			int nr=H.merge(H.root[uf.root(u)],H.root[uf.root(v)]);
-			H.root[uf.uni(u,v)]=nr;
+			int nr=merge(root(u),root(v));
+			fa[u]=nr,fa[v]=nr;
 		}else{
 			int x=ni;
 			if(dead[x]){
 				puts("0");
 				continue;
 			}
-			x=H.root[uf.root(x)];
+			x=root(x);
+			dead[x]=true;
 			printf("%d\n",pval[x]);
-			H.root[uf.root(x)]=H.del(x);
+			int nr=del(x);
+			fa[nr]=nr;
 		}
 	}
 }
