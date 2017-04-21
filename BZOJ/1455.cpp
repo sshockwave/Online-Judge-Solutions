@@ -44,9 +44,6 @@ inline int merge(int u,int v){
 	dis[u]=dis[rson[u]]+1;
 	return u;
 }
-inline int del(int u){
-	return merge(lson[u],rson[u]);
-}
 int main(){
 	int n=ni;
 	for(int i=1;i<=n;i++){
@@ -60,8 +57,8 @@ int main(){
 			if(dead[u]||dead[v]){
 				continue;
 			}
-			int nr=merge(root(u),root(v));
-			fa[u]=nr,fa[v]=nr;
+			int nr=merge(u=root(u),v=root(v));
+			fa[u]=fa[v]=nr;
 		}else{
 			int x=ni;
 			if(dead[x]){
@@ -71,8 +68,8 @@ int main(){
 			x=root(x);
 			dead[x]=true;
 			printf("%d\n",pval[x]);
-			int nr=del(x);
-			fa[nr]=nr;
+			fa[x]=merge(lson[x],rson[x]);
+			fa[fa[x]]=fa[x];
 		}
 	}
 }
