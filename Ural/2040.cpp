@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <map>
 using namespace std;
 typedef long long lint;
 #define ni (next_num<int>())
@@ -15,11 +16,12 @@ template<typename T>inline T next_num(){
 }
 const int N=5000010,SIGMA=26;
 struct PAM{
-	int lnk[N],len[N],cnt[N],go[N][SIGMA],s[N],pool,tail,n;
+	int lnk[N],len[N],pool,tail,n;
+	map<char,int>go[N];
+	char s[N];
 	PAM(){
 		memset(lnk,0,sizeof(lnk));
 		memset(len,0,sizeof(len));
-		memset(cnt,0,sizeof(cnt));
 		lnk[0]=1,len[1]=s[0]=-1,n=tail=0,pool=2;
 	}
 	inline int nn(int val){
@@ -33,13 +35,12 @@ struct PAM{
 	inline void add(int c){
 		s[++n]=c;
 		tail=fail(tail);
-		if(go[tail][c]==0){
+		if(go[tail].find(c)==go[tail].end()){
 			int p=nn(len[tail]+2);
 			lnk[p]=go[fail(lnk[tail])][c];
 			go[tail][c]=p;
 		}
 		tail=go[tail][c];
-		cnt[tail]++;
 	}
 }pam;
 char s[N];
