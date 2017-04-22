@@ -26,28 +26,29 @@ inline int add(const int &a,const int &b){
 inline void apadd(int &a,const int &b){
 	a=add(a,b);
 }
+comp w1[N>>1][SHIFT+1],w2[N>>1][SHIFT+1];
 inline comp omega(int i,int n){
 	double angle=M_PI*2*i/n;
 	return comp(cos(angle),sin(angle));
 }
-inline void dft(complex<double>a[],int inv){
+inline void dft(complex<double>a[],bool inv){
 	for(int i=0;i<N;i++){
 		if(i<rev[i]){
 			swap(a[i],a[rev[i]]);
 		}
 	}
-	for(int i=2,half;i<N;i<<=1){
-		half=i>>1;
+	for(int i=1,full,half;i<=SHIFT;i++){
+		full=1<<i,half=full>>1;
 		for(int j=0;j<half;j++){
-			comp w=omega(j*inv,i),p,q;
-			for(int k=j;k<N;k+=j){
+			comp w=inv?w2[j][i]:w1[j][i],p,q;
+			for(int k=j;k<N;k+=full){
 				p=a[k],q=a[k+half]*w;
 				a[k]=p+q;
 				a[k+half]=p-q;
 			}
 		}
 	}
-	if(inv==-1){
+	if(inv){
 		for(int i=0;i<N;i++){
 			a[i]/=N;
 		}
@@ -55,25 +56,40 @@ inline void dft(complex<double>a[],int inv){
 }
 struct Poly{
 	int x[N];
-	inline void operator *= (const Poly &b){
-		static comp *ca=new comp[N],*cb=new comp[N];
-		memset(ca,0,sizeof(ca));
-		memset(cb,0,sizeof(cb));
-		for(int i=0;i<n;i++){
-			ca[i]=x[i],cb[i]=b.x[i];
-		}
-		dft(ca,1),dft(cb,1);
-		for(int i=0;i<N;i++){
-			ca[i]*=cb[i];
-		}
-		dft(ca,-1);
-		memset(x,0,n<<2);
-		for(int i=0;i<N;i++){
-			apadd(x[i%n],ca[i].real()+EPS);
+	void operator *=(const Poly&);
+}trans,a;
+inline ostream & operator << (ostream & out,const Poly &p){
+	for(int i=0;i<n;i++){
+		out<<p.x[i]<<" ";
+	}
+	return out;
+}
+inline void Poly::operator *= (const Poly &b){
+	static comp *ca=new comp[N],*cb=new comp[N];
+	for(int i=0;i<n;i++){
+		ca[i]=x[i],cb[i]=b.x[i];
+	}
+	for(int i=n;i<N;i++){
+		ca[i]=cb[i]=0;
+	}
+	dft(ca,false),dft(cb,false);
+	for(int i=0;i<N;i++){
+		ca[i]*=cb[i];
+	}
+	dft(ca,true);
+	memset(x,0,n<<2);
+	for(int i=0;i<N;i++){
+		apadd(x[i%n],ca[i].real()+EPS);
+	}
+}
+int main(){
+	for(int i=1;i<=SHIFT;i++){
+		for(int j=0;j<(1<<(i-1));j++){
+			double angle=M_PI*2*j/(1<<i);
+			w1[j][i]=comp(cos(angle),sin(angle));
+			w2[j][i]=comp(cos(angle),-sin(angle));
 		}
 	}
-}trans,a;
-int main(){
 	rev[0]=0;
 	for(int i=1,s=1<<(SHIFT-1);i<N;i++){
 		rev[i]=rev[i>>1]>>1;
@@ -86,6 +102,7 @@ int main(){
 	for(int i=0;i<n;i++){
 		a.x[i]=ni-1;
 	}
+	trans.x[0]=MOD-1,trans.x[n-1]=2;
 	for(;t;t>>=1,trans*=trans){
 		if(t&1){
 			a*=trans;
