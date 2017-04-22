@@ -39,8 +39,8 @@ struct Node{
 	inline friend bool operator < (const Node &a,const Node &b){
 		return a.x[dim]<b.x[dim];
 	}
-	inline bool cover(){
-		return check(mn[0],mn[1])&&check(mn[0],mx[1])&&check(mx[0],mn[1])&&check(mx[0],mx[1]);
+	inline int cover(){
+		return check(mn[0],mn[1])+check(mn[0],mx[1])+check(mx[0],mn[1])+check(mx[0],mx[1]);
 	}
 }pt[N];
 struct KDTree{
@@ -80,8 +80,11 @@ struct KDTree{
 		if(x==0){
 			return 0;
 		}
-		if(pt[x].cover()){
+		int c=pt[x].cover();
+		if(c==4){
 			return pt[x].sum;
+		}else if(c==0){
+			return 0;
 		}
 		return ask(pt[x].lson)+ask(pt[x].rson)+(check(pt[x].x[0],pt[x].x[1])?pt[x].val:0);
 	}
