@@ -69,7 +69,7 @@ struct KDTree{
 			return 0;
 		}
 		int x=(l+r)>>1;
-		nth_element(pt+l,pt+x,pt+r);
+		nth_element(pt+l,pt+x,pt+r+1);
 		dim=dim^1;
 		pt[x].lson=build(l,x-1);
 		pt[x].rson=build(x+1,r);
