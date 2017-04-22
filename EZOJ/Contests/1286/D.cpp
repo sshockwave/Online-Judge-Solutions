@@ -14,10 +14,11 @@ template<class T>inline T next_num(){
 	return i;
 }
 const int N=100010,E=N*2;
-int pval[N];
+lint pval[N];
 struct SegmentTree{
 	typedef SegmentTree node;
-	int lend,rend,mid,sum,delta;
+	int lend,rend,mid;
+	lint sum,delta;
 	node *lson,*rson;
 	inline void build(int,int);
 	inline void up(){
@@ -31,7 +32,7 @@ struct SegmentTree{
 			delta=0;
 		}
 	}
-	int ask(int l,int r){
+	lint ask(int l,int r){
 		if(l>r){
 			return 0;
 		}
@@ -48,16 +49,16 @@ struct SegmentTree{
 		}
 		return lson->ask(l,mid)+rson->ask(mid+1,r);
 	}
-	inline int operator [] (int x){
+	inline lint operator [] (int x){
 		return ask(x,x);
 	}
-	void cover(int l,int r,int c){
+	void cover(int l,int r,lint c){
 		if(l>r){
 			return;
 		}
 		assert(lend<=l&&r<=rend);
 		if(lend==l&&rend==r){
-			sum+=(r-l+1)*c;
+			sum+=(lint)(r-l+1)*c;
 			delta+=c;
 			return;
 		}
@@ -128,8 +129,8 @@ struct Tree{
 			end[x]=tim;
 		}
 	}
-	inline int ask(int u,int v){
-		int ans=0;
+	inline lint ask(int u,int v){
+		lint ans=0;
 		while(top[u]!=top[v]){
 			if(dep[top[u]]<dep[top[v]]){
 				swap(u,v);
@@ -146,7 +147,7 @@ struct Tree{
 		}
 		return ans;
 	}
-	inline void alter(int u,int v,int c){
+	inline void alter(int u,int v,lint c){
 		while(top[u]!=top[v]){
 			if(dep[top[u]]<dep[top[v]]){
 				swap(u,v);
@@ -183,17 +184,19 @@ int main(){
 		T.add_edge(v,u);
 	}
 	for(int i=1;i<=n;i++){
-		pval[i]=ni;
+		scanf("%lld",pval+i);
 	}
 	T.id[T.dfn[1]=++T.tim]=1;
 	T.dfs1(1,0),T.dfs2(1,0);
 	seg.build(1,n);
 	for(int tot=ni;tot--;){
-		if(ni==1){
-			int x=ni,y=ni;
-			T.alter(x,y,ni);
+		int t,x,y,c;
+		scanf("%d%d%d",&t,&x,&y);
+		if(t==1){
+			scanf("%d",&c);
+			T.alter(x,y,c);
 		}else{
-			printf("%d\n",T.ask(ni,ni));
+			printf("%lld\n",T.ask(x,y));
 		}
 	}
 }
