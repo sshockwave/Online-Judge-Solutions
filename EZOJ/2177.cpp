@@ -34,7 +34,7 @@ inline bool check(int x,int y){
 	return (lint)a*x+(lint)b*y<c;
 }
 struct Node{
-	int x[D],lson,rson,mn[D],mx[D];
+	int x[D],val,lson,rson,mn[D],mx[D];
 	lint sum;
 	inline friend bool operator < (const Node &a,const Node &b){
 		return a.x[dim]<b.x[dim];
@@ -46,9 +46,9 @@ struct Node{
 struct KDTree{
 	inline void up(int x){
 		int tx;
-		pt[x].sum=0;
 		memcpy(pt[x].mn,pt[x].x,D<<2);
 		memcpy(pt[x].mx,pt[x].x,D<<2);
+		pt[x].sum=pt[x].val;
 		if(tx=pt[x].lson){
 			pt[x].sum+=pt[tx].sum;
 			for(int i=0;i<D;i++){
@@ -83,15 +83,14 @@ struct KDTree{
 		if(pt[x].cover()){
 			return pt[x].sum;
 		}
-		return ask(pt[x].lson)+ask(pt[x].rson);
+		return ask(pt[x].lson)+ask(pt[x].rson)+(check(pt[x].x[0],pt[x].x[1])?pt[x].val:0);
 	}
 }kd;
 int main(){
 	memset(pt,0,sizeof(pt));
 	int n=ni,tot=ni;
 	for(int i=1;i<=n;i++){
-		pt[i]=(Node){ni,ni};
-		pt[i].sum=ni;
+		pt[i]=(Node){ni,ni,ni};
 	}
 	dim=0;
 	int root=kd.build(1,n);
