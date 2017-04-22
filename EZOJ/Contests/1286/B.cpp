@@ -119,6 +119,13 @@ int main(){
 			sam.extend(s[i],i);
 		}
 		sam.work();
+		int cnt=0;
+		for(int i=1,_=n-m+1;i<=_;i++){
+			if(valid[i]){
+				cnt++;
+			}
+		}
+		printf("%d\n",cnt);
 		for(int i=1,_=n-m+1;i<=_;i++){
 			if(valid[i]){
 				printf("%d ",i);
