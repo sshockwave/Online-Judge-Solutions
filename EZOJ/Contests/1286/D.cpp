@@ -24,6 +24,7 @@ struct SegmentTree{
 		sum=lson->sum+rson->sum;
 	}
 	inline void down(){
+		assert(lend!=rend);
 		if(delta){
 			lson->cover(lend,mid,delta);
 			rson->cover(mid+1,rend,delta);
@@ -31,7 +32,9 @@ struct SegmentTree{
 		}
 	}
 	int ask(int l,int r){
-		assert(l<=r);
+		if(l>r){
+			return 0;
+		}
 		assert(lend<=l&&r<=rend);
 		if(lend==l&&rend==r){
 			return sum;
@@ -49,11 +52,14 @@ struct SegmentTree{
 		return ask(x,x);
 	}
 	void cover(int l,int r,int c){
-		assert(l<=r);
+		if(l>r){
+			return;
+		}
 		assert(lend<=l&&r<=rend);
 		if(lend==l&&rend==r){
 			sum+=(r-l+1)*c;
 			delta+=c;
+			return;
 		}
 		down();
 		if(r<=mid){
@@ -86,6 +92,7 @@ struct Tree{
 	void dfs1(int x,int f){
 		size[x]=1;
 		for(int i=head[x],v;~i;i=bro[i]){
+			v=to[i];
 			if(v!=f){
 				fa[v]=x;
 				dep[v]=dep[x]+1;
@@ -99,7 +106,7 @@ struct Tree{
 	}
 	int tim;
 	void dfs2(int x,int f){
-		st[x]=tim;
+		st[x]=tim+1;
 		if(son[x]){
 			for(int i=head[x],v;~i;i=bro[i]){
 				v=to[i];
@@ -161,7 +168,7 @@ inline void SegmentTree::build(int l,int r){
 	static node *n=new node[N*2];
 	lend=l,rend=r,mid=(l+r)>>1;
 	if(l==r){
-		sum=T.id[l];
+		sum=pval[T.id[l]];
 	}else{
 		(lson=n++)->build(l,mid);
 		(rson=n++)->build(mid+1,r);
