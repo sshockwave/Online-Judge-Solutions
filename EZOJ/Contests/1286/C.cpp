@@ -3,12 +3,9 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <complex>
 #include <cmath>
-#include <ctime>
 using namespace std;
 typedef long long lint;
-typedef complex<double> comp;
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
 template<class T>inline T next_num(){
@@ -26,12 +23,24 @@ inline int add(const int &a,const int &b){
 inline void apadd(int &a,const int &b){
 	a=add(a,b);
 }
-comp w1[N2>>1][SHIFT2+1],w2[N2>>1][SHIFT2+1];
+struct comp{
+	double r,i;
+	comp(double _r=0,double _i=0):r(_r),i(_i){}
+	inline friend comp operator + (const comp &a,const comp &b){
+		return comp(a.r+b.r,a.i+b.i);
+	}
+	inline friend comp operator - (const comp &a,const comp &b){
+		return comp(a.r-b.r,a.i-b.i);
+	}
+	inline friend comp operator * (const comp &a,const comp &b){
+		return comp(a.r*b.r-a.i*b.i,a.r*b.i+a.i*b.r);
+	}
+}w1[N2>>1][SHIFT2+1],w2[N2>>1][SHIFT2+1];
 inline comp omega(int i,int n){
 	double angle=M_PI*2*i/n;
 	return comp(cos(angle),sin(angle));
 }
-inline void dft(complex<double>a[],bool inv){
+inline void dft(comp a[],bool inv){
 	for(int i=0;i<N;i++){
 		if(i<rev[i]){
 			swap(a[i],a[rev[i]]);
@@ -50,7 +59,7 @@ inline void dft(complex<double>a[],bool inv){
 	}
 	if(inv){
 		for(int i=0;i<N;i++){
-			a[i]/=N;
+			a[i].r/=N;
 		}
 	}
 }
@@ -66,12 +75,12 @@ struct Poly{
 		}
 		dft(ca,false),dft(cb,false);
 		for(int i=0;i<N;i++){
-			ca[i]*=cb[i];
+			ca[i]=ca[i]*cb[i];
 		}
 		dft(ca,true);
 		memset(x,0,n<<2);
 		for(int i=0;i<N;i++){
-			apadd(x[i%n],ca[i].real()+EPS);
+			apadd(x[i%n],ca[i].r+EPS);
 		}
 	}
 	inline void sqr(){
@@ -84,12 +93,12 @@ struct Poly{
 		}
 		dft(ca,false);
 		for(int i=0;i<N;i++){
-			ca[i]*=ca[i];
+			ca[i]=ca[i]*ca[i];
 		}
 		dft(ca,true);
 		memset(x,0,n<<2);
 		for(int i=0;i<N;i++){
-			apadd(x[i%n],ca[i].real()+EPS);
+			apadd(x[i%n],ca[i].r+EPS);
 		}
 	}
 }trans,a;
@@ -100,7 +109,7 @@ int main(){
 		for(int j=0;j<(1<<(i-1));j++){
 			double angle=M_PI*2*j/(1<<i);
 			w1[j][i]=comp(cos(angle),sin(angle));
-			w2[j][i]=comp(cos(angle),-sin(angle));
+			w2[j][i]=comp(w1[j][i].r,-w1[j][i].i);
 		}
 	}
 	rev[0]=0;
