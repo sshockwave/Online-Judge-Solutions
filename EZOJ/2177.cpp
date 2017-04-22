@@ -52,15 +52,15 @@ struct KDTree{
 		if(tx=pt[x].lson){
 			pt[x].sum+=pt[tx].sum;
 			for(int i=0;i<D;i++){
-				apmin(pt[x].mn[dim],pt[tx].mn[dim]);
-				apmax(pt[x].mx[dim],pt[tx].mx[dim]);
+				apmin(pt[x].mn[i],pt[tx].mn[i]);
+				apmax(pt[x].mx[i],pt[tx].mx[i]);
 			}
 		}
 		if(tx=pt[x].rson){
 			pt[x].sum+=pt[tx].sum;
 			for(int i=0;i<D;i++){
-				apmin(pt[x].mn[dim],pt[tx].mn[dim]);
-				apmax(pt[x].mx[dim],pt[tx].mx[dim]);
+				apmin(pt[x].mn[i],pt[tx].mn[i]);
+				apmax(pt[x].mx[i],pt[tx].mx[i]);
 			}
 		}
 	}
