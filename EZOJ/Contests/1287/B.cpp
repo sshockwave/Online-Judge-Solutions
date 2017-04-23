@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define ni (next_num<int>())
@@ -22,12 +23,76 @@ inline void apmax(int &a,const int &b){
 		a=b;
 	}
 }
-const int N=200010,M=100,E=N*2,D=N*2,INF=0x7f7f7f7f;
-int cval[M];
+const int INF=0x7f7f7f7f,N=200010,M=110;
+int n,m,liml,limr,ans=-INF;
+int cval[N];
+struct SegmentTree{
+	typedef SegmentTree node;
+	int lend,rend,mid,val;
+	bool tag;
+	node *lson,*rson;
+	inline void up(){
+		assert(lend!=rend);
+		val=max(lson->val,rson->val);
+	}
+	inline void down(){
+		assert(lend!=rend);
+		if(tag){
+			assert(val==INF);
+			lson->clear();
+			rson->clear();
+			tag=false;
+		}
+	}
+	void build(int l,int r){
+		static node pool[N*2],*n=pool;
+		lend=l,rend=r,mid=(l+r)>>1;
+		tag=false;
+		if(l!=r){
+			(lson=n++)->build(l,mid);
+			(rson=n++)->build(mid+1,r);
+		}
+	}
+	inline void clear(){
+		tag=true;
+		val=-INF;
+	}
+	void set(int x,int v){
+		assert(lend<=x&&x<=rend);
+		if(lend==rend){
+			tag=false;
+			apmax(val,v);
+		}else{
+			down();
+			(x<=mid?lson:rson)->set(x,v);
+			up();
+		}
+	}
+	int ask(int l,int r){
+		assert(l<=r);
+		assert(lend<=l&&r<=rend);
+		if(lend==l&&rend==r){
+			return val;
+		}
+		down();
+		if(r<=mid){
+			return lson->ask(l,r);
+		}
+		if(l>mid){
+			return rson->ask(l,r);
+		}
+		return max(lson->ask(l,mid),rson->ask(mid+1,r));
+	}
+}seg;
+inline bool ccmp(int,int);
 struct Tree{
+	typedef int info[N];
+	static const int E=N*2;
 	int to[E],bro[E],color[E],head[N];
 	Tree(){
+		memset(vis,0,sizeof(vis));
 		memset(head,-1,sizeof(head));
+		bal[0]=INF;
 	}
 	inline void add_edge(int u,int v,int c){
 		static int etop=0;
@@ -36,119 +101,132 @@ struct Tree{
 		color[etop]=c;
 		head[u]=etop++;
 	}
-}T;
-int n,m,l,r;
-namespace solve34{
-	struct SegmentTree{
-		typedef SegmentTree node;
-		int lend,rend,mid,mn;
-		node *lson,*rson;
-		inline void up(){
-			assert(lend!=rend);
-			mn=min(lson->mn,rson->mn);
-		}
-		void build(int l,int r){
-			static node *n=new node[D];
-			lend=l,rend=r,mid=(l+r)>>1;
-			if(l!=r){
-				(lson=n++)->build(l,mid);
-				(rson=n++)->build(mid+1,r);
+	int g;
+	bool vis[N];
+	info size,bal;
+	void dfs1(int x,int n){
+		bal[x]=0;
+		size[x]=1;
+		vis[x]=true;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(!vis[v=to[i]]){
+				dfs1(v,n);
+				size[x]+=size[v];
+				apmax(bal[x],size[v]);
 			}
 		}
-		void set(int x,int val){
-			assert(lend<=x&&x<=rend);
-			if(lend==rend){
-				mn=val;
-			}else{
-				(x<=mid?lson:rson)->set(x,val);
-				up();
-			}
+		apmax(bal[x],n-size[x]);
+		if(bal[x]>bal[g]){
+			g=x;
 		}
-		int ask(int l,int r){
-			assert(l<=r);
-			assert(lend<=l&&r<=rend);
-			if(lend==l&&rend==r){
-				return mn;
-			}
-			if(r<=mid){
-				return lson->ask(l,r);
-			}
-			if(l>mid){
-				return rson->ask(l,r);
-			}
-			return min(lson->ask(l,mid),rson->ask(mid+1,r));
-		}
-	}seg;
-	int du[N];
-	int pt[N],color[N];//i to i+1's color
-	inline int getst(){
-		for(int i=1;i<=n;i++){
-			if(du[i]==1){
-				return i;
-			}
-		}
+		vis[x]=false;
 	}
-	inline void getpt(){
-		pt[0]=0;
-		for(int x=getst(),i=1;i<=n;i++){
-			pt[i]=x;
-			for(int j=T.head[x];~j;j=T.bro[j]){
-				if(T.to[j]!=pt[i-1]){
-					color[i]=T.color[j];
-					x=T.to[j];
-					break;
+	info dep,len,type;
+	int mxdep;
+	info pt;
+	int pcnt;
+	void dfs2(int x,int c){
+		pt[pcnt++]=x;
+		if(dep[x]>=liml&&dep[x]<=limr){
+			apmax(ans,len[x]);
+		}
+		apmax(mxdep,dep[x]);
+		size[x]=1;
+		vis[x]=true;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(!vis[v=to[i]]){
+				type[v]=type[x]?type[x]:color[i];
+				len[v]=len[x];
+				if(color[i]!=c){
+					len[v]+=cval[color[i]];
+				}
+				dep[v]=dep[x]+1;
+				dfs2(v,color[i]);
+				size[x]+=size[v];
+			}
+		}
+		vis[x]=false;
+	}
+	void dfs3(int x){
+		int l=max(0,liml-dep[x]),r=min(mxdep,limr-dep[x]);
+		if(l<=r){
+			apmax(ans,seg.ask(l,r)+len[x]-cval[type[x]]);
+		}
+		vis[x]=true;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(!vis[v=to[i]]){
+				dfs3(v);
+			}
+		}
+		vis[x]=false;
+	}
+	void dfs4(int x){
+		seg.set(dep[x],len[x]);
+		vis[x]=true;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(!vis[v=to[i]]){
+				dfs4(v);
+			}
+		}
+		vis[x]=false;
+	}
+	void solve(int x,int n){
+		g=0,dfs1(x,n),x=g;
+		dep[x]=pcnt=len[x]=type[x]=0;
+		dfs2(x,0);
+		assert(pcnt==n);
+		sort(pt+1,pt+n,ccmp);
+		color[0]=color[1];
+		int last=1;
+		seg.clear();
+		for(int i=1;i<n;i++){
+			int x=pt[i];
+			if(color[x]!=color[pt[i-1]]){
+				for(;last<=i;last++){
+					seg.set(dep[pt[last]],len[pt[last]]);
 				}
 			}
-		}
-	}
-	int pre[N],bef[N];
-	inline int work(){
-		getpt();
-		pre[1]=color[0]=0;
-		seg.build(1,n);
-		for(int i=2;i<=n;i++){
-			pre[i]=pre[i-1];
-			if(color[i-1]!=color[i-2]){
-				pre[i]+=cval[color[i-1]];
+			int l=max(0,liml-dep[x]),r=min(mxdep,limr-dep[x]);
+			if(l<=r){
+				apmax(ans,seg.ask(l,r)+len[x]);
 			}
-			seg.set(i,pre[i]);
 		}
-		int c=0;
-		for(int i=1;i<=n;i++){
-			if(c!=color[i-1]){
-				bef[i]=i-1;
-				c=color[i-1];
+		pcnt=0;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(!vis[v=to[i]]){
+				pt[pcnt++]=v;
+			}
+		}
+		sort(pt,pt+pcnt,ccmp);
+		for(int i=0;i<pcnt;i++){
+			int x=pt[i];
+			if(color[x]==color[pt[i-1]]){
+				dfs3(x),dfs4(x);
 			}else{
-				bef[i]=bef[i-1];
+				seg.clear();
 			}
 		}
-		int ans=-INF;
-		for(int i=l+1;i<=n;i++){
-			if(max(i-r,1)<=min(i-l,bef[i])){
-				apmax(ans,pre[i]-seg.ask(max(i-r,1),min(i-l,bef[i])));
-			}
-			if(max(max(i-r,1),bef[i]+1)<=i-l){
-				apmax(ans,pre[i]-seg.ask(max(max(i-r,1),bef[i]+1),i-l)+cval[color[i-1]]);
+		vis[x]=true;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(!vis[v=to[i]]){
+				solve(v,size[v]);
 			}
 		}
-		return ans;
 	}
+}T;
+inline bool ccmp(int a,int b){
+	return T.type[a]<T.type[b];
 }
 int main(){
-	n=ni,m=ni,l=ni,r=ni;
-	for(int i=1;i<=m;i++){
+	n=ni,m=ni,liml=ni,limr=ni;
+	for(int i=1;i<=n;i++){
 		cval[i]=ni;
 	}
-	int mxdu=0;
 	for(int i=1;i<n;i++){
 		int u=ni,v=ni,c=ni;
 		T.add_edge(u,v,c);
 		T.add_edge(v,u,c);
-		apmax(mxdu,++solve34::du[u]);
-		apmax(mxdu,++solve34::du[v]);
 	}
-	if(mxdu<=2){
-		printf("%d\n",solve34::work());
-		return 0;
-	}
+	T.solve(1,n);
+	printf("%d\n",ans);
 }
