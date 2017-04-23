@@ -36,6 +36,7 @@ struct ACAutomaton{
 	struct node{
 		int son[SIGMA],fail;
 		bool end;
+		char c;
 		node(){
 			memset(son,0,sizeof(son));
 		}
@@ -51,6 +52,7 @@ struct ACAutomaton{
 		int c=(*s)-'a';
 		if(x.son[c]==0){
 			x.son[c]=++pool;
+			pol[pool].c=*s;
 		}
 		insert(x.son[c],s+1);
 	}
@@ -124,6 +126,7 @@ namespace solve1{
 	}
 }
 namespace solve2{
+	int len;
 	struct Matrix{
 		int num[D][D];
 		Matrix(){
@@ -132,17 +135,60 @@ namespace solve2{
 		inline int* operator [] (int i){
 			return num[i];
 		}
-	}trans;
+		inline friend Matrix operator * (Matrix &a,Matrix &b){
+			Matrix c;
+			for(int i=1;i<=len;i++){
+				for(int j=1;j<=len;j++){
+					for(int k=1;k<=len;k++){
+						apadd(c[i][j],mul(a[i][k],b[k][j]));
+					}
+				}
+			}
+			return c;
+		}
+	}trans,ret;
+	inline void fpow(int exp){
+		for(int i=1;i<=len;i++){
+			ret[i][i]=1;
+		}
+		for(;exp;exp>>=1,trans=trans*trans){
+			if(exp&1){
+				ret=ret*trans;
+			}
+		}
+	}
 	inline int work(){
-		for(int i=1;i<=ac.pool;i++){
+		int half=ac.pool;
+		len=half<<1;
+		for(int i=1;i<=half;i++){
 			for(int j=1;j<=n;j++){
-				if(len2[j]==1){
-					
+				int t1=ac.digest(i,s[j][0]);
+				if(t1==-1){
+					continue;
+				}
+				if(len1[j]==1){
+					apadd(trans[t1][i],1);
 				}else{
-					
+					apadd(trans[t1+half][i],1);
 				}
 			}
 		}
+		for(int i=1;i<=half;i++){
+			for(int j=1;j<=n;j++){
+				if(len1[j]==2&&ac.pol[i].c==s[j][0]){
+					int t2=ac.digest(i,s[j][1]);
+					if(~t2){
+						apadd(trans[t2][i+half],1);
+					}
+				}
+			}
+		}
+		fpow(lim);
+		int ans=0;
+		for(int i=1;i<=half;i++){
+			apadd(ans,ret[i][1]);
+		}
+		return ans;
 	}
 }
 int main(){
