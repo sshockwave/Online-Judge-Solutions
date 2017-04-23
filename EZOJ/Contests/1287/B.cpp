@@ -38,14 +38,14 @@ struct SegmentTree{
 	inline void down(){
 		assert(lend!=rend);
 		if(tag){
-			assert(val==INF);
+			assert(val==-INF);
 			lson->clear();
 			rson->clear();
 			tag=false;
 		}
 	}
 	void build(int l,int r){
-		static node pool[N*2],*n=pool;
+		static node *n=new node[N*2];
 		lend=l,rend=r,mid=(l+r)>>1;
 		tag=false;
 		if(l!=r){
@@ -74,7 +74,9 @@ struct SegmentTree{
 		if(lend==l&&rend==r){
 			return val;
 		}
-		down();
+		if(tag){
+			return -INF;
+		}
 		if(r<=mid){
 			return lson->ask(l,r);
 		}
@@ -116,7 +118,7 @@ struct Tree{
 			}
 		}
 		apmax(bal[x],n-size[x]);
-		if(bal[x]>bal[g]){
+		if(bal[x]<bal[g]){
 			g=x;
 		}
 		vis[x]=false;
@@ -148,7 +150,7 @@ struct Tree{
 		vis[x]=false;
 	}
 	void dfs3(int x){
-		int l=max(0,liml-dep[x]),r=min(mxdep,limr-dep[x]);
+		int l=max(1,liml-dep[x]),r=min(mxdep,limr-dep[x]);
 		if(l<=r){
 			apmax(ans,seg.ask(l,r)+len[x]-cval[type[x]]);
 		}
@@ -176,13 +178,12 @@ struct Tree{
 		dfs2(x,0);
 		assert(pcnt==n);
 		sort(pt+1,pt+n,ccmp);
-		color[0]=color[1];
 		int last=1;
 		seg.clear();
 		for(int i=1;i<n;i++){
 			int x=pt[i];
-			if(color[x]!=color[pt[i-1]]){
-				for(;last<=i;last++){
+			if(type[x]!=type[pt[i-1]]){
+				for(;last<i;last++){
 					seg.set(dep[pt[last]],len[pt[last]]);
 				}
 			}
@@ -198,15 +199,17 @@ struct Tree{
 			}
 		}
 		sort(pt,pt+pcnt,ccmp);
-		for(int i=0;i<pcnt;i++){
+		seg.clear();
+		vis[x]=true;
+		dfs4(pt[0]);
+		for(int i=1;i<pcnt;i++){
 			int x=pt[i];
-			if(color[x]==color[pt[i-1]]){
+			if(type[x]==type[pt[i-1]]){
 				dfs3(x),dfs4(x);
 			}else{
 				seg.clear();
 			}
 		}
-		vis[x]=true;
 		for(int i=head[x],v;~i;i=bro[i]){
 			if(!vis[v=to[i]]){
 				solve(v,size[v]);
@@ -219,7 +222,7 @@ inline bool ccmp(int a,int b){
 }
 int main(){
 	n=ni,m=ni,liml=ni,limr=ni;
-	for(int i=1;i<=n;i++){
+	for(int i=1;i<=m;i++){
 		cval[i]=ni;
 	}
 	for(int i=1;i<n;i++){
@@ -227,6 +230,12 @@ int main(){
 		T.add_edge(u,v,c);
 		T.add_edge(v,u,c);
 	}
+	seg.build(0,n-1);
 	T.solve(1,n);
+	//debug
+	if(ans<-INF/2){
+		puts("-1073741824");
+		return 0;
+	}
 	printf("%d\n",ans);
 }
