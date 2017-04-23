@@ -55,6 +55,9 @@ int main(){
 	n=ni;
 	int m=ni;
 	memset(dis,127,sizeof(dis));
+	for(int i=1;i<=n;i++){
+		dis[i][i]=0;
+	}
 	for(int i=1;i<=m;i++){
 		int u=ni,v=ni,w=ni;
 		dis[u][v]=w;
@@ -81,6 +84,7 @@ int main(){
 	memset(dic,-1,sizeof(dic));
 	f[0][1]=0;
 	g[0]=0;
+	dic[0]=0;
 	int full=(1<<(n-1))-1;
 	for(int state=0;state<=full;state++){
 		for(int i=1;i<=n;i++){
