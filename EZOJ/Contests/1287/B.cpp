@@ -152,7 +152,10 @@ struct Tree{
 	void dfs3(int x){
 		int l=max(1,liml-dep[x]),r=min(mxdep,limr-dep[x]);
 		if(l<=r){
-			apmax(ans,seg.ask(l,r)+len[x]-cval[type[x]]);
+			int res=seg.ask(l,r);
+			if(res>-INF){
+				apmax(ans,seg.ask(l,r)-cval[type[x]]+len[x]);
+			}
 		}
 		vis[x]=true;
 		for(int i=head[x],v;~i;i=bro[i]){
@@ -189,7 +192,10 @@ struct Tree{
 			}
 			int l=max(0,liml-dep[x]),r=min(mxdep,limr-dep[x]);
 			if(l<=r){
-				apmax(ans,seg.ask(l,r)+len[x]);
+				int res=seg.ask(l,r);
+				if(res>-INF){
+					apmax(ans,res+len[x]);
+				}
 			}
 		}
 		pcnt=0;
@@ -205,10 +211,11 @@ struct Tree{
 		for(int i=1;i<pcnt;i++){
 			int x=pt[i];
 			if(type[x]==type[pt[i-1]]){
-				dfs3(x),dfs4(x);
+				dfs3(x);
 			}else{
 				seg.clear();
 			}
+			dfs4(x);
 		}
 		for(int i=head[x],v;~i;i=bro[i]){
 			if(!vis[v=to[i]]){
@@ -232,10 +239,5 @@ int main(){
 	}
 	seg.build(0,n-1);
 	T.solve(1,n);
-	//debug
-	if(ans<-INF/2){
-		puts("-1073741824");
-		return 0;
-	}
 	printf("%d\n",ans);
 }
