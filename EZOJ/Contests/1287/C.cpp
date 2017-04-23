@@ -79,6 +79,9 @@ struct ACAutomaton{
 		}
 		c-='a';
 		for(;p&&pol[p].son[c]==0;p=pol[p].fail);
+		if(pol[pol[p].son[c]].end){
+			return -1;
+		}
 		return pol[p].son[c];
 	}
 }ac;
@@ -92,7 +95,7 @@ namespace solve1{
 		for(int i=1;i<=ac.pool;i++){
 			for(int j=1;j<=n;j++){
 				to[i][j]=i;
-				for(int k=1;s[j][k];k++){
+				for(int k=0;s[j][k];k++){
 					to[i][j]=ac.digest(to[i][j],s[j][k]);
 					if(to[i][j]==-1){
 						break;
@@ -103,6 +106,9 @@ namespace solve1{
 		f[0][1]=1;
 		for(int i=0;i<lim;i++){
 			for(int j=1;j<=ac.pool;j++){
+				if(f[i][j]==0){
+					continue;
+				}
 				for(int k=1;k<=n;k++){
 					if(~to[j][k]){
 						apadd(f[i+len1[k]][to[j][k]],f[i][j]);
@@ -141,16 +147,16 @@ namespace solve2{
 }
 int main(){
 	n=ni,m=ni,lim=ni;
+	int mxlen=0;
 	for(int i=1;i<=n;i++){
 		scanf("%s",s[i]);
 		len1[i]=strlen(s[i]);
+		apmax(mxlen,len1[i]);
 	}
-	int mxlen=0;
 	for(int i=1;i<=m;i++){
 		scanf("%s",t[i]);
 		ac.insert(1,t[i]);
 		len2[i]=strlen(t[i]);
-		apmax(mxlen,len2[i]);
 	}
 	ac.build();
 	if(mxlen<=2){
