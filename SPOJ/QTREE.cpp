@@ -105,7 +105,7 @@ struct Tree{
 	info top;
 	int tim;
 	void dfs2(int x,int f){
-		pos[con[x]]=++tim;
+		pos[con[x]]=tim++;
 		if(son[x]){
 			top[son[x]]=top[x];
 			dfs2(son[x],x);
@@ -138,13 +138,13 @@ struct Tree{
 }T;
 int main(){
 	for(int tot=ni;tot--;){
+		T.reset(),seg.reset();
 		int n=ni;
 		for(int i=1;i<n;i++){
 			e[i]=(Edge){ni,ni,ni};
 			T.add_edge(i<<1,e[i].u,e[i].v);
 			T.add_edge((i<<1)|1,e[i].v,e[i].u);
 		}
-		T.reset(),seg.reset();
 		seg.build(1,n-1);
 		T.dfs1(1,0),T.dfs2(1,0);
 		for(int i=1;i<n;i++){
