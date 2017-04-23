@@ -22,7 +22,7 @@ inline void apmax(int &a,const int &b){
 		a=b;
 	}
 }
-const int N=55,L=110,D=L*2,SIGMA=26,MOD=1000000007;
+const int N=55,L=110,SIGMA=26,MOD=1000000007;
 inline int add(const int &a,const int &b){
 	return (a+b)%MOD;
 }
@@ -36,11 +36,10 @@ struct ACAutomaton{
 	struct node{
 		int son[SIGMA],fail;
 		bool end;
-		char c;
 		node(){
 			memset(son,0,sizeof(son));
 		}
-	}pol[D];
+	}pol[L];
 	int pool;
 	ACAutomaton():pool(1){}
 	void insert(int id,char s[]){
@@ -52,27 +51,35 @@ struct ACAutomaton{
 		int c=(*s)-'a';
 		if(x.son[c]==0){
 			x.son[c]=++pool;
-			pol[pool].c=*s;
 		}
 		insert(x.son[c],s+1);
 	}
-	void build(int id){//assert fail ok
-		node &x=pol[id];
-		for(int i=0;i<26;i++){
-			if(x.son[i]){
-				int p=x.fail;
-				for(;p&&pol[p].son[i]==0;p=pol[p].fail);
-				pol[x.son[i]].fail=pol[p].son[i];
-				build(x.son[i]);
-			}
-		}
-	}
+	int que[L];
 	void build(){
 		for(int i=0;i<SIGMA;i++){
 			pol[0].son[i]=1;
 		}
 		pol[1].fail=0;
-		build(1);
+		int qhead=0,qtail=0;
+		que[qtail++]=1;
+		while(qhead<qtail){
+			int id=que[qhead++];
+			node &x=pol[id];
+			if(pol[x.fail].end){
+				x.end=true;
+			}
+			for(int i=0;i<SIGMA;i++){
+				if(x.son[i]){
+					if(x.end){
+						pol[x.son[i]].end=true;
+					}
+					int p=x.fail;
+					for(;p&&pol[p].son[i]==0;p=pol[p].fail);
+					pol[x.son[i]].fail=pol[p].son[i];
+					que[qtail++]=x.son[i];
+				}
+			}
+		}
 	}
 	int digest(int p,char c){
 		node &x=pol[p];
@@ -91,8 +98,8 @@ int n,m,lim;
 int len1[N],len2[N];
 char s[N][L],t[N][L];//t:forbidden
 namespace solve1{
-	int f[L*2][D];
-	int to[D][N];//to[at][str]
+	int f[L*2][L];
+	int to[L][N];//to[at][str]
 	inline int work(){
 		for(int i=1;i<=ac.pool;i++){
 			for(int j=1;j<=n;j++){
@@ -128,7 +135,7 @@ namespace solve1{
 namespace solve2{
 	int len;
 	struct Matrix{
-		int num[D][D];
+		int num[L][L];
 		Matrix(){
 			memset(num,0,sizeof(num));
 		}
@@ -157,28 +164,33 @@ namespace solve2{
 			}
 		}
 	}
+	int id[L];
 	inline int work(){
-		int half=ac.pool;
-		len=half<<1;
-		for(int i=1;i<=half;i++){
+		int ele=ac.pool;
+		len=0;
+		for(int i=1;i<=ele;i++){
+			if(!ac.pol[i].end){
+				id[i]=++len;
+			}
+		}
+		int half=len;
+		len<<=1;
+		for(int i=1;i<=ele;i++){
+			if(ac.pol[i].end){
+				continue;
+			}
+			trans[id[i]+half][id[i]]++;
 			for(int j=1;j<=n;j++){
 				int t1=ac.digest(i,s[j][0]);
 				if(t1==-1){
 					continue;
 				}
 				if(len1[j]==1){
-					apadd(trans[t1][i],1);
+					trans[id[t1]][id[i]]++;
 				}else{
-					apadd(trans[t1+half][i],1);
-				}
-			}
-		}
-		for(int i=1;i<=half;i++){
-			for(int j=1;j<=n;j++){
-				if(len1[j]==2&&ac.pol[i].c==s[j][0]){
-					int t2=ac.digest(i,s[j][1]);
+					int t2=ac.digest(t1,s[j][1]);
 					if(~t2){
-						apadd(trans[t2][i+half],1);
+						trans[id[t2]][id[i]+half]++;
 					}
 				}
 			}
