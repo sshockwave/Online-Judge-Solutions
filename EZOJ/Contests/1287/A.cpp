@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <queue>
 using namespace std;
 typedef long long lint;
 #define ni (next_num<int>())
@@ -23,145 +22,101 @@ inline void apmin(int &a,const int &b){
 		a=b;
 	}
 }
-const int N=19,E=N*N*2,INF=0x7f7f7f7f,NODE=500000;//debug
-int to[E],bro[E],val[E],head[N];
-inline void add_edge(int u,int v,int w){
-	static int etop=0;
-	to[etop]=v;
-	bro[etop]=head[u];
-	val[etop]=w;
-	head[u]=etop++;
+const int N=19,S=1<<(N-2),INF=0x7f7f7f7f;
+int n,f[S][N],pre[S][N],g[S],dic[S],dis[N][N],cen[N][N],route[N*2];
+inline int* expand(int arr[],int i,int j){
+	int k=cen[i][j];
+	if(k==0){
+		return arr;
+	}
+	arr=expand(arr,i,k);
+	arr[0]=k;
+	return expand(arr+1,k,j);
 }
-int dis[N][N];
-struct Node{
-	int state,u,v,disu,disv,cnt,pre;
-}pool[NODE];
-int n,mx,ptop;
-struct qNode{
-	int id;
-	inline friend bool operator < (const qNode &a,const qNode &b){
-		return pool[a.id].cnt<pool[b.id].cnt;
+inline void putroute(int p){
+	static int *tmp=new int[N*3];
+	int rtop=0;
+	for(;~p;p=pre[p/n][p%n+1]){
+		tmp[rtop++]=p%n+1;
 	}
-};
-priority_queue<qNode>q;
-inline void pushq(int state,int u,int v,int disu,int disv,int pre){
-	if(disu>mx||disv>mx){
-		return;
+	int *arr=route;
+	*(arr++)=tmp[0];
+	for(int i=1;i<rtop;i++){
+		arr=expand(arr,tmp[i-1],tmp[i]);
+		*(arr++)=tmp[i];
 	}
-	int cnt=0;
-	for(int i=0;i<n;i++){
-		if((state>>i)&1){
-			cnt++;
-		}else{
-			int x=i+1;
-			if(disu+dis[u][x]>mx&&disv+dis[v][x]>mx){
-				return;
-			}
-		}
+	printf("%d",(int)(arr-route-1));
+	while((--arr)>=route){
+		printf(" %d",*arr);
 	}
-//	assert(ptop<NODE);
-	if(ptop==NODE){
-		return;
-	}
-	pool[ptop]=(Node){state,u,v,disu,disv,cnt,pre};
-	q.push((qNode){ptop++});
+	putchar('\n');
 }
-inline bool check(){
-	while(!q.empty()){
-		q.pop();
-	}
-	ptop=0;
-	pushq(1,1,1,0,0,-1);
-	while(!q.empty()){
-		int id=q.top().id;
-		Node &x=pool[id];
-		if(x.cnt==n){
-			return true;
-		}
-		q.pop();
-		for(int i=head[x.u];~i;i=bro[i]){
-			pushq(x.state|(1<<(to[i]-1)),to[i],x.v,x.disu+val[i],x.disv,id);
-		}
-		for(int i=head[x.v];~i;i=bro[i]){
-			pushq(x.state|(1<<(to[i]-1)),x.u,to[i],x.disu,x.disv+val[i],id);
-		}
-	}
-	return false;
-}
-int route[NODE];
 int main(){
 	n=ni;
-	if(n==1){
-		puts("0");
-		puts("0 1");
-		puts("0 1");
-		return 0;
-	}
-	int tot=ni,l=0,r=0,mid;
+	int m=ni;
 	memset(dis,127,sizeof(dis));
-	memset(head,-1,sizeof(head));
-	while(tot--){
+	for(int i=1;i<=m;i++){
 		int u=ni,v=ni,w=ni;
-		add_edge(u,v,w);
-		add_edge(v,u,w);
 		dis[u][v]=w;
 		dis[v][u]=w;
-		r+=w;
 	}
-	for(int i=1;i<=n;i++){
-		dis[i][i]=0;
-	}
+	memset(cen,0,sizeof(cen));
 	for(int k=1;k<=n;k++){
 		for(int i=1;i<=n;i++){
 			if(dis[i][k]!=INF){
 				for(int j=1;j<=n;j++){
 					if(dis[k][j]!=INF){
-						apmin(dis[i][j],dis[i][k]+dis[k][j]);
+						if(dis[i][j]>dis[i][k]+dis[k][j]){
+							dis[i][j]=dis[i][k]+dis[k][j];
+							cen[i][j]=k;
+						}
 					}
 				}
 			}
 		}
 	}
-	r*=n;
-	while(l<r){
-		mx=(l+r)>>1;
-		if(check()){
-			r=mx;
-		}else{
-			l=mx+1;
+	memset(f,127,sizeof(f));
+	memset(g,127,sizeof(g));
+	memset(pre,-1,sizeof(pre));
+	memset(dic,-1,sizeof(dic));
+	f[0][1]=0;
+	g[0]=0;
+	int full=(1<<(n-1))-1;
+	for(int state=0;state<=full;state++){
+		for(int i=1;i<=n;i++){
+			int F=f[state][i],diff=state*n+i-1;
+			if(F==INF){
+				continue;
+			}
+			for(int j=0,_=n-1;j<_;j++){
+				if(((state>>j)&1)==0){
+					int to=state|(1<<j);
+					if(f[to][j+2]>dis[i][j+2]+F){
+						f[to][j+2]=dis[i][j+2]+F;
+						pre[to][j+2]=diff;
+					}
+				}
+			}
+			if(g[state]>F){
+				g[state]=F;
+				dic[state]=diff;
+			}
+		}
+		for(int sub=state;sub;sub=(sub-1)&state){
+			if(g[state]<g[sub]){
+				g[sub]=g[state];
+				dic[sub]=dic[state];
+			}
 		}
 	}
-	printf("%d\n",mx=l);
-	check();
-	int rtop=0,ucnt=0,vcnt=0,lastu=0,lastv=0;
-	assert(pool[q.top().id].cnt==n);
-	for(int i=q.top().id;~i;i=pool[i].pre){
-		route[++rtop]=i;
-		if(pool[i].u!=lastu){
-			ucnt++;
-			lastu=pool[i].u;
-		}
-		if(pool[i].v!=lastv){
-			vcnt++;
-			lastv=pool[i].v;
+	int ans=INF,s1,s2;
+	for(int state=0;state<=full;state++){
+		if(max(g[state],g[state^full])<ans){
+			ans=max(g[state],g[state^full]);
+			s1=state,s2=state^full;
 		}
 	}
-	printf("%d",ucnt-1);
-	lastu=0;
-	for(int i=rtop,cur;i;i--){
-		cur=pool[route[i]].u;
-		if(lastu!=cur){
-			printf(" %d",lastu=cur);
-		}
-	}
-	putchar('\n');
-	printf("%d",vcnt-1);
-	lastv=0;
-	for(int i=rtop,cur;i;i--){
-		cur=pool[route[i]].v;
-		if(lastv!=cur){
-			printf(" %d",lastv=cur);
-		}
-	}
-	putchar('\n');
+	printf("%d\n",ans);
+	putroute(dic[s1]);
+	putroute(dic[s2]);
 }
