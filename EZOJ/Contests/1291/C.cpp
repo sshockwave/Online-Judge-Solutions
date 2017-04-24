@@ -20,8 +20,8 @@ template<class T>inline T next_num(){
 }
 const int N=20010,INF=0x7f7f7f7f;
 struct Graph{
-	static const int N=N*2,E=N*3;
-	int to[E],bro[E],cap[E],head[N*2],etop,s,t,n;
+	static const int D=N*2,E=D*3;
+	int to[E],bro[E],cap[E],head[D],etop,s,t,n;
 	Graph(){
 		memset(head,-1,sizeof(head));
 		n=etop=0;
@@ -42,8 +42,8 @@ struct Graph{
 			add_edge(v,u,0);
 		}
 	}
-	int que[N],dis[N];
-	inline bool bfs(){
+	int que[D],dis[D];
+	inline void bfs(){
 		int qhead=0,qtail=0;
 		memset(dis+1,INF,n<<2);
 		dis[s]=0;
@@ -53,14 +53,10 @@ struct Graph{
 			for(int i=head[x],v;~i;i=bro[i]){
 				if(cap[i]&&dis[v=to[i]]==INF){
 					dis[v]=dis[x]+1;
-					if(v==t){
-						return true;
-					}
 					que[qtail++]=v;
 				}
 			}
 		}
-		return false;
 	}
 	int aug(int x,int alloc){
 		if(x==t){
@@ -81,12 +77,12 @@ struct Graph{
 	}
 	inline int dinic(){
 		int flow=0;
-		for(;bfs();flow+=aug(s,INF));
+		for(;bfs(),dis[t]<INF;flow+=aug(s,INF));
 		return flow;
 	}
 }G;
 int node[2][N];
-bool invalid[2][N],okay[2][N];
+bool invalid[2][N],forbid[N];
 int main(){
 	int n=ni,k=ni;
 	int prime[2],ptop=0,div=n;
@@ -106,8 +102,10 @@ int main(){
 	assert(prime[0]<prime[1]);
 	int p1=n/prime[0],p2=n/prime[1];
 	memset(invalid,0,sizeof(invalid));
+	memset(forbid,0,sizeof(forbid));
 	for(int i=0;i<k;i++){
 		int cur=ni;
+		forbid[cur]=true;
 		invalid[0][cur%p1]=true;
 		invalid[1][cur%p2]=true;
 	}
@@ -129,29 +127,13 @@ int main(){
 		G.add(node[0][i%p1],node[1][i%p2],INF);
 	}
 	ans-=G.dinic();
-	printf("%d\n",ans);
-	memset(okay,0,sizeof(okay));
-	for(int j=0;j<p1;j++){
-		if(!invalid[0][j]){
-			for(int i=G.head[node[0][j]];~i;i=G.bro[i]){
-				if(G.to[i]==G.s){
-					okay[0][j]=G.cap[i]!=prime[0];
-					break;
-				}
-			}
-		}
+	if(ans==0){
+		puts("-1");
+		return 0;
 	}
-	for(int j=0;j<p2;j++){
-		if(!invalid[1][j]){
-			for(int i=G.head[node[1][j]];~i;i=G.bro[i]){
-				if(G.to[i]==G.t){
-					okay[1][j]=G.cap[i];
-				}
-			}
-		}
-	}
+	printf("%d\n",n-k-ans);
 	for(int i=1;i<=n;i++){
-		if(okay[0][i%p1]&&okay[1][i%p2]){
+		if(!forbid[i]&&(node[0][i%p1]==0||G.dis[node[0][i%p1]]==INF)&&(node[1][i%p2]==0||G.dis[node[0][i%p2]]<INF)){
 			printf("%d ",i);
 		}
 	}
