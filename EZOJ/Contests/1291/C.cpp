@@ -21,7 +21,7 @@ template<class T>inline T next_num(){
 const int N=20010,INF=0x7f7f7f7f;
 struct Graph{
 	static const int D=N*2,E=D*3;
-	int to[E],bro[E],cap[E],head[D],etop,s,t,n;
+	int to[E],bro[E],cap[E],head[N*2],etop,s,t,n;
 	Graph(){
 		memset(head,-1,sizeof(head));
 		n=etop=0;
@@ -43,7 +43,7 @@ struct Graph{
 		}
 	}
 	int que[D],dis[D];
-	inline void bfs(){
+	inline bool bfs(){
 		int qhead=0,qtail=0;
 		memset(dis+1,INF,n<<2);
 		dis[s]=0;
@@ -53,10 +53,14 @@ struct Graph{
 			for(int i=head[x],v;~i;i=bro[i]){
 				if(cap[i]&&dis[v=to[i]]==INF){
 					dis[v]=dis[x]+1;
+					if(v==t){
+						return true;
+					}
 					que[qtail++]=v;
 				}
 			}
 		}
+		return false;
 	}
 	int aug(int x,int alloc){
 		if(x==t){
@@ -77,7 +81,7 @@ struct Graph{
 	}
 	inline int dinic(){
 		int flow=0;
-		for(;bfs(),dis[t]<INF;flow+=aug(s,INF));
+		for(;bfs();flow+=aug(s,INF));
 		return flow;
 	}
 }G;
@@ -133,7 +137,7 @@ int main(){
 	}
 	printf("%d\n",n-k-ans);
 	for(int i=1;i<=n;i++){
-		if(!forbid[i]&&(node[0][i%p1]==0||G.dis[node[0][i%p1]]==INF)&&(node[1][i%p2]==0||G.dis[node[0][i%p2]]<INF)){
+		if(!forbid[i]&&(node[0][i%p1]==0||G.dis[node[0][i%p1]]==INF)&&(node[1][i%p2]==0||G.dis[node[1][i%p2]]<INF)){
 			printf("%d ",i);
 		}
 	}
