@@ -29,7 +29,7 @@ struct SegmentTree{
 	}
 	void build(int l,int r){
 		static node *n=new node[D];
-		lend=l,rend=r,mid=(l+r)>>1,sum=r-l+1;
+		lend=l,rend=r,mid=(l+r)>>1,sum=0;
 		if(l!=r){
 			(lson=n++)->build(l,mid);
 			(rson=n++)->build(mid+1,r);
@@ -38,7 +38,7 @@ struct SegmentTree{
 	void add(int x,int v){
 		assert(lend<=x&&x<=rend);
 		if(lend==rend){
-			sum=v;
+			sum+=v;
 		}else{
 			(x<=mid?lson:rson)->add(x,v);
 			up();
@@ -75,7 +75,7 @@ struct Tree{
 	Tree(){
 		memset(head,-1,sizeof(head));
 		memset(son,0,sizeof(son));
-		size[0]=dep[1]=0;
+		size[0]=dep[1]=tim=0;
 		top[1]=1;
 	}
 	inline void add_edge(int u,int v){
@@ -101,8 +101,8 @@ struct Tree{
 		}
 	}
 	info top,dfn,dfe;
+	int tim;
 	void dfs2(int x,int f){
-		static int tim=0;
 		dfn[x]=++tim;
 		if(son[x]){
 			top[son[x]]=top[x];
@@ -127,7 +127,13 @@ struct Tree{
 		return dep[u]<dep[v]?u:v;
 	}
 	inline int ask(int u,int v){
-		return seg.pre(u)+seg.pre(v)-(seg.pre(lca(u,v))<<1)+1;
+		return seg.pre(dfn[u])+seg.pre(dfn[v])-(seg.pre(dfn[lca(u,v)])<<1)+1;
+	}
+	inline void alter(int x,int v){
+		seg.add(dfn[x],v);
+		if(dfe[x]<tim){
+			seg.add(dfe[x]+1,-v);
+		}
 	}
 }T;
 struct LinkCutTree{
@@ -176,8 +182,10 @@ struct LinkCutTree{
 			side[x]=1;
 			side[rson(f)]=-1;
 			s=root(rson(f));
-			seg.add(T.dfn[s],1);
-			seg.add(T.dfe[s],-1);
+			if(s=root(rson(f))){
+				T.alter(s,1);
+			}
+			T.alter(x,-1);
 			rson(f)=x;
 		}
 	}
@@ -189,10 +197,11 @@ int main(){
 		T.add_edge(u,v);
 		T.add_edge(v,u);
 	}
-	T.dfs1(1,0),T.dfs2(1,0);
 	seg.build(1,n);
+	T.dfs1(1,0),T.dfs2(1,0);
 	for(int i=1;i<=n;i++){
 		lct.fa[i]=T.fa[i];
+		T.alter(i,1);
 	}
 	while(tot--){
 		switch(ni){
