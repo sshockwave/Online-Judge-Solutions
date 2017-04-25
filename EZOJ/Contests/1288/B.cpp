@@ -44,6 +44,16 @@ struct SegmentTree{
 			up();
 		}
 	}
+	int pre(int x){
+		assert(lend<=x&&x<=rend);
+		if(lend==rend){
+			return sum;
+		}
+		if(x<=mid){
+			return lson->pre(x);
+		}
+		return rson->pre(x)+lson->sum;
+	}
 	int mxpre(int l,int r){
 		assert(lend<=l&&r<=rend);
 		if(lend==rend){
@@ -117,7 +127,7 @@ struct Tree{
 		return dep[u]<dep[v]?u:v;
 	}
 	inline int ask(int u,int v){
-		
+		return seg.pre(u)+seg.pre(v)-(seg.pre(lca(u,v))<<1)+1;
 	}
 }T;
 struct LinkCutTree{
