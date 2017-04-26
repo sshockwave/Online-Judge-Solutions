@@ -26,7 +26,7 @@ const int N=110,INF=0x7f7f7f7f;
 const double EPS=1e-8,DINF=1e100;
 int lnk[N];
 struct Graph{
-	static const int D=N*2,E=N*N;
+	static const int D=N*2,E=N*N*2;
 	int to[E],bro[E],cap[E],head[D],etop;
 	double val[E];
 	inline void reset(){
@@ -44,9 +44,9 @@ struct Graph{
 		add_edge(u,v,c,w);
 		add_edge(v,u,0,-w);
 	}
-	double dis[N];
-	int que[N],pre[N];
-	bool inque[N];
+	double dis[D];
+	int que[D],pre[D];
+	bool inque[D];
 	inline bool spfa(int s,int t){
 		memset(pre,-1,sizeof(pre));
 		memset(inque,0,sizeof(inque));
@@ -60,7 +60,7 @@ struct Graph{
 		bool flag=false;
 		while(qhead!=qtail){
 			int x=que[qhead++];
-			if(qhead==N){
+			if(qhead==D){
 				qhead=0;
 			}
 			if(x==t){
@@ -74,7 +74,7 @@ struct Graph{
 					if(!inque[v]){
 						inque[v]=true;
 						que[qtail++]=v;
-						if(qtail==N){
+						if(qtail==D){
 							qtail=0;
 						}
 					}
