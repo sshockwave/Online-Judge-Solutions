@@ -38,16 +38,27 @@ inline void add_edge(int u,int v,bool t){
 }
 int prime[N],mu[N],ptop=0;
 bool np[N];
+struct bignum{
+	vector<int>fac;
+	inline void construct(int x){
+		for(int i=1;i*i<=x;i++){
+			if(x%i==0){
+				if(mu[i]){
+					fac.push_back(i);
+				}
+				if(i*i!=x&&mu[x/i]){
+					fac.push_back(x/i);
+				}
+			}
+		}
+	}
+}nums[N];
 inline void work(int x){
 	for(int i=head[x];~i;i=bro[i]){
 		int t=to[i],sum=0,n=q[t].x;
-		for(int j=1;j*j<=n;j++){
-			if(n%j==0){
-				sum+=A[j]*mu[j];
-				if(j*j!=n){
-					sum+=A[n/j]*mu[n/j];
-				}
-			}
+		for(int j=0;j<nums[n].fac.size();j++){
+			int cur=nums[n].fac[j];
+			sum+=A[cur]*mu[cur];
 		}
 		if(type[i]){
 			q[t].cnt+=sum;
@@ -74,6 +85,9 @@ int main(){
 			}
 		}
 	}
+	for(int i=1;i<N;i++){
+		nums[i].construct(i);
+	}
 	int n=ni,tot=ni;
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
@@ -94,13 +108,9 @@ int main(){
 		}
 		memset(A,0,sizeof(A));
 		for(int i=1;i<=n;i++){
-			for(int j=1;j*j<=a[i];j++){//to be better
-				if(a[i]%j==0){
-					A[j]++;
-					if(a[i]!=j*j){
-						A[a[i]/j]++;
-					}
-				}
+			for(int j=0;j<nums[a[i]].fac.size();j++){
+				int cur=nums[a[i]].fac[j];
+				A[cur]++;
 			}
 			work(i);
 		}
