@@ -67,6 +67,14 @@ struct SegmentTree{
 		}
 		return max(lson->mxpre(l,mid),rson->mxpre(mid+1,r)+lson->sum);
 	}
+	//debug
+	int operator [] (int i){
+		if(lend==rend){
+			return sum;
+		}else{
+			return (i<=mid?lson:rson)->operator [] (i);
+		}
+	}
 }seg;
 struct Tree{
 	typedef int info[N];
@@ -139,16 +147,21 @@ struct Tree{
 struct LinkCutTree{
 	#define lson(x) son[x][0]
 	#define rson(x) son[x][1]
-	int fa[N],son[N][2],side[N];
+	int fa[N],son[N][2],side[N],top[N];
 	LinkCutTree(){
 		memset(side,-1,sizeof(side));
 		memset(son,0,sizeof(son));
 	}
+	inline void up(int x){
+		top[x]=lson(x)?top[lson(x)]:x;
+	}
 	inline void rotate(int x){
 		bool d=!side[x];
 		assert(~d);
-		fa[son[x][d]]=fa[x];
-		side[son[x][d]]=!d;
+		if(son[x][d]){
+			fa[son[x][d]]=fa[x];
+			side[son[x][d]]=!d;
+		}
 		son[fa[x]][!d]=son[x][d];
 		side[x]=side[fa[x]];
 		side[fa[x]]=d;
@@ -158,6 +171,7 @@ struct LinkCutTree{
 		if(~side[x]){
 			son[fa[x]][side[x]]=x;
 		}
+		up(son[x][d]),up(x);
 	}
 	inline void splay(int x){
 		static const int ROOT=-1;
@@ -171,22 +185,22 @@ struct LinkCutTree{
 			}
 		}
 	}
-	inline int root(int x){
-		for(;lson(x);x=lson(x));
-		splay(x);
-		return x;
-	}
 	inline void access(int x){
+		splay(x);
+		if(rson(x)){
+			T.alter(top[rson(x)],1);
+			side[rson(x)]=-1;
+			rson(x)=0;
+		}
 		for(int f,s;splay(x),f=fa[x];x=f){
 			splay(f);
-			side[x]=1;
-			side[rson(f)]=-1;
-			s=root(rson(f));
-			if(s=root(rson(f))){
-				T.alter(s,1);
+			if(rson(f)){
+				side[rson(f)]=-1;
+				T.alter(top[rson(f)],1);
 			}
-			T.alter(x,-1);
+			T.alter(top[x],-1);
 			rson(f)=x;
+			side[x]=1;
 		}
 	}
 }lct;
@@ -201,6 +215,7 @@ int main(){
 	T.dfs1(1,0),T.dfs2(1,0);
 	for(int i=1;i<=n;i++){
 		lct.fa[i]=T.fa[i];
+		lct.top[i]=i;
 		T.alter(i,1);
 	}
 	while(tot--){
