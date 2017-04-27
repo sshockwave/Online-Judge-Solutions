@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <ctime>
 using namespace std;
 typedef long long lint;
 typedef long double ld;
@@ -58,10 +59,10 @@ struct SegmentTree{
 	inline void down(){
 		if(lend!=rend&&(tag2||tag3)){
 			assert((tag2&&!tag3)||(!tag2&&tag3));
-			lson->alter(lend,mid,s,t,3-tag2);
-			rson->alter(mid+1,rend,s,t,3-tag2);
+			lson->cover(s,t,3-tag2);
+			rson->cover(s,t,3-tag2);
+			tag2=tag3=false;
 		}
-		tag2=tag3=false;
 	}
 	void build(int l,int r){
 		static node *n=new node[N*2];
@@ -78,20 +79,29 @@ struct SegmentTree{
 			up();
 		}
 	}
+	inline void cover(int s,int t,int type){
+		if(type==2){
+			info.trans2(lend,rend,s,t);
+			if(tag2||tag3){
+				this->s+=s,this->t+=t;
+			}else{
+				tag2=true;
+				this->s=s,this->t=t;
+			}
+		}else{
+			info.trans3(lend,rend,s,t);
+			tag2=false;
+			tag3=true;
+			this->s=s,this->t=t;
+		}
+	}
 	void alter(int l,int r,int s,int t,int type){
 		assert(lend<=l&&r<=rend);
-		down();
 		if(lend==l&&rend==r){
-			if(type==2){
-				tag2=true;
-				info.trans2(l,r,s,t);
-			}else{
-				tag3=true;
-				info.trans3(l,r,s,t);
-			}
-			this->s=s,this->t=t;
+			cover(s,t,type);
 			return;
 		}
+		down();
 		if(r<=mid){
 			lson->alter(l,r,s,t,type);
 		}else if(l>mid){
