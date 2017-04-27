@@ -17,7 +17,7 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=10010;
-const double EPS=1e-5;
+const double EPS=1e-10;
 struct point{
 	long double x,y;
 	point(long double _x=0,long double _y=0):x(_x),y(_y){}
@@ -55,8 +55,8 @@ int main(){
 		ans=ans+pt[i]*w[i];
 	}
 	ans.x/=n,ans.y/=n;
-	for(long double t=1;t>EPS;t*=0.97){
-		ans=ans+cal(ans).unit()*t;
+	for(long double t=10000;t>EPS;t*=t>0.5?0.5:0.97){
+		ans=ans+cal(ans)*t;
 	}
 	printf("%.3lf %.3lf",(double)ans.x,(double)ans.y);
 }
