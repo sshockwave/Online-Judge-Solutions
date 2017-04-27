@@ -42,6 +42,7 @@ struct Virtual:Tree{
 			if(vis[v=to[i]]==tim){
 				f[x]+=val[i];
 			}else{
+				dfs(v);
 				f[x]+=min(f[v],(lint)val[i]);
 			}
 		}
@@ -58,6 +59,7 @@ struct Actual:Tree{
 		memset(len,127,sizeof(len));
 		memset(fa,0,sizeof(fa));
 		etop=tim=dep[1]=ldep[1]=0;
+		dep[0]=-1;
 	}
 	inline void add_edge(int u,int v,int w){
 		to[etop]=v;
@@ -113,7 +115,7 @@ struct Actual:Tree{
 			}
 		}
 		if(u==v){
-			return u;
+			return ans;
 		}
 		for(int j=min(ldep[u],ldep[v]);j>=0;j--){
 			if(fa[u][j]!=fa[v][j]){
@@ -135,16 +137,18 @@ struct Actual:Tree{
 		int stop=0;
 		stk[++stop]=1;
 		for(int i=0;i<n;i++){
-			int x=seq[i],f;
-			for(;f=stk[stop],dep[lca(x,f)]<dep[f];stop--){
-				assert(stop>1);
-				V.add_edge(stk[stop-1],f);
+			int x=seq[i],f=x;
+			for(int v=stk[stop];v!=f&&dep[f=lca(x,v)]<dep[v];v=stk[stop]){
+				if(dep[f]>dep[stk[--stop]]){
+					stk[++stop]=f;
+				}
+				V.add_edge(stk[stop],v);
 			}
-			if(x!=f){
-				stk[++stop]=x;
-			}
+			assert(stk[stop]==f);
+			assert(stk[stop]!=x);
+			stk[++stop]=x;
 		}
-		for(;stop;stop--){
+		for(;stop>1;stop--){
 			V.add_edge(stk[stop-1],stk[stop]);
 		}
 		V.dfs(1);
