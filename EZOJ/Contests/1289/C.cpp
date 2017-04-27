@@ -64,7 +64,7 @@ struct SegmentTree{
 		tag2=tag3=false;
 	}
 	void build(int l,int r){
-		static node *n=new node[N];
+		static node *n=new node[N*2];
 		lend=l,rend=r,mid=(l+r)>>1;
 		tag2=tag3=false;
 		if(l==r){
