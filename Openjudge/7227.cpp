@@ -30,10 +30,6 @@ struct comp{
 		return comp(a.r*b.r-a.i*b.i,a.r*b.i+a.i*b.r);
 	}
 };
-inline ostream & operator << (ostream & out,const comp &a){
-	out<<"("<<a.r<<","<<a.i<<")";
-	return out;
-}
 int n,shift;
 const double EPS=1e-4;
 char a[N],b[N];
@@ -87,13 +83,14 @@ int main(){
 		scanf("%s%s",a,b);
 		memset(ca,0,sizeof(ca));
 		memset(cb,0,sizeof(cb));
+		int la=strlen(a),lb=strlen(b);
 		for(int i=0;a[i];i++){
-			ca[i].r=a[i]-'0';
+			ca[la-i-1].r=a[i]-'0';
 		}
 		for(int i=0;b[i];i++){
-			cb[i].r=b[i]-'0';
+			cb[lb-i-1].r=b[i]-'0';
 		}
-		int n=strlen(a)+strlen(b);
+		n=la+lb;
 		for(shift=0;(1<<shift)<n;shift++);
 		n=1<<shift;
 		getrev();
