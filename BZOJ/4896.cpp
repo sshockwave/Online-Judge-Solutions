@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <vector>
 using namespace std;
 typedef long long lint;
 #define ni (next_num<int>())
@@ -25,85 +26,67 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 		a=b;
 	}
 }
-const int L=65,TOT=100010,SIGMA=10,N=TOT*2;
-struct Query{
-	int type,a,b,c,end;
-	char s[L];
-}qs[TOT];
-namespace trie{
-	struct node{
-		char *l,*r;//[l,r)
-		int son[SIGMA];
-	}pool[N];
-	const int root=1;
-	int ntop=1;
-	typedef int info[N];
-	inline int nn(){
-		return ++ntop;
+inline int abs(int x){
+	return x>=0?x:-x;
+}
+const int L=65,SIGMA=26,N=100010;
+char s[L];
+struct Trie{
+	typedef Trie* node;
+	int val;
+	vector<int>q;
+	node son[SIGMA];
+	Trie(){
+		memset(son,0,sizeof(son));
+		q.push_back(0);
+		val=0;
 	}
-	inline void init(){
-		memset(pool,0,sizeof(pool));
-		fa[1]=0;
-	}
-	inline char* endpt(char *s){
-		for(;*s;s++);
-		return s;
-	}
-	inline void build(char *s){
-		for(int pt=root;;){
-			node &cur=pool[pt];
-			char *t=cur.l,*r=cur.r;
-			assert(t==r||(*t)==(*s));
-			for(;t!=r&&(*t)==(*s);t++,s++);
-			if(t==r){
-				if(*s){
-					int &son=cur.son[(*s)-'a'];
-					if(son){
-						pt=son;
-					}else{
-						node &np=pool[son=nn()];
-						np.l=s,np.r=endpt(s);
-						return;
-					}
-				}else{
-					return;
-				}
-			}else{
-				assert((*t)!=(*s));
-				int p=nn();
-				node &np=pool[p];
-				np=cur;
-				np.l=t;
-				memset(cur.son,0,sizeof(cur.son));
-				cur.r=t,cur.son[(*t)-'a']=p;
-				if(*s){
-					node &np=pool[p=nn()];
-					np.l=s,np.r=endpt(s);
-				}
-				return;
-			}
+	inline void update(int id){
+		val++;
+		if(val==q.size()){
+			q.push_back(id);
+			assert(q[val]==id);
 		}
 	}
-	inline int match(char *s){
-		int pt=root;
-		for(;*s;pt=pool[pt].son[(*s)-'a'],s+=pool[pt].r-pool[pt].l);
+	inline node go(int c){
+		c-='a';
+		if(son[c]==0){
+			son[c]=new Trie();
+		}
+		return son[c];
+	}
+	inline void insert(char *s,int id){
+		for(node pt=this;pt->update(id),*s;pt=pt->go(*s),s++);
+	}
+	inline void del(char *s){
+		for(node pt=this;pt->val--,*s;pt=pt->son[(*s)-'a'],s++);
+	}
+	inline node find(char *s){
+		node pt=this;
+		for(;*s;pt=pt->son[(*s)-'a'],s++);
 		return pt;
 	}
-	inline int search(char *s){
-		//todo
+}trie;
+inline int work(Trie *pt,int ans){
+	lint a=nl,b=nl,c=nl;
+	lint x=(a*abs(ans)+b)%c+1;
+	if(pt->q.size()<=x){
+		return -1;
 	}
+	return pt->q[x];
 }
 int main(){
-	int tot=ni;
-	for(int i=1;i<=tot;i++){
-		scanf("%d%s",&qs[i].type,qs[i].s);
-		if(qs[i].type==3){
-			qs[i].a=ni,qs[i].b=ni,qs[i].c=ni;
-		}else if(qs[i].type==1){
-			trie::build(qs[i].s);
+	int ans=0;
+	for(int i=1,n=ni;i<=n;i++){
+		int k=ni;
+		scanf("%s",s);
+		if(k==1){
+			trie.insert(s,i);
+		}else if(k==2){
+			trie.del(s);
+		}else{
+			assert(k==3);
+			printf("%d\n",ans=work(trie.find(s),ans));
 		}
-	}
-	for(int i=1;i<=tot;i++){
-		qs[i].end=qs[i].type==3?trie::search(qs[i].s):trie::match(qs[i].s);
 	}
 }
