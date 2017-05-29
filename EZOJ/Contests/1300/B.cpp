@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define ni (next_num<int>())
@@ -26,45 +27,86 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	}
 }
 const int N=100010;
-const lint INF=1000000000000000000ll;
-lint k,m,d,a,n;
-lint t[N],f[N],add[N];
-inline lint cost(int l,int r){
-	int gap=r-l;
-	return a*(gap/d+(gap%d!=0));
-}
-namespace task1{
-	inline lint work(){
-		for(int i=1,top=n+1;i<=top;i++){
-			f[i]=-INF;
-			for(int j=0;j<i;j++){
-				apmax(f[i],f[j]-cost(t[j],t[i]));
-			}
-			f[i]+=add[i];
-		}
-		return f[n+1];
+int a,d;
+int act[N];
+int t[N],b[N],f[N];
+struct SegmentTree{
+	typedef SegmentTree node;
+	int lend,rend,mid;
+	lint val;
+	node *lson,*rson;
+	inline void up(){
+		assert(lend!=rend);
+		val=max(lson->val,rson->val);
 	}
-}
-namespace task2{
-	inline lint work(){
-		int j=0;
-		lint sum=0;
-		for(int i=1,top=n+1;i<=top;i++){
-			for(;t[i]-t[j]>d;j++);
-			if(i==j){
-				j--;
+	void build(int l,int r){
+		static node *n=new node[N*2];
+		lend=l,rend=r,mid=(l+r)>>1;
+		if(l==r){
+			if(act[l]<=t[0]%d){
+				val=(lint)t[0]/d*a;
+			}else{
+				val=((lint)t[0]/d-1)*a;
 			}
-			f[i]=f[j]-cost(t[j],t[i]);
+		}else{
+			(lson=n++)->build(l,mid);
+			(rson=n++)->build(mid+1,r);
+			up();
 		}
-		return f[n+1];
 	}
-}
+	inline lint ask(int l,int r){
+		assert(lend<=l&&r<=rend);
+		assert(l<=r);
+		if(lend==l&&rend==r){
+			return val;
+		}
+		if(r<=mid){
+			return lson->ask(l,r);
+		}
+		if(l>mid){
+			return rson->ask(l,r);
+		}
+		return max(lson->ask(l,mid),rson->ask(mid+1,r));
+	}
+	void set(int x,int v){
+		if(lend==rend){
+			assert(x==lend);
+			val=v;
+		}else{
+			(x<=mid?lson:rson)->set(x,v);
+			up();
+		}
+	}
+}seg;
 int main(){
-	t[0]=ni,m=ni,d=ni,a=ni,n=ni;
+	t[0]=ni;
+	int m=ni;
+	d=ni,a=ni;
+	int n=ni;
 	t[n+1]=m;
-	f[0]=0;
+	act[0]=t[0]%d;
 	for(int i=1;i<=n;i++){
-		t[i]=ni,add[i]=ni;
+		t[i]=ni,b[i]=ni;
+		act[i]=t[i]%d;
 	}
-	printf("%lld\n",n<=1000?task1::work():task2::work());
+	act[n+1]=t[n+1]%d;
+	sort(act,act+n+2);
+	int last=-1,dcnt=0;
+	for(int i=0;i<=n+1;i++){
+		if(act[i]!=last){
+			last=act[i];
+			act[++dcnt]=act[i];
+		}
+	}
+	seg.build(1,dcnt);
+	lint cur;
+	for(int i=1,top=n+1;i<=top;i++){
+		int pos=*upper_bound(act,act+dcnt,t[i]%d);
+		cur=seg.ask(pos,dcnt);
+		if(1<pos){
+			apmax(cur,seg.ask(1,pos-1)-a);
+		}
+		seg.set(pos,cur+b[i]);
+	}
+	printf("%lld\n",cur+b[i]-(lint)m/d*a);
 }
