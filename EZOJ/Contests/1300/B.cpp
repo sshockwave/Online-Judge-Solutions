@@ -27,9 +27,7 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	}
 }
 const int N=100010;
-int a,d;
-int act[N];
-int t[N],b[N],f[N];
+int k,m,d,a,n,t[N],b[N];
 struct SegmentTree{
 	typedef SegmentTree node;
 	int lend,rend,mid;
@@ -43,10 +41,10 @@ struct SegmentTree{
 		static node *n=new node[N*2];
 		lend=l,rend=r,mid=(l+r)>>1;
 		if(l==r){
-			if(act[l]<=t[0]%d){
-				val=(lint)t[0]/d*a;
+			if(l<=t[0]){
+				val=(lint)m/d*a;
 			}else{
-				val=((lint)t[0]/d-1)*a;
+				val=((lint)m/d-1)*a;
 			}
 		}else{
 			(lson=n++)->build(l,mid);
@@ -68,7 +66,7 @@ struct SegmentTree{
 		}
 		return max(lson->ask(l,mid),rson->ask(mid+1,r));
 	}
-	void set(int x,int v){
+	void set(int x,lint v){
 		if(lend==rend){
 			assert(x==lend);
 			val=v;
@@ -78,35 +76,37 @@ struct SegmentTree{
 		}
 	}
 }seg;
+int r[N];
+inline bool rcmp(const int &a,const int &b){
+	return t[a]<t[b];
+}
 int main(){
-	t[0]=ni;
-	int m=ni;
-	d=ni,a=ni;
-	int n=ni;
-	t[n+1]=m;
-	act[0]=t[0]%d;
-	for(int i=1;i<=n;i++){
-		t[i]=ni,b[i]=ni;
-		act[i]=t[i]%d;
+	k=ni,m=ni,d=ni,a=ni,n=ni+1;
+	b[0]=b[n]=0;
+	t[0]=k%d,t[n]=m%d;
+	for(int i=1;i<n;i++){
+		t[i]=ni%d;
+		r[i]=i;
 	}
-	act[n+1]=t[n+1]%d;
-	sort(act,act+n+2);
-	int last=-1,dcnt=0;
-	for(int i=0;i<=n+1;i++){
-		if(act[i]!=last){
-			last=act[i];
-			act[++dcnt]=act[i];
+	r[0]=0,r[n]=n;
+	sort(r,r+n+1,rcmp);
+	int last=-1,top=0;
+	for(int i=0;i<=n;i++){
+		if(last!=t[r[i]]){
+			last=t[r[i]];
+			top++;
 		}
+		t[r[i]]=top;
 	}
-	seg.build(1,dcnt);
+	assert(top>=1);
+	seg.build(1,top);
 	lint cur;
-	for(int i=1,top=n+1;i<=top;i++){
-		int pos=*upper_bound(act,act+dcnt,t[i]%d);
-		cur=seg.ask(pos,dcnt);
-		if(1<pos){
-			apmax(cur,seg.ask(1,pos-1)-a);
+	for(int i=1;i<=n;i++){
+		cur=seg.ask(t[i],top);
+		if(t[i]!=1){
+			apmax(cur,seg.ask(1,t[i]-1));
 		}
-		seg.set(pos,cur+b[i]);
+		seg.set(t[i],cur+b[i]);
 	}
-	printf("%lld\n",cur+b[i]-(lint)m/d*a);
+	printf("%lld\n",cur-(lint)m/d*a);
 }
