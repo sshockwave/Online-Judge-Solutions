@@ -42,9 +42,9 @@ struct SegmentTree{
 		lend=l,rend=r,mid=(l+r)>>1;
 		if(l==r){
 			if(l<=t[0]){
-				val=(lint)m/d*a;
+				val=(lint)k/d*a;
 			}else{
-				val=((lint)m/d-1)*a;
+				val=((lint)k/d-1)*a;
 			}
 		}else{
 			(lson=n++)->build(l,mid);
@@ -85,8 +85,7 @@ int main(){
 	b[0]=b[n]=0;
 	t[0]=k%d,t[n]=m%d;
 	for(int i=1;i<n;i++){
-		t[i]=ni%d;
-		r[i]=i;
+		t[i]=ni%d,b[i]=ni,r[i]=i;
 	}
 	r[0]=0,r[n]=n;
 	sort(r,r+n+1,rcmp);
@@ -104,7 +103,7 @@ int main(){
 	for(int i=1;i<=n;i++){
 		cur=seg.ask(t[i],top);
 		if(t[i]!=1){
-			apmax(cur,seg.ask(1,t[i]-1));
+			apmax(cur,seg.ask(1,t[i]-1)-a);
 		}
 		seg.set(t[i],cur+b[i]);
 	}
