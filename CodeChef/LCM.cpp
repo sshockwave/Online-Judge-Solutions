@@ -32,7 +32,7 @@ int gcd(int a,int b){
 const int N=4000010;
 int mu[N],prime[N],ptop=0;
 bool np[N];
-uint r[N],V[N],D[N],H[N];
+uint V[N],D[N],H[N];
 inline void sieve(){
 	memset(np,0,sizeof(np));
 	mu[1]=1,V[1]=1;
@@ -40,19 +40,16 @@ inline void sieve(){
 		if(!np[i]){
 			prime[ptop++]=i;
 			mu[i]=-1;
-			r[i]=i;
 			V[i]=1-i;
 		}
 		for(int j=0,cur=2;j<ptop&&i*cur<N;cur=prime[++j]){
 			np[i*cur]=true;
 			if(i%cur==0){
 				mu[i*cur]=0;
-				r[i*cur]=r[i];
 				V[i*cur]=V[i];
 				break;
 			}else{
 				mu[i*cur]=-mu[i];
-				r[i*cur]=r[i]*cur;
 				V[i*cur]=V[i]*(1-cur);
 			}
 		}
