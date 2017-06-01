@@ -3,10 +3,10 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <queue>
+#include <cstdlib>
 using namespace std;
 typedef long long lint;
-#define cout cerr
+#define invalid puts("0"),exit(0);
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
 template<class T>inline T next_num(){
@@ -23,77 +23,123 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 	}
 }
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
-	if(b<a){
+	if(a>b){
 		a=b;
 	}
 }
-const int L=15,N=110,INF=0x7f7f7f7f;
-int tim=0;
-struct Node{
-	int dis,tag;
-	bool girl;
-	Node(){
-		memset(this,-1,sizeof(Node));
-	}
-	int fa,mo,c1[2],c2[2];
-}node[N*1000];//tocheck
-inline int nn(){
-	static int n=0;
-	return ++n;
+const int N=410;
+int sum[N][N],op[N],gen[N],tag[N],tim=0,n=0;
+bool f[N][N],g[N][N];
+inline bool same(const int &a,const int &b){
+	return a==-1||b==-1||a==b;
 }
-typedef queue<int> qi;
-typedef void(*fn)(int);
-qi *q1=new qi,*q2=new qi;
-inline void push(int x){
-	if(node[x].tag<tim){
-		node[x].tag=tim;
-		q2->push(x);
-	}
-}
-namespace Transfers{
-	inline int getfa(int x){
-		if(node[x].fa==-1){
-			int fa=node[x].fa=nn();
-			node[fa].dis=node[x].dis+1;
-			node[fa].girl=false;
-			node[fa].c1[node[x].girl]=x;
+void push(int d,int g){
+	if(d==0&&op[n]==0){
+		assert(~g&&~gen[n]);
+		if(g==gen[n]){
+			invalid;
 		}
-		return node[x].fa;
-	}
-	inline int getmo(int x){
-		if(node[x].mo==-1){
-			
+		n--;
+	}else if(op[n]==1&&d==-1&&f[n][n+1]){
+		n--;
+		if(~g&&~gen[n]){
+			if(g!=gen[n]){
+				push(0,g);
+			}
+		}else{
+			gen[n]=g;
+			f[n][n+1]=false;
 		}
-		return node[x].mo;
+	}else{
+		n++,op[n]=d,gen[n]=g,tag[n]=tim,f[n][n+1]=true;
 	}
-	void tofather(int x){
-		push(getfa(x));
-	}
-	void toMother(int x){
-		push(getmo(x));
-	}
-	inline fn parse();
 }
-char s[L];
-inline fn Transfers::parse(){
+inline void push_sib(int g){
+	push(-1,-1);
+	push(1,g);
+}
+inline void parse(char s[]){
+	tim++;
 	switch(s[0]){
+		case 'f':return push(-1,0);//father
+		case 'm':return push(-1,1);//mother
+		case 's':switch(s[1]){
+			case 'o':return push(1,0);//son
+			case 'i':return push_sib(1);//sister
+		}
+		case 'd':return push(1,1);//daughter
+		case 'h':return push(0,0);//husband
+		case 'w':return push(0,1);//wife
+		case 'b':return push_sib(0);//brother
+		case 'g':switch(s[5]){
+			case 'f':{push(-1,-1);return push(-1,0);}//grandfather
+			case 'm':{push(-1,-1);return push(-1,1);}//grandmother
+			case 's':{push(1,-1);return push(1,0);}//grandson
+			case 'd':{push(1,-1);return push(1,1);}//granddaughter
+		}
+		case 'u':{push(-1,-1);return push_sib(0);}//uncle
+		case 'a':{push(-1,-1);return push_sib(1);}//aunt
+		case 'n':switch(s[1]){
+			case 'e':{push_sib(-1);return push(1,0);}//nephew
+			case 'i':{push_sib(-1);return push(1,1);}//niece
+		}
 	}
-	return NULL;
 }
 int main(){
-	freopen("clan.in","r",stdin);
-	freopen("clan.out","w",stdout);
+	op[0]=10,gen[0]=0,tag[0]=0;
+	memset(f,false,sizeof(f));
 	scanf("Q is U's");
-	node[0].dis=0;
-	node[0].girl=false;
-	push(0);
-	while(tim++,swap(q1,q2),scanf("%s",s)!=EOF){
-		cout<<s<<endl;
-		fn trans=Transfers::parse();
-		while(!q1->empty()){
-			trans(q1->front());
-			q1->pop();
+	for(char s[20];scanf("%s",s)!=EOF;parse(s));
+	memset(f,false,sizeof(f));
+	for(int i=1;i<n;i++){
+		f[i][i+1]=same(gen[i-1],gen[i+1])&&op[i]+op[i+1]==0&&tag[i]!=tag[i+1];
+	}
+	memset(sum,0,sizeof(sum));
+	for(int i=1;i<=n;i++){
+		for(int j=i;j<=n;j++){
+			sum[i][j]=sum[i][j-1]+op[j];
 		}
 	}
-	return 0;
+	for(int gap=3;gap<=n;gap++){
+		for(int i=1,j=gap;j<=n;i++,j++){
+			if(same(gen[i-1],gen[j])&&sum[i][j]==0){
+				if(f[i+1][j-1]&&op[i]+op[j]==0){
+					f[i][j]=true;
+					continue;
+				}
+				for(int k=i+2;k<j;k++){
+					if(f[i][k-1]&&f[k][j]){
+						f[i][j]=true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	memset(sum,0,sizeof(sum));
+	memset(g,false,sizeof(g));
+	g[0][0]=true;
+	for(int i=1;i<=n;i++){
+		f[i][i-1]=true;
+		for(int j=0;j<i;j++){
+			if(f[j+1][i-1]){
+				for(int k=0;k<=j;k++){
+					g[i][k+(op[i]!=0)]|=g[i][k];
+				}
+			}
+		}
+	}
+	int ans=0;
+	for(int i=0;i<=n;i++){
+		if(g[n][i]){
+			ans++;
+		}
+	}
+	printf("%d\n",ans);
+	for(int i=0;i<=n;i++){
+		if(g[n][i]){
+			printf("%d ",i);
+		}
+	}
+	putchar('\n');
 }
