@@ -129,18 +129,20 @@ inline int getleft(int a[],int i){
 	}
 	return i;
 }
-inline void merge(int t[],int i){
-	a=t[i-1],b=t[i];
-	if(a&b==0){return a|b;}
+inline int merge(int t[],int i){
+	int a=t[i-1],b=t[i];
+	if((a&b)==0){return a|b;}
 	if(a==1&&b==2){return 0;}
 	if(a==2&&b==1){return 3;}
 	if(a==1&&b==3){return 1;}
-	if(a==3&&b==2}{return 2;}
+	if(a==3&&b==2){return 2;}
 	if(a==3&&b==1){t[getright(t,i)]=3;return 3;}
 	if(a==2&&b==3){t[getleft(t,i-1)]=3;return 3;}
 	if(a==1&&b==1){t[getright(t,i)]=3;return 1;}
 	if(a==2&&b==2){t[getleft(t,i-1)]=3;return 2;}
 	if(a==3&&b==3){return 3;}
+	assert(false);
+	return -1;
 }
 inline void trans(int x,int t){//push to h2
 	if(anscnt(a)==0){
@@ -169,30 +171,31 @@ int main(){
 		turn[i]=i>>1;
 		if(i&1)turn[i]|=8;
 	}
-	n=ni,m=ni;
-	for(int i=1;i<=n;i++){
-		for(int j=2;j<m;j++){
-			mat[i][j]=ni;
-		}
-	}
-	{
-		a[0]=0;
-		for(int i=1;i<=n;i++)a[i]=3;
-		h1->push(encode(a));
-	}
-	for(int j=2;j<m;j++){
+	while(scanf("%d%d",&n,&m)!=EOF){
 		for(int i=1;i<=n;i++){
-			for(;h1->nxt(a);trans(i,mat[i][j]));
+			for(int j=2;j<m;j++){
+				mat[i][j]=ni;
+			}
+		}
+		{
+			a[0]=0;
+			for(int i=1;i<=n;i++)a[i]=3;
+			h1->push(encode(a));
+		}
+		for(int j=2;j<m;j++){
+			for(int i=1;i<=n;i++){
+				for(;h1->nxt(a);trans(i,mat[i][j]));
+				swap(h1,h2);
+				h2->clear();
+			}
+			for(;h1->nxt(a);del(a,n),h1->push(encode(a)<<1));
 			swap(h1,h2);
 			h2->clear();
 		}
-		for(;h1->nxt(a);del(a,n),h1->push(encode(a)<<1));
-		swap(h1,h2);
-		h2->clear();
-	}
-	{
-		int ans=0;
-		for(;h1->nxt(a);del(a,n),apmax(ans,anscnt(a)));
-		printf("%d\n",ans);
+		{
+			int ans=0;
+			for(;h1->nxt(a);del(a,n),apmax(ans,anscnt(a)));
+			printf("%d\n",ans);
+		}
 	}
 }
