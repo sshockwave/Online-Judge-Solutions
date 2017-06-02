@@ -27,7 +27,7 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 		a=b;
 	}
 }
-const int N=10,M=21;
+const int N=11,M=22;
 int a[N],na[N],n,m;
 inline int encode(int a[]){
 	int hash=0;
@@ -40,6 +40,15 @@ inline void decode(int a[],int x){
 	for(int i=0;i<=n;i++){
 		a[i]=(x>>(i<<1))&3;
 	}
+}
+inline int anscnt(int a[]){
+	int ans=0,sum=0;
+	for(int i=0;i<=n;i++){
+		if(a[i]==1){sum++;}
+		else if(a[i]==2){sum--;}
+		else if(a[i]==3&&sum==0){ans++;}
+	}
+	return ans;
 }
 struct HashTable{
 	const static int MOD=3121,E=100000;
@@ -66,15 +75,6 @@ struct HashTable{
 	}
 }*h1,*h2;
 int mat[N][M];
-inline int anscnt(int a[]){
-	int ans=0,sum=0;
-	for(int i=0;i<=n;i++){
-		if(a[i]==1){sum++;}
-		else if(a[i]==2){sum--;}
-		else if(a[i]==3&&sum==0){ans++;}
-	}
-	return ans;
-}
 inline void del(int a[],int x){
 	if(a[x]==1){
 		int sum=0;
@@ -130,7 +130,7 @@ inline int getleft(int a[],int i){
 }
 inline int merge(int t[],int i){
 	int a=t[i-1],b=t[i];
-	if((a&b)==0){return a|b;}
+	if(a==0||b==0){return a|b;}
 	if(a==1&&b==2){return 0;}
 	if(a==2&&b==1){return 3;}
 	if(a==1&&b==3){return 1;}
