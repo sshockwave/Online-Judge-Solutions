@@ -46,7 +46,6 @@ struct HashTable{
 	int magic;
 	HashTable(){
 		magic=rand();
-		clear();
 	}
 	int head[MOD],to[E],bro[E],etop;
 	inline void clear(){
@@ -54,8 +53,6 @@ struct HashTable{
 		memset(head,-1,sizeof(head));
 	}
 	inline void push(int val){
-		int a[N];
-		decode(a,val);
 		int x=(val^magic)%MOD;
 		for(int i=head[x];~i;i=bro[i]){
 			if(to[i]==val){return;}
@@ -156,18 +153,20 @@ inline void trans(int x,int t){//push to h2
 		return;
 	}
 	if(hmdis(t)<=1){
+		for(int i=0;i<=n;i++){na[i]=a[i];}
 		del(na,x-1);
 		del(na,x);
 		h2->push(encode(na));
 		return;
 	}
-	bool vis[16]={0};
+	bool vis[16];
+	memset(vis,0,sizeof(vis));
 	for(;!vis[t];t=turn[t]){
 		vis[t]=true;
 		bool u=t&1,r=(t>>1)&1,d=(t>>2)&1,l=(t>>3)&1;
-		for(int i=0;i<=n;i++)na[i]=a[i];
-		if(!u)del(na,x-1);
-		if(!l)del(na,x);
+		for(int i=0;i<=n;i++){na[i]=a[i];}
+		if(!u){del(na,x-1);}
+		if(!l){del(na,x);}
 		switch(merge(na,x)){
 			case 0:{na[x-1]=1,na[x]=2;break;}
 			case 1:{na[x-1]=1,na[x]=3;break;}
@@ -195,6 +194,7 @@ int main(){
 		{
 			a[0]=0;
 			for(int i=1;i<=n;i++)a[i]=3;
+			h1->clear(),h2->clear();
 			h1->push(encode(a));
 		}
 		for(int j=2;j<m;j++){
