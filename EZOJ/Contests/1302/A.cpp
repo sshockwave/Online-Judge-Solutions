@@ -25,12 +25,19 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 		a=b;
 	}
 }
+const int N=1010;
 int MOD;
 inline int add(const int &a,const int &b){
 	return (a+b)%MOD;
 }
+inline int sub(const int &a,const int &b){
+	return add(a,MOD-b);
+}
 inline int mul(const int &a,const int &b){
 	return (lint)a*b%MOD;
+}
+inline void apsub(int &a,const int &b){
+	a=sub(a,b);
 }
 inline void apmul(int &a,const int &b){
 	a=mul(a,b);
@@ -44,6 +51,7 @@ inline int fpow(int x,int n){
 	}
 	return ret;
 }
+int c[N][N];
 namespace task1{
 	inline int work(lint n){
 		return n==1?1:fpow(n%MOD,(n-2)%(MOD-1));
@@ -69,7 +77,7 @@ namespace task4{
 namespace task5{
 	inline int work(lint n){
 		lint a=n-1,b=n-2;
-		if(a&1==0){
+		if((a&1)==0){
 			a>>=1;
 		}else{
 			b>>=1;
@@ -78,14 +86,15 @@ namespace task5{
 	}
 }
 namespace task6{
-	const int N=1010;
 	int f[N];
-	inline void init(){
-		f[1]=1;
-		
-	}
 	inline int work(int n){
-		
+		for(int i=1;i<=n;i++){
+			f[i]=task5::work(i);
+			for(int j=1;j<i;j++){
+				apsub(f[i],mul(mul(c[i-1][j-1],f[j]),task5::work(i-j)));
+			}
+		}
+		return f[n];
 	}
 }
 namespace task7{
@@ -96,9 +105,15 @@ namespace task7{
 }
 int n;
 int main(){
-	freopen("graph.in","r",stdin);
-	freopen("graph.out","w",stdout);
 	MOD=ni;
+	memset(c,0,sizeof(c));
+	c[0][0]=1;
+	for(int i=1;i<N;i++){
+		c[i][0]=1;
+		for(int j=1;j<=i;j++){
+			c[i][j]=c[i-1][j-1]+c[i-1][j];
+		}
+	}
 	int ans[7]={
 		task1::work(nl),
 		task2::work(nl),
