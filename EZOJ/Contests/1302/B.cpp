@@ -54,6 +54,8 @@ struct HashTable{
 		memset(head,-1,sizeof(head));
 	}
 	inline void push(int val){
+		int a[N];
+		decode(a,val);
 		int x=(val^magic)%MOD;
 		for(int i=head[x];~i;i=bro[i]){
 			if(to[i]==val){return;}
@@ -63,7 +65,7 @@ struct HashTable{
 		head[x]=etop++;
 	}
 	inline bool nxt(int a[]){
-		return etop==0?false:(decode(a,to[--etop]),true);
+		return etop?(decode(a,to[--etop]),true):false;
 	}
 }*h1,*h2;
 int mat[N][M];
@@ -124,7 +126,7 @@ inline int getleft(int a[],int i){
 	assert(a[i]==2);
 	int sum=0;
 	while(sum>=0){
-		if(a[++i]==2){sum++;}
+		if(a[--i]==2){sum++;}
 		else if(a[i]==1){sum--;}
 	}
 	return i;
@@ -144,11 +146,24 @@ inline int merge(int t[],int i){
 	assert(false);
 	return -1;
 }
+inline int hmdis(int x){
+	int cnt=0;
+	for(;x;cnt++,x^=x&(-x));
+	return cnt;
+}
 inline void trans(int x,int t){//push to h2
 	if(anscnt(a)==0){
 		return;
 	}
-	for(int p=0;p<4;p++,t=turn[t]){
+	if(hmdis(t)<=1){
+		del(na,x-1);
+		del(na,x);
+		h2->push(encode(na));
+		return;
+	}
+	bool vis[16]={0};
+	for(;!vis[t];t=turn[t]){
+		vis[t]=true;
 		bool u=t&1,r=(t>>1)&1,d=(t>>2)&1,l=(t>>3)&1;
 		for(int i=0;i<=n;i++)na[i]=a[i];
 		if(!u)del(na,x-1);
@@ -188,13 +203,13 @@ int main(){
 				swap(h1,h2);
 				h2->clear();
 			}
-			for(;h1->nxt(a);del(a,n),h1->push(encode(a)<<1));
+			for(;h1->nxt(a);del(a,n),h2->push(encode(a)<<2));
 			swap(h1,h2);
 			h2->clear();
 		}
 		{
 			int ans=0;
-			for(;h1->nxt(a);del(a,n),apmax(ans,anscnt(a)));
+			for(;h1->nxt(a);apmax(ans,anscnt(a)));
 			printf("%d\n",ans);
 		}
 	}
