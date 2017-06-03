@@ -110,8 +110,10 @@ namespace G{
 	inline void add(int u,int v,lint w){
 		ae(u,v,w),ae(v,u,w);
 	}
+	int que[N],qtail=0;
 	void dfs(int x){
 		vis[x]=tim;
+		que[qtail++]=x;
 		for(int i=head[x],v;~i;i=bro[i]){
 			if(vis[v=to[i]]){
 				assert(vis[v]==tim);
@@ -123,16 +125,12 @@ namespace G{
 		}
 	}
 	inline int solve(int x){
-		tim++;
-		LB::init();
-		G::dfs(x);
-		int i=n;
-		for(;vis[i]<tim;i--);
-		XorSum lb=LB::ask(),ans,S=lb^dis[i];
-		while((--i)>=1){
-			if(vis[i]==tim){
-				ans+=S^G::dis[i];
-				S+=lb^G::dis[i];
+		tim++,qtail=0,LB::init(),G::dfs(x);
+		XorSum lb=LB::ask(),ans,S=lb^dis[que[0]];
+		for(int i=1;i<qtail;i++){
+			if(vis[que[i]]==tim){
+				ans+=S^G::dis[que[i]];
+				S+=lb^G::dis[que[i]];
 			}
 		}
 		return ans.eval();
