@@ -16,14 +16,10 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
-	if(a<b){
-		a=b;
-	}
+	if(a<b){a=b;}
 }
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
-	if(a>b){
-		a=b;
-	}
+	if(a>b){a=b;}
 }
 int main(){
 	
