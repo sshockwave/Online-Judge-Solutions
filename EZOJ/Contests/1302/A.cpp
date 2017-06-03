@@ -26,7 +26,7 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	}
 }
 const int N=1010;
-int MOD;
+int MOD,pMOD;
 inline int add(const int &a,const int &b){
 	return (a+b)%MOD;
 }
@@ -54,12 +54,12 @@ inline int fpow(int x,int n){
 int c[N][N];
 namespace task1{
 	inline int work(lint n){
-		return n==1?1:fpow(n%MOD,(n-2)%(MOD-1));
+		return n==1?1:fpow(n%MOD,(n-2)%pMOD);
 	}
 }
 namespace task2{
 	inline int work(lint n){
-		return fpow(n%MOD,(n-1)%(MOD-1));
+		return fpow(n%MOD,(n-1)%pMOD);
 	}
 }
 namespace task3{
@@ -82,16 +82,19 @@ namespace task5{
 		}else{
 			b>>=1;
 		}
-		return fpow(2,a%(MOD-1)*b%(MOD-1));
+		return fpow(2,a%pMOD*(b%pMOD)%pMOD);
 	}
 }
 namespace task6{
-	int f[N];
+	int f[N],g[N];
 	inline int work(int n){
+		for(int i=1;i<=n;i++){
+			g[i]=task5::work(i);
+		}
 		for(int i=1;i<=n;i++){
 			f[i]=task5::work(i);
 			for(int j=1;j<i;j++){
-				apsub(f[i],mul(mul(c[i-1][j-1],f[j]),task5::work(i-j)));
+				apsub(f[i],mul(mul(c[i-1][j-1],f[j]),g[i-j]));
 			}
 		}
 		return f[n];
@@ -106,12 +109,25 @@ namespace task7{
 int n;
 int main(){
 	MOD=ni;
+	{
+		int n=pMOD=MOD;
+		for(int i=2;i*i<=n;i++){
+			int exp=0;
+			for(;n%i==0;n/=i,exp++);
+			if(exp){
+				pMOD=pMOD/i*(i-1);
+			}
+		}
+		if(n!=1){
+			pMOD=pMOD/n*(n-1);
+		}
+	}
 	memset(c,0,sizeof(c));
 	c[0][0]=1;
 	for(int i=1;i<N;i++){
 		c[i][0]=1;
 		for(int j=1;j<=i;j++){
-			c[i][j]=c[i-1][j-1]+c[i-1][j];
+			c[i][j]=add(c[i-1][j-1],c[i-1][j]);
 		}
 	}
 	int ans[7]={
