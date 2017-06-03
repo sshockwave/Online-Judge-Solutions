@@ -25,6 +25,9 @@ const int N=50010,E=200010;
 namespace LB{
 	const int N=64;
 	lint a[N];
+	inline void init(){
+		memset(a,0,sizeof(a));
+	}
 	inline bool add(lint x){
 		for(int i=N-1;x;i--){
 			if((x>>i)&1){
@@ -37,12 +40,11 @@ namespace LB{
 		}
 		return false;
 	}
-	inline lint ask(){
-		lint ans=0;
+	inline lint ask(lint base){
 		for(int i=N-1;i>=0;i--){
-			apmax(ans,ans^a[i]);
+			apmax(base,base^a[i]);
 		}
-		return ans;
+		return base;
 	}
 }
 namespace G{
@@ -72,12 +74,11 @@ namespace G{
 }
 int main(){
 	int n=ni;
-	G::init();
+	G::init(),LB::init();
 	for(int tot=ni;tot--;){
 		int u=ni,v=ni;
 		G::add(u,v,nl);
 	}
 	G::dfs(1);
-	LB::add(G::dis[n]);
-	printf("%lld\n",LB::ask());
+	printf("%lld\n",LB::ask(G::dis[n]));
 }
