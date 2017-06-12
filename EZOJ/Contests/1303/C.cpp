@@ -95,8 +95,8 @@ int main(){
 		}
 		lint c=-sum/n;
 		ans=n*c*c+2*sum*c;
-		c--;
-		apmin(ans,(n*c+2*sum)*c);
+		c--,apmin(ans,(n*c+2*sum)*c);
+		c+=2,apmin(ans,(n*c+2*sum)*c);
 		for(int i=0;i<n;i++){
 			ans+=(lint)x[i]*x[i]+(lint)y[i]*y[i];
 		}
