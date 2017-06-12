@@ -101,15 +101,20 @@ struct pti{
 	pti(int _n,int _f,int _l):n(_n),f(_f),l(_l){}
 	inline void spawn();
 };
+int lim;
 queue<pti>q;
 inline void pti::spawn(){
 	if(!B.add((lint)f*N+l,n)){
 		return;
 	}
 	H.add(f,n);
-	q.push(pti(n+1,f,l+1));
 	if((lint)f*l<C){
-		q.push(pti(n+1,f*l,l));
+		if(n+2<lim){
+			q.push(pti(n+1,f,l+1));
+		}
+		if(l>1){
+			q.push(pti(n+1,f*l,l));
+		}
 	}
 }
 int a[N],w[N],f[N][N];
@@ -124,7 +129,7 @@ int main(){
 	}
 	memset(f,-1,sizeof(f));
 	f[0][0]=mxval;
-	int lim=0;
+	lim=0;
 	for(int i=1;i<=n;i++){
 		for(int j=0;j<=i;j++){
 			if(f[i-1][j]>=a[i]){
