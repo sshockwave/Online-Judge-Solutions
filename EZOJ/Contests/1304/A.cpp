@@ -3,7 +3,8 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <vector>
+#include <queue>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define ni (next_num<int>())
@@ -23,34 +24,87 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(a>b){a=b;}
 }
 const int N=110,C=100000010,INF=0x7f7f7f7f;
-int f[N][N];//f[day][ws]:mxval
-int pw[N][N];//i^j
-int a[N],w[N];
-bool test(int n,int cur,int last,int c){
-	if(n-last>=c-cur){
+struct HashMap{
+	const static int E=6000000,MOD=49999,MAGIC=4865189;
+	int to[E],val[E],bro[E],head[MOD],e;
+	HashMap():e(0){
+		memset(head,-1,sizeof(head));
+	}
+	inline bool add(lint u,int v){
+		int x=(u^MAGIC)%MOD;
+		for(int i=head[x];~i;i=bro[i]){
+			if(to[i]==u){
+				return false;
+			}
+		}
+		to[e]=u,val[e]=v,bro[e]=head[x],head[x]=e++;
 		return true;
 	}
-	if(n==0||cur==0){
-		return false;
+}H,B;
+namespace M{
+	const int E=HashMap::E;
+	struct pii{
+		int f,n;
+		inline friend bool operator < (const pii &a,const pii &b){
+			return a.f<b.f;
+		}
+	}p[E];
+	inline void init(){
+		int n=H.e;
+		for(int i=0;i<n;i++){
+			p[i]=(pii){H.to[i],H.val[i]};
+		}
+		sort(p,p+n);
 	}
-	int i=last;
-	for(;i-last<n&&(lint)cur*pw[i][n]<=c;i++);
-	while((--i)>=last){
-		if(test(n-1-(i-last),cur*i,i,c)){
+	inline int lb(int c){
+		int l=0,r=H.e-1;
+		while(l<r){
+			int mid=((l+r)>>1)+1;
+			if(p[mid].f>c){
+				r=mid-1;
+			}else{
+				l=mid;
+			}
+		}
+		return l;
+	}
+	inline bool work(int n,int c){
+		if(n>=c){
 			return true;
 		}
+		int k=lb(c);
+		for(int i=k;i>=0&&c-p[i].f<=n;i--){
+			if(c-p[i].f<=n-p[i].n){
+				return true;
+			}
+		}
+		for(int i=0;i<=k;k--){
+			for(;p[i].f+p[k].f<=c;i++){
+				if(p[i].n+p[k].n<=n&&c-p[i].f-p[k].f<=n-p[i].n-p[k].n){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
-	return false;
 }
-inline bool work(int n,int c){
-	if(n>=c){
-		return true;
+struct pti{
+	int n,f,l;
+	pti(int _n,int _f,int _l):n(_n),f(_f),l(_l){}
+	inline void spawn();
+};
+queue<pti>q;
+inline void pti::spawn(){
+	if(!B.add((lint)f*N+l,n)){
+		return;
 	}
-	if(test(n,1,0,c)){
-		return true;
+	H.add(f,n);
+	q.push(pti(n+1,f,l+1));
+	if((lint)f*l<C){
+		q.push(pti(n+1,f*l,l));
 	}
-	return false;
 }
+int a[N],w[N],f[N][N];
 int main(){
 	int n=ni,tot=ni,mxval=ni;
 	for(int i=1;i<=n;i++){
@@ -59,31 +113,25 @@ int main(){
 	for(int i=1;i<=n;i++){
 		w[i]=ni;
 	}
-	memset(pw,127,sizeof(pw));
-	for(int i=0;i<=n;i++){
-		long long cur=1;
-		for(int j=0;j<=n&&cur<=C;j++){
-			pw[i][j]=cur;
-			cur*=i;
-		}
-	}
-	pw[0][0]=0;
 	memset(f,-1,sizeof(f));
 	f[0][0]=mxval;
-	int most=0;
+	int lim=0;
 	for(int i=1;i<=n;i++){
-		for(int j=0;j<=i;j++){
+		int cur=i+1;
+		for(int j=0;j<=i;i++){
 			if(f[i-1][j]>=a[i]){
 				f[i][j]=f[i-1][j]-a[i];
+				if(j&&f[i-1][j-1]>=a[i]){
+					apmax(f[i][j],f[i-1][j-1]-a[i]+w[i]);
+				}
+				apmin(f[i][j],mxval);
+				apmin(cur,j);
 			}
-			if(f[i-1][j-1]>=a[i]){
-				apmax(f[i][j],f[i-1][j-1]-a[i]+w[i]);
-			}
-			apmin(f[i][j],mxval);
 		}
-		int least=0;
-		for(;f[i][least]<0&&least<=i;least++);
-		apmax(most,i-least);
+		apmax(lim,i-cur);
 	}
-	for(;tot--;putchar('0'+work(most,ni)),putchar('\n'));
+	q.push(pti(0,1,0));
+	for(;!q.empty()&&q.front().n<=lim;q.front().spawn(),q.pop());
+	M::init();
+	for(;tot--;putchar('0'+M::work(lim,ni)),putchar('\n'));
 }
