@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
+#include <ctime>
 #include <cassert>
 #include <cctype>
 #include <queue>
@@ -25,13 +27,14 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 }
 const int N=110,C=100000010,INF=0x7f7f7f7f;
 struct HashMap{
-	const static int E=6000000,MOD=49999,MAGIC=4865189;
-	int to[E],val[E],bro[E],head[MOD],e;
+	const static int E=6000000,MOD=49999;
+	lint to[E];
+	int val[E],bro[E],head[MOD],e;
 	HashMap():e(0){
 		memset(head,-1,sizeof(head));
 	}
 	inline bool add(lint u,int v){
-		int x=(u^MAGIC)%MOD;
+		int x=u%MOD;
 		for(int i=head[x];~i;i=bro[i]){
 			if(to[i]==u){
 				return false;
@@ -52,9 +55,10 @@ namespace M{
 	inline void init(){
 		int n=H.e;
 		for(int i=0;i<n;i++){
-			p[i]=(pii){H.to[i],H.val[i]};
+			p[i]=(pii){(int)H.to[i],H.val[i]};
 		}
 		sort(p,p+n);
+		p[0].n=0;
 	}
 	inline int lb(int c){
 		int l=0,r=H.e-1;
@@ -68,20 +72,24 @@ namespace M{
 		}
 		return l;
 	}
+	inline bool one(int n,int c){
+		return false;
+	}
 	inline bool work(int n,int c){
 		if(n>=c){
 			return true;
 		}
-		int k=lb(c);
-		for(int i=k;i>=0&&c-p[i].f<=n;i--){
-			if(c-p[i].f<=n-p[i].n){
+		for(int i=lb(c);i>=0&&c-p[i].f<=n;i--){
+			if(p[i].n<n&&c-p[i].f<n-p[i].n){
 				return true;
 			}
 		}
-		for(int i=0;i<=k;k--){
-			for(;p[i].f+p[k].f<=c;i++){
-				if(p[i].n+p[k].n<=n&&c-p[i].f-p[k].f<=n-p[i].n-p[k].n){
-					return true;
+		for(int i=0;i<H.e&&p[i].f<=c;i++){
+			if(p[i].n<=n-2){
+				for(int k=lb(c-p[i].f);i<=k&&c-p[i].f-p[k].f<=n-p[i].n-2;k--){
+					if(p[i].n+p[k].n<=n-2&&c-p[i].f-p[k].f<=n-p[i].n-p[k].n-2){
+						return true;
+					}
 				}
 			}
 		}
@@ -106,6 +114,7 @@ inline void pti::spawn(){
 }
 int a[N],w[N],f[N][N];
 int main(){
+	srand(time(NULL));
 	int n=ni,tot=ni,mxval=ni;
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
@@ -117,21 +126,21 @@ int main(){
 	f[0][0]=mxval;
 	int lim=0;
 	for(int i=1;i<=n;i++){
-		int cur=i+1;
-		for(int j=0;j<=i;i++){
+		for(int j=0;j<=i;j++){
 			if(f[i-1][j]>=a[i]){
 				f[i][j]=f[i-1][j]-a[i];
-				if(j&&f[i-1][j-1]>=a[i]){
-					apmax(f[i][j],f[i-1][j-1]-a[i]+w[i]);
-				}
-				apmin(f[i][j],mxval);
-				apmin(cur,j);
 			}
+			if(j&&f[i-1][j-1]>=a[i]){
+				apmax(f[i][j],f[i-1][j-1]-a[i]+w[i]);
+			}
+			apmin(f[i][j],mxval);
 		}
-		apmax(lim,i-cur);
+		int j=0;
+		for(;j<=i&&f[i][j]==-1;j++);
+		apmax(lim,i-j);
 	}
 	q.push(pti(0,1,0));
-	for(;!q.empty()&&q.front().n<=lim;q.front().spawn(),q.pop());
+	for(;!q.empty()&&q.front().n<lim;q.front().spawn(),q.pop());
 	M::init();
 	for(;tot--;putchar('0'+M::work(lim,ni)),putchar('\n'));
 }
