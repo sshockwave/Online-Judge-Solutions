@@ -27,7 +27,7 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 }
 const int N=110,C=100000010,INF=0x7f7f7f7f;
 struct HashMap{
-	const static int E=6000000,MOD=49999;
+	const static int E=1000000,MOD=10000019;
 	lint to[E];
 	int val[E],bro[E],head[MOD],e;
 	HashMap():e(0){
@@ -84,9 +84,10 @@ namespace M{
 				return true;
 			}
 		}
-		for(int i=0;i<H.e&&p[i].f<=c;i++){
+		for(int i=0,j=lb(c);i<=j&&p[i].f<=c;i++){
+			for(;i<=j&&p[i].f+p[j].f>c;j--);
 			if(p[i].n<=n-2){
-				for(int k=lb(c-p[i].f);i<=k&&c-p[i].f-p[k].f<=n-p[i].n-2;k--){
+				for(int k=j;i<=k&&c-p[i].f-p[k].f<=n-p[i].n-2;k--){
 					if(p[i].n+p[k].n<=n-2&&c-p[i].f-p[k].f<=n-p[i].n-p[k].n-2){
 						return true;
 					}
