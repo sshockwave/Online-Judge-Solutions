@@ -23,8 +23,8 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(a>b){a=b;}
 }
 const int N=100010,RT=320;
-lint fsum[RT];
-int a[N],fl[N],fr[N],ctr[RT][N],n,rt=0;
+lint a[N],fsum[RT];
+int fl[N],fr[N],ctr[RT][N],n,rt=0;
 struct PrefixSum{
 	lint pre[N],blk[RT];
 	PrefixSum(){
@@ -34,7 +34,7 @@ struct PrefixSum{
 		for(int i=x;i<n&&i/rt*rt==x/rt*rt;i++){
 			pre[i]+=v;
 		}
-		for(int i=x/rt*rt;i*rt<n;i++){
+		for(int i=x/rt;i*rt<n;i++){
 			blk[i]+=v;
 		}
 	}
@@ -49,7 +49,7 @@ struct PrefixSum{
 		return ans;
 	}
 }pa;
-inline void add_ctr(int a[],int fl[],int fr[],int rt,int n){
+inline void add_ctr(int a[],int fl[],int fr[],int rt){
 	for(int i=0;i<rt;i++){
 		a[fl[i]]++,a[fr[i]+1]--;
 	}
@@ -74,14 +74,14 @@ int main(){
 	n=ni;
 	for(;rt*rt<n;rt++);
 	for(int i=0;i<n;i++){
-		a[i]=ni;
+		a[i]=nl;
 	}
 	for(int i=0;i<n;i++){
 		fl[i]=ni-1,fr[i]=ni-1;
 	}
 	memset(ctr,0,sizeof(ctr));
 	for(int i=0;i<=(n-1)/rt;i++){
-		add_ctr(ctr[i],fl+i*rt,fr+i*rt,min(rt,n-i*rt),n);
+		add_ctr(ctr[i],fl+i*rt,fr+i*rt,min(rt,n-i*rt));
 	}
 	for(int i=0;i<n;i++){
 		pa.pre[i]=i%rt?pa.pre[i-1]+a[i]:a[i];
@@ -94,12 +94,13 @@ int main(){
 	for(int i=0;i<n;i++){
 		fsum[i/rt]+=f(i);
 	}
-	for(int i=1;i<rt;i++){
+	for(int i=1;i<=(n-1)/rt;i++){
 		fsum[i]+=fsum[i-1];
 	}
 	for(int tot=ni;tot--;){
 		if(ni==1){
-			int x=ni-1,y=ni-a[x];
+			int x=ni-1;
+			lint y=nl-a[x];
 			a[x]+=y;
 			pa.add(x,y);
 			lint sum=0;
