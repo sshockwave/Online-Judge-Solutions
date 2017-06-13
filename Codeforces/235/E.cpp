@@ -71,7 +71,7 @@ int dfs(int a,int b,int c,int p){
 	for(int i=0,_a=a;_a;i++,_a/=p){
 		for(int j=0,_b=b;_b;j++,_b/=p){
 			for(int k=0,_c=c;_c;k++,_c/=p){
-				apadd(ans,mul(dfs(_a,_b,_c,nxt[p]),a+b+c+1));
+				apadd(ans,mul(dfs(_a,_b,_c,nxt[p]),i+j+k+1));
 			}
 		}
 	}
