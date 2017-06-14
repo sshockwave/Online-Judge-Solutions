@@ -55,6 +55,10 @@ struct Point{
 	inline lint d2(){
 		return dot(*this,*this);
 	}
+	inline friend ostream & operator << (ostream & out,Point a){
+		out<<"("<<a.x<<","<<a.y<<")";
+		return out;
+	}
 }pt[N];
 struct Triangle{
 	Point a,b,c;
@@ -97,7 +101,16 @@ namespace W{
 		int id;
 		inline friend bool operator < (const Line &_a,const Line &_b){
 			int a=_a.id,b=_b.id;
-			return (!itsect(base,tr[a].a,tr[b].a,tr[b].c))&&(!itsect(base,tr[a].c,tr[b].a,tr[b].c));
+			if(a==b){
+				return false;
+			}
+			if(itsect(base,tr[b].a,tr[a].a,tr[a].c)||itsect(base,tr[b].c,tr[a].a,tr[a].c)){
+				return true;
+			}
+			if(itsect(base,tr[a].a,tr[b].a,tr[b].c)||itsect(base,tr[a].c,tr[b].a,tr[b].c)){
+				return false;
+			}
+			return true;
 		}
 	};
 	set<Line>line;
