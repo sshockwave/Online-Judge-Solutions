@@ -47,11 +47,8 @@ namespace G{
 			v=to[i];
 			if(v!=fa){
 				dfs(v,x,n-1);
-				for(int j=0;j<=n;j++){
-					if(~F[0]&&~g[v][j]){
-						apmax(G[j+1],F[0]+g[v][j]);
-					}
-					for(int k=j+2;k<=n;k++){
+				for(int k=n;k>=2;k--){
+					for(int j=k-2;j>=0;j--){
 						if(~F[k-j-1]&&~g[v][j]){
 							apmax(G[k],F[k-j-1]+g[v][j]);
 						}
@@ -63,6 +60,11 @@ namespace G{
 								apmax(G[k],G[k-j-2]+f[v][j]);
 							}
 						}
+					}
+				}
+				for(int j=0;j<n;j++){
+					if(~g[v][j]){
+						apmax(G[j+1],F[0]+g[v][j]);
 					}
 				}
 			}
