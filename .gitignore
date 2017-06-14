@@ -6,3 +6,4 @@ $RECYCLE.BIN/
 *.data.cpp
 *.brute.cpp
 *.bat
+*.sh
