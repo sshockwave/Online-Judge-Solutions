@@ -91,8 +91,17 @@ int main(){
 		f[i]=mul(i,i);
 		B::add(i,f[i]);
 	}
+	bool flag=true;
 	while(tot--){
 		int a=ni,b=ni,d=gcd(a,b),x=sub((nl/k(a,b))%MOD,f[d]),n=ni;
+		if(x){
+			flag=false;
+		}
+		if(flag){
+			static int rev2=(MOD+1)>>1;
+			printf("%d\n",mul(mul(mul(n,n+1),rev2),mul(mul(n,n+1),rev2)));
+			continue;
+		}
 		B::add(d,x),apadd(f[d],x);
 		int ans=0;
 		for(int l=1,r;l<=n;l=r+1){
