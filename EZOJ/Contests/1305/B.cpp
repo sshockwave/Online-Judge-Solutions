@@ -55,10 +55,6 @@ struct Point{
 	inline lint d2(){
 		return dot(*this,*this);
 	}
-	inline friend ostream & operator << (ostream & out,Point a){
-		out<<"("<<a.x<<","<<a.y<<")";
-		return out;
-	}
 }pt[N];
 struct Triangle{
 	Point a,b,c;
@@ -80,7 +76,7 @@ namespace W{
 		int bln;
 		bool type;//true:start false:close
 		inline friend bool operator < (const Mark &a,const Mark &b){
-			int cr=crs(a.pt-base,b.pt-base);
+			lint cr=crs(a.pt-base,b.pt-base);
 			if(cr==0){
 				if(a.bln&&b.bln){
 					return a.type>b.type;
@@ -110,7 +106,7 @@ namespace W{
 			if(itsect(base,tr[a].a,tr[b].a,tr[b].c)||itsect(base,tr[a].c,tr[b].a,tr[b].c)){
 				return false;
 			}
-			return true;
+			return crs(tr[b].a-base,tr[a].a-tr[b].a)>0;
 		}
 	};
 	set<Line>line;
@@ -147,6 +143,8 @@ namespace W{
 				}
 			}else{
 				int tp=line.begin()->id;
+				if(line.size()){
+				}
 				if(line.size()==0||!itsect(base,mk[i].pt,tr[tp].a,tr[tp].c)){
 					ans++;
 				}
