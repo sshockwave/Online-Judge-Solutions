@@ -100,13 +100,14 @@ namespace W{
 			if(a==b){
 				return false;
 			}
-			if(itsect(base,tr[b].a,tr[a].a,tr[a].c)||itsect(base,tr[b].c,tr[a].a,tr[a].c)){
-				return true;
+			lint cr=crs(tr[a].a-base,tr[b].a-base);
+			if(cr>0){
+				return sig(crs(tr[b].a-tr[a].a,tr[a].c-tr[a].a))*sig(crs(base-tr[a].a,tr[a].c-tr[a].a))<0;
+			}else if(cr<0){
+				return sig(crs(tr[a].a-tr[b].a,tr[b].c-tr[b].a))*sig(crs(base-tr[b].a,tr[b].c-tr[b].a))>0;
+			}else{
+				return (tr[a].a-base).d2()<(tr[b].a-base).d2();
 			}
-			if(itsect(base,tr[a].a,tr[b].a,tr[b].c)||itsect(base,tr[a].c,tr[b].a,tr[b].c)){
-				return false;
-			}
-			return crs(tr[b].a-base,tr[a].a-tr[b].a)>0;
 		}
 	};
 	set<Line>line;
@@ -143,8 +144,6 @@ namespace W{
 				}
 			}else{
 				int tp=line.begin()->id;
-				if(line.size()){
-				}
 				if(line.size()==0||!itsect(base,mk[i].pt,tr[tp].a,tr[tp].c)){
 					ans++;
 				}
