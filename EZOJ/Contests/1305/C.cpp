@@ -36,20 +36,31 @@ inline void apadd(int &a,const int &b){
 }
 int n;
 namespace B{
-	int c[N];
-	inline int lowbit(const int &x){
-		return x&(-x);
-	}
-	inline void init(){
-		memset(c,0,sizeof(c));
+	const int RT=2010;
+	int n,rt=0,ndrt;
+	int pre[N],blk[RT];
+	inline void init(int _n){
+		n=_n+1;
+		for(;rt*rt<n;rt++);
+		ndrt=(n-1)/rt;
+		memset(pre,0,sizeof(pre));
+		memset(blk,0,sizeof(blk));
 	}
 	inline void add(int x,int v){
-		for(;x<=n;apadd(c[x],v),x+=lowbit(x));
+		int xd=x/rt;
+		for(int i=x;i<n&&i/rt==xd;i++){
+			apadd(pre[i],v);
+		}
+		for(int i=xd;i<=ndrt;i++){
+			apadd(blk[i],v);
+		}
 	}
 	inline int sum(int x){
-		int ret=0;
-		for(;x;apadd(ret,c[x]),x^=lowbit(x));
-		return ret;
+		int ans=pre[x];
+		if(x/rt){
+			apadd(ans,blk[x/rt-1]);
+		}
+		return ans;
 	}
 }
 int M[N],phi[N],prime[N],ps=0;
@@ -86,22 +97,17 @@ int main(){
 	int tot=ni;
 	n=ni;
 	sieve();
-	B::init();
+	B::init(n);
 	for(int i=1;i<=n;i++){
 		f[i]=mul(i,i);
-		B::add(i,f[i]);
+		apadd(B::pre[i],add(f[i],(i%B::rt==0?0:B::pre[i-1])));
+		apadd(B::blk[i/B::rt],f[i]);
 	}
-	bool flag=true;
+	for(int i=1;i<=B::ndrt;i++){
+		apadd(B::blk[i],B::blk[i-1]);
+	}
 	while(tot--){
 		int a=ni,b=ni,d=gcd(a,b),x=sub((nl/k(a,b))%MOD,f[d]),n=ni;
-		if(x){
-			flag=false;
-		}
-		if(flag){
-			static int rev2=(MOD+1)>>1;
-			printf("%d\n",mul(mul(mul(n,n+1),rev2),mul(mul(n,n+1),rev2)));
-			continue;
-		}
 		B::add(d,x),apadd(f[d],x);
 		int ans=0;
 		for(int l=1,r;l<=n;l=r+1){
