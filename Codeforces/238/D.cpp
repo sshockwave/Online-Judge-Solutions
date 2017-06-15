@@ -70,7 +70,7 @@ struct SegmentTree{
 		}
 	}
 	void build(int l,int r){
-		static node n=new SegmentTree[N*2];
+		static node n=new SegmentTree[N*4];
 		lend=l,rend=r,mid=(l+r)>>1;
 		tag=false;
 		if(l!=r){
@@ -128,6 +128,7 @@ int main(){
 	for(int i=1;i<=n;i=pt[i]){
 		if(i==0){
 			pt=nxt;
+			f.apmin(i,pt[i]-1,cur);
 			continue;
 		}
 		if(isdigit(s[i])){
