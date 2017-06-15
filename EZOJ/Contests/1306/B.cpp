@@ -105,16 +105,17 @@ int main(){
 	}
 	for(int i=head;~i;i=nxt[i]){
 		mii::iterator it;
-		#define ifvis(x,y) if((it=mat[x].find(y))!=mat[x].end())
-		ifvis(x[i]+1,y[i]){
+		#define ifvis(a,b) if((it=mat[a].find(b))!=mat[a].end())
+		int d=(x[i]&1)?1:-1;
+		ifvis(x[i]+d,y[i]){
 			int j=it->second;
 			assert(type(j)==3);
 			G::add(i,j,min(cost[i],cost[j]));
 			#define go(x,y) ifvis(x,y)G::add(it->second,i,INF)
-			go(x[i]-1,y[i]);go(x[i],y[i]-1);go(x[i],y[i]+1);
+			go(x[i]-d,y[i]);go(x[i],y[i]-1);go(x[i],y[i]+1);
 			#undef go
 			#define go(x,y) ifvis(x,y)G::add(j,it->second,INF)
-			go(x[i]+1,y[i]-1);go(x[i]+1,y[i]+1);go(x[i]+2,y[i]);
+			go(x[i]+d,y[i]-1);go(x[i]+d,y[i]+1);go(x[i]+(d<<1),y[i]);
 		}
 	}
 	printf("%d\n",G::dinic());
