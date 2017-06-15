@@ -78,33 +78,43 @@ namespace G{
 typedef map<int,int> mii;
 mii mat[N];
 int x[N],y[N],cost[N],nxt[N];
+inline int type(int i){
+	static int a[4][2]={{2,1},{1,2},{4,3},{3,4}};
+	return a[x[i]&3][y[i]&1];
+}
 int main(){
 	ni,ni;
 	int n=ni,head=-1;
 	G::init(n);
 	for(int i=1;i<=n;i++){
-		x[i]=ni,y[i]=ni;
-		cost[i]=ni;
+		x[i]=ni,y[i]=ni,cost[i]=ni;
 		mat[x[i]][y[i]]=i;
-		if((x[i]&1)&&((x[i]>>1)&1)!=(y[i]&1)){
-			nxt[i]=head;
-			head=i;
-		}else{
-			G::add(i,G::t,cost[i]);
+		switch(type(i)){
+			case 1:{
+				G::add(G::s,i,cost[i]);
+				break;
+			}
+			case 2:{
+				nxt[i]=head,head=i;
+				break;
+			}
+			case 4:{
+				G::add(i,G::t,cost[i]);
+			}
 		}
 	}
 	for(int i=head;~i;i=nxt[i]){
 		mii::iterator it;
 		#define ifvis(x,y) if((it=mat[x].find(y))!=mat[x].end())
 		ifvis(x[i]+1,y[i]){
-			G::add(G::s,i,min(cost[i],cost[it->second]));
-			#define go(x,y) ifvis(x,y)G::add(i,it->second,INF)
-			go(x[i]-1,y[i]);
-			go(x[i],y[i]-1);
-			go(x[i],y[i]+1);
-			go(x[i]+1,y[i]-1);
-			go(x[i]+1,y[i]+1);
-			go(x[i]+2,y[i]);
+			int j=it->second;
+			assert(type(j)==3);
+			G::add(i,j,min(cost[i],cost[j]));
+			#define go(x,y) ifvis(x,y)G::add(it->second,i,INF)
+			go(x[i]-1,y[i]);go(x[i],y[i]-1);go(x[i],y[i]+1);
+			#undef go
+			#define go(x,y) ifvis(x,y)G::add(j,it->second,INF)
+			go(x[i]+1,y[i]-1);go(x[i]+1,y[i]+1);go(x[i]+2,y[i]);
 		}
 	}
 	printf("%d\n",G::dinic());
