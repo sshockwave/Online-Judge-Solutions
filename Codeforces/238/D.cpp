@@ -65,12 +65,11 @@ int main(){
 	int *pt=nxt;
 	State cur;
 	memset(&cur,0,sizeof(cur));
-	for(int i=0;i<=n;apmin((pt==nxt?f:g)[i],cur),i=pt[i]){
+	for(int i=0;i<=n;apmin((pt==nxt?f:g)[i],cur),i=pt[i],apmin(pt==nxt?f[i-1]:g[i+1],cur)){
 		if(i==0){
 			pt=nxt;
 			continue;
 		}
-		cout<<"Current at "<<i<<"\tc="<<s[i]<<endl;
 		if(isdigit(s[i])){
 			cur.cnt[s[i]-'0']++;
 			if(s[i]=='0'){
@@ -90,11 +89,6 @@ int main(){
 	}
 	for(int i=1;i<n;i++){
 		apmin(g[i+1],g[i]);
-	}
-	for(int i=1;i<=n;i++){
-		cout<<"i="<<i<<endl;
-		cout<<"\tf=",f[i].print();
-		cout<<"\tg=",g[i].print();
 	}
 	while(tot--){
 		int l=ni,r=ni;
