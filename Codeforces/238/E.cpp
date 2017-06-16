@@ -68,15 +68,19 @@ namespace G1{
 		}
 	}
 	inline void bfs2(int t){
+		memset(vis,0,sizeof(vis));
+		if(dis[t]==INF){
+			return;
+		}
 		int qh=0,qt=0;
 		vis[t]=true;
 		que[qt++]=t;
 		while(qh<qt){
 			int x=que[qh++];
 			for(int i=1;i<=n;i++){
-				if(con[i][x]&&dis[i]+1==dis[x]){
+				if(!vis[i]&&con[i][x]&&dis[i]+1==dis[x]){
 					vis[i]=true;
-					que[qt++]=t;
+					que[qt++]=i;
 				}
 			}
 		}
@@ -107,6 +111,9 @@ namespace G1{
 		}
 	}
 }
+inline int sanitize(int x){
+	return x==INF?-1:x;
+}
 int main(){
 	int s,t;
 	{
@@ -126,5 +133,5 @@ int main(){
 			G1::work(s,t);
 		}
 	}
-	printf("%d",(G2::floyd(),G2::dis[s][t]));
+	printf("%d\n",(G2::floyd(),sanitize(G2::dis[s][t])));
 }
