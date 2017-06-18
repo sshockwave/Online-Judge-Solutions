@@ -90,9 +90,6 @@ struct Poly{
 	int *a,n,shift;
 	bool flag;
 	Poly(int _a[]):a(_a),flag(false){}
-	~Poly(){
-		delete[] a;
-	}
 	inline int& operator [] (int i){
 		return a[i];
 	}
@@ -115,8 +112,8 @@ struct Poly{
 	void rev(int arr[],int n){//store in a
 		if(n==1){
 			//for this problem
-			assert(a[0]==1);
-			arr[0]=1;
+			assert(arr[0]==1);
+			a[0]=1;
 			return;
 		}
 		int na=(n>>1)+(n&1),nb=n;
@@ -131,6 +128,7 @@ struct Poly{
 		b.set(shift);
 		clr(na+1),b.clr(nb+1);
 		dft(),b.dft();
+		assert(flag&&b.flag);
 		for(int i=0;i<this->n;i++){
 			a[i]=sub(mul(a[i],2),mul(b[i],mul(a[i],a[i])));
 		}
@@ -140,24 +138,19 @@ struct Poly{
 }M(new int[N]),P(new int[N]),C(new int[N]);
 inline void Poly::mod(int n){//a-R(R(a)*P)*M
 	static Poly q(new int[N]);
-	for(int i=0,j=(n<<1)-2;i<n-1;i++){
+	for(int i=0,j=(n<<1)-2;i<n-1;i++,j--){
 		q[i]=a[j];
 	}
-	q.set(P.shift);
-	q.dft();
+	q.set(P.shift),q.clr(n-1),q.dft();
 	assert(q.flag&&P.flag);
 	for(int i=0;i<q.n;i++){
 		apmul(q[i],P[i]);
 	}
 	q.dft();
-	for(int i=n-1;i<q.n;i++){
-		assert(q[i]==0);
-	}
 	for(int i=0,j=n-2;i<j;i++,j--){
 		swap(q[i],q[j]);
 	}
-	q.set(M.shift);
-	q.dft();
+	q.set(M.shift),q.clr(n-1),q.dft();
 	assert(q.flag&&M.flag);
 	for(int i=0;i<q.n;i++){
 		apmul(q[i],M[i]);
@@ -174,23 +167,25 @@ inline void Poly::mod(int n){//a-R(R(a)*P)*M
 int n;
 inline void fpow(Poly x,lint t){
 	if(t==0){
-		memset(x.a,0,N<<2);
-		x[1]=1;
+		memset(x.a,0,n<<2);
+		x[0]=1;
 		return;
 	}
 	fpow(x,t>>1);
-	x.set(shifter(n));
+	x.set(shifter((n<<1)-1));
 	x.dft();
 	assert(x.flag);
 	for(int i=0;i<x.n;i++){
 		apmul(x[i],x[i]);
 	}
-	x.dft(),x.mod(n);
-	if(n&1){
+	x.dft();
+	x.mod(n);
+	if(t&1){
 		for(int i=n;i>=1;i--){
 			x[i]=x[i-1];
 		}
 		x[0]=0;
+		C.set(2);
 		for(int i=0;i<n;i++){
 			apsub(x[i],mul(x[n],C[i]));
 		}
@@ -210,8 +205,8 @@ int main(){
 	}
 	memset(M.a,0,N<<2);
 	M[n]=C[n]=1;
-	for(int i=1;i<=n;i++){
-		M[n]=C[n]=sub(0,ni);
+	for(int i=n-1;i>=0;i--){
+		M[i]=C[i]=sub(0,ni);
 	}
 	M.set(shifter((n<<1)-1));
 	M.dft();
@@ -223,7 +218,6 @@ int main(){
 		P.rev(a,n-1);
 		P.set(shifter((n<<1)-3));
 		P.dft();
-		delete[] a;
 	}
 	Poly s(new int[N]);
 	fpow(s,t);
