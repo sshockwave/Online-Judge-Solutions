@@ -132,6 +132,7 @@ struct SegmentTree{
 int main(){
 	int n=ni,tot=ni;
 	for(p[0]=ni;p[ps]>1;p[ps+1]=phi(p[ps]),ps++);
+	p[++ps]=1;
 	CP::init(ni);
 	seg.build(1,n);
 	while(tot--){
