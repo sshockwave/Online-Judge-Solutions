@@ -21,34 +21,9 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(a>b){a=b;}
 }
-const int N=50010;
-int MOD;
-inline int add(const int &a,const int &b){
-	return (a+b)%MOD;
-}
-inline int sub(const int &a,const int &b){
-	return add(a,MOD-b);
-}
-inline int mul(const int &a,const int &b){
-	return (lint)a*b%MOD;
-}
-inline void apadd(int &a,const int &b){
-	a=add(a,b);
-}
-inline void apmul(int &a,const int &b){
-	a=mul(a,b);
-}
-inline int fpow(int x,int n){
-	int ret=1;
-	for(;n;n>>=1,apmul(x,x)){
-		if(n&1){
-			apmul(ret,x);
-		}
-	}
-	return ret;
-}
-int gcd(const int &a,const int &b){
-	return b==0?a:gcd(b,a%b);
+const int N=50010,L=40;
+inline int pmod(const lint &a,const int &b){
+	return a<b?a:(a%b+b);
 }
 inline int phi(int p){//O(sqrt(n))
 	int q=p;
@@ -63,73 +38,108 @@ inline int phi(int p){//O(sqrt(n))
 	}
 	return p;
 }
-int a[N];
-int n,tot,c;
-struct BIT{
-	int c[N];
-	BIT(){
-		memset(c,0,sizeof(c));
-	}
-	inline int lowbit(int x){
-		return x&(-x);
-	}
-	inline void add(int x,int v){
-		for(;x<=n;apadd(c[x],v),x+=lowbit(x));
-	}
-	inline int sum(int x){
-		int ans=0;
-		for(;x;apadd(ans,c[x]),x^=lowbit(x));
-		return ans;
-	}
-};
-namespace task12{
-	BIT B;
-	inline void solve(){
-		for(int i=1;i<=n;i++){
-			B.add(i,a[i]);
-		}
-		while(tot--){
-			if(ni){//ask
-				int l=ni,r=ni;
-				printf("%d\n",sub(B.sum(r),B.sum(l-1)));
-			}else{
-				int l=ni,r=ni;
-				for(int i=l;i<=r;i++){
-					int ta=fpow(c,a[i]);
-					B.add(i,sub(ta,a[i]));
-					a[i]=ta;
-				}
+int p[L],ps=0;//p[ps]=1
+namespace CP{
+	const int step=1<<16;
+	int f[L][step],g[L][step];
+	inline void init(int c){
+		for(int i=0;i<=ps;i++){
+			f[i][0]=g[i][0]=1;
+			for(int j=1;j<step;j++){
+				f[i][j]=pmod((lint)f[i][j-1]*c,p[i]);
+			}
+			int d=pmod((lint)f[i][step-1]*c,p[i]);
+			for(int j=1;j<step;j++){
+				g[i][j]=pmod((lint)g[i][j-1]*d,p[i]);
 			}
 		}
 	}
-}
-inline int fpow(int x,int n,int MOD){
-	int ret=1;
-	for(;n;n>>=1,x=(lint)x*x%MOD){
-		if(n&1){
-			ret=(lint)ret*x%MOD;
-		}
-	}
-	return ret;
-}
-namespace rp{
-	int pi;
-	struct Num{
-		int a,b;
-		Num(int _a=0,int _b=0):a(_a%MOD),b(_b%pi){}
-		inline Num nxt(){
-			return Num(fpow(c,b,MOD),fpow(c,b,pi));
-		}
-	};
-	inline void solve(){
-		pi=phi(MOD);
-		
+	inline int ask(int x,int i){
+		return pmod((lint)f[i][x&(step-1)]*g[i][x>>16],p[i]);
 	}
 }
+struct Num{
+	int r[L];
+	inline void init(int a){
+		for(int i=0;i<=ps;i++){
+			r[i]=pmod(a,p[i]);
+		}
+	}
+	inline void nxt(int n){
+		for(int i=0;i<n;i++){
+			r[i]=CP::ask(r[i+1],i);
+		}
+	}
+}a[N];
+struct SegmentTree{
+	typedef SegmentTree* node;
+	int lend,rend,mid,sum,rest;
+	node lson,rson;
+	inline void grab(){
+		assert(lend==rend);
+		sum=a[lend].r[0]%p[0];
+	}
+	inline void up(){
+		assert(lend!=rend);
+		sum=(lson->sum+rson->sum)%p[0];
+		rest=max(lson->rest,rson->rest);
+	}
+	void build(int l,int r){
+		static node n=new SegmentTree[N*2];
+		lend=l,rend=r,mid=(l+r)>>1;
+		if(l==r){
+			rest=ps;
+			a[l].init(ni);
+			grab();
+		}else{
+			(lson=n++)->build(l,mid);
+			(rson=n++)->build(mid+1,r);
+			up();
+		}
+	}
+	void nxt(int l,int r){
+		if(rest==0){
+			return;
+		}
+		if(lend==rend){
+			a[l].nxt(rest--);
+			grab();
+			return;
+		}
+		if(r<=mid){
+			lson->nxt(l,r);
+		}else if(l>mid){
+			rson->nxt(l,r);
+		}else{
+			lson->nxt(l,mid);
+			rson->nxt(mid+1,r);
+		}
+		up();
+	}
+	int ask(int l,int r){
+		if(lend==l&&rend==r){
+			return sum;
+		}
+		if(r<=mid){
+			return lson->ask(l,r);
+		}
+		if(l>mid){
+			return rson->ask(l,r);
+		}
+		return (lson->ask(l,mid)+rson->ask(mid+1,r))%p[0];
+	}
+}seg;
 int main(){
-	n=ni,tot=ni,MOD=ni,c=ni;
-	for(int i=1;i<=n;i++){
-		a[i]=ni;
+	int n=ni,tot=ni;
+	for(p[0]=ni;p[ps]>1;p[ps+1]=phi(p[ps]),ps++);
+	CP::init(ni);
+	seg.build(1,n);
+	while(tot--){
+		int o=ni,l=ni,r=ni;
+		if(o){//ask
+			printf("%d\n",seg.ask(l,r));
+		}else{
+			seg.nxt(l,r);
+		}
 	}
-	task12::solve();
 }
