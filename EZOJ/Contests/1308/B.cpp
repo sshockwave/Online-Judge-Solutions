@@ -73,6 +73,9 @@ int main(){
 			cnt+=light[i];
 		}
 		if(cnt<=k){
+			for(int i=1;i<=n;i++){
+				apmul(cnt,i);
+			}
 			printf("%d\n",cnt);
 			return 0;
 		}
