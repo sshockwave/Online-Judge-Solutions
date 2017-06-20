@@ -9,11 +9,9 @@ typedef long long lint;
 #define nl (next_num<lint>())
 template<class T>inline T next_num(){
 	T i=0;char c;
-	while(!isdigit(c=getchar())&&c!='-');
-	bool flag=c=='-';
-	flag?(c=getchar()):0;
+	while(!isdigit(c=getchar()));
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
-	return flag?-i:i;
+	return i;
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 	if(a<b){a=b;}
@@ -35,7 +33,7 @@ namespace G{
 	inline void build(int n){
 		memset(head+1,-1,n<<2);
 		memset(deg+1,0,n<<2);
-		memset(vis,0,sizeof(vis));
+		memset(vis,0,n<<1);
 		e=0;
 		for(int i=1;i<n;i++){
 			add(ni,ni);
