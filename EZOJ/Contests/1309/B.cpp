@@ -22,151 +22,139 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(b<a){a=b;}
 }
-const int N=6,E=15;
-int n;
-namespace k1{
-	const int N=55,E=N*2,MOD=998244353;
-	inline int add(const int &a,const int &b){
-		return (a+b)%MOD;
-	}
-	inline int sub(const int &a,const int &b){
-		return add(a,MOD-b);
-	}
-	inline int mul(const int &a,const int &b){
-		return (lint)a*b%MOD;
-	}
-	inline void apadd(int &a,const int &b){
-		a=add(a,b);
-	}
-	int to[E],bro[E],head[N],e=0;
-	inline void ae(int u,int v){
-		to[e]=v,bro[e]=head[u],head[u]=e++;
-	}
-	int ans=0;
-	int size[N];
-	void dfs(int x){
-		size[x]=1;
-		for(int i=head[x],v;~i;i=bro[i]){
-			dfs(v=to[i]);
-			size[x]+=size[v];
-			apadd(ans,sub(mul(size[v],n-size[v]),1));
+const int N=55,MOD=998244353;
+inline int add(const int &a,const int &b){
+	return (a+b)%MOD;
+}
+inline int sub(const int &a,const int &b){
+	return add(a,MOD-b);
+}
+inline int mul(const int &a,const int &b){
+	return (lint)a*b%MOD;
+}
+inline void apadd(int &a,const int &b){
+	a=add(a,b);
+}
+inline void apsub(int &a,const int &b){
+	a=sub(a,b);
+}
+inline void apmul(int &a,const int &b){
+	a=mul(a,b);
+}
+inline int fpow(int x,int n){
+	int ret=1;
+	for(;n;n>>=1,apmul(x,x)){
+		if(n&1){
+			apmul(ret,x);
 		}
 	}
-	inline int work(){
-		memset(head,-1,sizeof(head));
-		for(int i=1;i<n;i++){
-			ae(ni,i);
+	return ret;
+}
+inline int rev(int x){
+	return fpow(x,MOD-2);
+}
+struct Poly{
+	int a[N],n;
+	Poly(int a0=0,int a1=0){
+		memset(a,0,sizeof(a));
+		a[0]=a0,a[1]=a1;
+		n=a1?2:1;
+	}
+	inline void operator += (const Poly &b){
+		apmax(n,b.n);
+		for(int i=0;i<n;i++){
+			apadd(a[i],b.a[i]);
 		}
-		dfs(0);
-		return ans+1;
 	}
-}
-int node[N][N];
-bool con[N][N];
-int fa[N];
-int root(int x){
-	if(fa[x]==-1){
-		return x;
+	inline void operator *= (const int &b){
+		for(int i=0;i<n;i++){
+			apmul(a[i],b);
+		}
 	}
-	return fa[x]=root(fa[x]);
-}
-inline bool check(){
-	memset(fa,-1,n<<2);
-	for(int i=0;i<n;i++){
-		for(int j=i+1;j<n;j++){
-			if(con[i][j]){
-				int x=root(i),y=root(j);
-				if(x==y){
-					return false;
-				}
-				fa[x]=y;
+	inline friend Poly operator * (const Poly &a,const Poly &b){
+		Poly c;
+		c.n=a.n+b.n-1;
+		for(int i=0;i<a.n;i++){
+			for(int j=0;j<b.n;j++){
+				apadd(c.a[i+j],mul(a.a[i],b.a[j]));
 			}
 		}
+		return c;
 	}
-	return true;
-}
-inline int hush(){
-	int ans=0;
-	for(int i=0;i<n;i++){
-		for(int j=i+1;j<n;j++){
-			if(con[i][j]){
-				ans|=1<<node[i][j];
+	inline int eval(int x){
+		int ans=0,mx=1;
+		for(int i=0;i<n;i++){
+			apadd(ans,mul(mx,a[i]));
+			apmul(mx,x);
+		}
+		return ans;
+	}
+};
+bool con[N][N];
+int mat[N][N],f[N],deg[N];
+inline int det(int n){
+	int ans=1;
+	for(int i=1,j;i<n;i++){
+		for(j=i;j<n&&mat[i][j]==0;j++);
+		if(j==n){
+			return 0;
+		}
+		if(i!=j){
+			ans=sub(0,ans);
+			for(int k=i;k<n;k++){
+				swap(mat[i][k],mat[j][k]);
+			}
+		}
+		apmul(ans,mat[i][i]);
+		int r=rev(mat[i][i]);
+		for(j=i;j<n;j++){
+			apmul(mat[i][j],r);
+		}
+		for(j=i+1;j<n;j++){
+			if(mat[j][i]){
+				r=mat[j][i];
+				for(int k=i;k<n;k++){
+					apsub(mat[j][k],mul(mat[i][k],r));
+				}
+				assert(mat[j][i]==0);
 			}
 		}
 	}
 	return ans;
 }
-bool valid[1<<E],vis[1<<E];
-int posx[N*N],posy[N*N];
-int dis[1<<E];
-queue<int>q;
 int main(){
-	n=ni;
-	int k=ni,ns=0;
-	if(k==0){
-		puts("1");
-		return 0;
-	}else if(k==1){
-		printf("%d\n",k1::work());
-		return 0;
-	}
-	for(int i=0;i<n;i++){
-		for(int j=i+1;j<n;j++){
-			node[i][j]=ns;
-			posx[ns]=i,posy[ns]=j;
-			ns++;
-		}
-	}
-	memset(valid,0,sizeof(valid));
-	memset(vis,0,sizeof(vis));
-	for(int s=0;s<(1<<ns);s++){
-		int cnt=0;
-		memset(con,0,sizeof(con));
-		for(int i=0;i<ns;i++){
-			if((s>>i)&1){
-				cnt++;
-				con[posx[i]][posy[i]]=true;
-			}
-		}
-		if(cnt==n-1){
-			valid[s]=check();
-		}
-	}
-	memset(con,0,sizeof(con));
+	int n=ni,k=ni;
+	memset(deg,0,sizeof(deg));
 	for(int i=1;i<n;i++){
-		int f=ni;
-		con[min(i,f)][max(i,f)]=true;
+		int j=ni;
+		con[i][j]=con[j][i]=true;
+		deg[i]++,deg[j]++;
 	}
-	memset(dis,-1,sizeof(dis));
-	int x=hush();
-	assert(valid[x]);
-	dis[x]=0;
-	q.push(x);
-	while(!q.empty()){
-		x=q.front();
-		q.pop();
-		assert(dis[x]<k);
-		for(int i=0;i<ns;i++){
-			if((x>>i)&1){
-				for(int j=0;j<ns;j++){
-					if(((x>>j)&1)==0){
-						int t=x^(1<<i)^(1<<j);
-						if(valid[t]&&dis[t]==-1){
-							dis[t]=dis[x]+1;
-							if(dis[t]<k){
-								q.push(x);
-							}
-						}
-					}
+	Poly poly;
+	for(int x=1;x<=n;x++){
+		for(int i=0;i<n;i++){
+			for(int j=0;j<n;j++){
+				if(i==j){
+					mat[i][j]=add(deg[i],mul(x,n-1-deg[i]));
+				}else{
+					mat[i][j]=sub(0,con[i][j]?1:x);
 				}
 			}
 		}
-	}
-	int cnt=0;
-	for(int i=0;i<(1<<ns);i++){
-		if(~dis[i]){
-			cnt++;
+		int k=1;
+		Poly cur(1);
+		for(int i=1;i<=n;i++){
+			if(x!=i){
+				cur=cur*Poly(sub(0,i),1);
+				apmul(k,sub(x,i));
+			}
 		}
+		cur*=mul(rev(k),det(n));
+		poly+=cur;
 	}
-	printf("%d\n",cnt);
+	int ans=0;
+	for(int i=0;i<=k;i++){
+		apadd(ans,poly.a[i]);
+	}
+	printf("%d\n",ans);
 }
