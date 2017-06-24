@@ -29,9 +29,8 @@ int tim=0;
 #define clr(x) memset((x),0,sizeof(x))
 namespace W{
 	int son[TN][2],tag[TN],val[TN],n=0;
-	int root[N];
 	inline void init(){
-		clr(son),clr(val),clr(root);
+		clr(son),clr(val);
 		memset(tag,-1,sizeof(tag));
 	}
 	inline void up(int x){
@@ -75,19 +74,28 @@ namespace W{
 		up(x);
 		return x;
 	}
-	int ask(int x,int l,int r,int lend,int rend){//find smallest
+	int pre(int x,int p,int lend,int rend){
 		if(val[x]==0){
-			return r+1;
+			return 0;
 		}
-		int mid=(l+r)>>1;
-		if(r<=mid){
-			return ask(lson(x),l,r,lend,mid);
-		}else if(l>mid){
-			return ask(rson(x),l,r,mid+1,rend);
-		}else{
-			int res=ask(lson(x),l,mid,lend,mid);
-			return res>mid?ask(rson(x),mid+1,r,mid+1,rend):res;
+		int mid=(lend+rend)>>1;
+		if(p<=mid){
+			return pre(lson(x),p,lend,mid);
 		}
+		int res=pre(rson(x),p,mid+1,rend);
+		return res?res:pre(lson(x),p,lend,mid);
+	}
+	int mxval;
+	int nxt(int x,int p,int lend,int rend){
+		if(val[x]==0){
+			return mxval;
+		}
+		int mid=(lend+rend)>>1;
+		if(p>mid){
+			return nxt(rson(x),p,mid+1,rend);
+		}
+		int res=nxt(lson(x),p,lend,mid);
+		return res==mxval?nxt(rson(x),p,mid+1,rend):res;
 	}
 }
 namespace R{
@@ -118,12 +126,24 @@ namespace R{
 		}
 		return x;
 	}
+	int ask(int x,int p,int lend,int rend){
+		if(lend==rend){
+			return val[x];
+		}
+		int mid=(lend+rend)>>1;
+		if(p<=mid){
+			return ask(lson(x),p,lend,mid);
+		}else{
+			return ask(rson(x),p,mid+1,rend);
+		}
+	}
 }
 namespace T{
 	int son[TN][2],tag[TN],color[TN],nxt[TN],n=0;
 	lint sum[TN],diff[TN];
+	int root[N];
 	inline void init(){
-		clr(son),clr(color),clr(nxt),clr(nxt);
+		clr(son),clr(color),clr(nxt),clr(nxt),clr(root);
 		memset(tag,-1,sizeof(tag));
 	}
 	lint ask(int x,int v,int lend,int rend){//get sum after limit
@@ -182,9 +202,37 @@ namespace T{
 			}else{
 				rson(x)=set(rson(x),p,v,val,mid+1,rend);
 			}
+			if(val==nxt){
+				up(x,lend,rend);
+			}
+		}
+		return x;
+	}
+	int build(int x,int lend,int rend,int a[],int _nxt[]){
+		x=renew(x);
+		if(lend==rend){
+			color[x]=a[lend];
+			nxt[x]=_nxt[lend];
+			diff[x]=0;
+			sum[x]=nxt[x]-lend;
+		}else{
+			int mid=(lend+rend)>>1;
+			lson(x)=build(lson(x),lend,mid,a,_nxt);
+			rson(x)=build(rson(x),mid+1,rend,a,_nxt);
 			up(x,lend,rend);
 		}
 		return x;
+	}
+	int col(int x,int p,int lend,int rend){
+		if(lend==rend){
+			return color[x];
+		}
+		int mid=(lend+rend)>>1;
+		if(p<=mid){
+			return col(lson(x),p,lend,mid);
+		}else{
+			return col(rson(x),p,mid+1,rend);
+		}
 	}
 }
 namespace Q{
@@ -243,9 +291,48 @@ namespace Q{
 int main(){
 	W::init(),R::init(),T::init();
 	int n=ni;
+	W::mxval=n+1;
 	{
+		int a[N],nxt[N],root[N];
+		memset(root,0,sizeof(root));
 		for(int i=1;i<=n;i++){
-			
+			a[i]=ni;
+			root[a[i]]=W::set(root[a[i]],i,1,n);
+		}
+		for(int i=1;i<=n;i++){
+			if(root[i]){
+				R::root[tim]=R::set(R::root[tim],i,root[i],1,n);
+			}
+			root[i]=n+1;
+		}
+		for(int i=n;i>=1;i--){
+			nxt[i]=root[a[i]];
+			root[a[i]]=i;
+		}
+		T::root[tim]=T::build(T::root[tim],1,n,a,nxt);
+	}
+	lint ans=0;
+	for(int tot=ni;tot--;){
+		int id=ni,t=ni,a=(ni+ans)%n+1,b=(ni+ans)%n+1;
+//		int l=ni,r=ni;
+		if(id==1){//alt
+			tim++;
+			int oldc=T::col(T::root[t],a,1,n),newc=b;
+			if(oldc==newc){
+				continue;
+			}
+			int oldr=R::ask(R::root[t],oldc,1,n),newr=R::ask(R::root[t],newc,1,n);
+			//start setting
+			T::root[tim]=T::set(T::root[t],a,W::nxt(newr,a,1,n),T::nxt,1,n);
+			R::root[tim]=R::set(R::set(R::root[t],newc,W::set(newr,a,1,n),1,n),oldc,W::del(oldr,a,1,n),1,n);
+			int pre=W::pre(oldr,a,1,n);
+			if(pre){
+				T::root[tim]=T::set(T::root[tim],a,W::nxt(oldr,pre,1,n),T::nxt,1,n);
+			}
+		}else{//ask
+			Q::mxnxt=b;
+			Q::ask(T::root[t],a,b,1,n);
+			printf("%lld\n",Q::info[T::root[t]].sum);
 		}
 	}
 }
