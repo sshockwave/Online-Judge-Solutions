@@ -42,7 +42,7 @@ int main(){
 	lint k;
 	x[0]=0,x[++m]=n;
 	while(tot--){
-		k=ni;
+		k=nl;
 		for(;x[m]>=k;m--);
 		x[++m]=k;
 	}
