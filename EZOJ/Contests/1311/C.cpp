@@ -60,6 +60,19 @@ namespace G{
 			}
 		}
 	}
+	void dfs2(int x,int e){
+		sum[x]=color[x];
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(i!=e){
+				v=to[i];
+				if(!((x==a&&v==b)||(x==b&&v==a))){
+					dfs2(v,i^1);
+					sum[x]+=sum[v];
+					diff[x]+=diff[v];
+				}
+			}
+		}
+	}
 	int c[N];
 	inline int work(){
 		int n=ni,m=ni;
@@ -84,15 +97,15 @@ namespace G{
 			return ans;
 		}
 		if(color[a]==color[b]){
-			if((sum[1]&1)||(sum[1]<-2)||(sum[1]>2)){
-				return -1;
-			}
 			int ans=0;
 			if(sum[1]){
+				if(sum[1]!=2&&sum[1]!=-2){
+					return -1;
+				}
 				ans=1;
 				color[a]-=sum[1]/2;
 				color[b]-=sum[1]/2;
-				dfs(1,-1);
+				dfs2(1,-1);
 			}
 			assert(sum[1]==0);
 			for(int i=2;i<=n;i++){
@@ -104,23 +117,22 @@ namespace G{
 				return -1;
 			}
 			diff[a]=1,diff[b]=-1;
-			memset(color+1,0,n<<2);
-			color[1]=1;
-			dfs(1,-1);
+			dfs2(1,-1);
 			int cs=0,ans=0;
-			for(int i=1;i<=n;i++){
+			assert(diff[1]==0&&sum[1]==0);
+			for(int i=2;i<=n;i++){
 				if(diff[i]){
 					c[cs++]=sum[i]*diff[i];
 				}else{
-					ans+=sum[i];
+					ans+=abs(sum[i]);
 				}
 			}
-			nth_element(c,c+(cs>>1)-1,c+cs);
-			int x=c[(cs>>1)-1];
+			nth_element(c,c+(cs>>1),c+cs);
+			int x=c[cs>>1];
 			for(int i=0;i<cs;i++){
 				ans+=abs(c[i]-x);
 			}
-			return ans;
+			return ans+abs(x);
 		}
 	}
 }
