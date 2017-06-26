@@ -37,7 +37,7 @@ namespace G{
 		for(int i=head[x];~i;i=bro[i]){
 			if((i&1)==0&&dfn[to[i]]==0){
 				con[to[i]]=i;
-				dfs(dfn[to[i]]);
+				dfs(to[i]);
 			}
 		}
 	}
@@ -86,7 +86,7 @@ namespace G{
 		for(int i=1;i<=n;i++){
 			idom[i]=sdom[i]=fa[i]=val[i]=i;
 		}
-		for(int _=tim;_>1;_--){
+		for(int _=tim;_>=1;_--){
 			int x=id[_];
 			for(int i=head[x];~i;i=bro[i]){
 				if(i&1){
@@ -94,7 +94,7 @@ namespace G{
 				}
 			}
 			B::work(x),B::ae(sdom[x],x);
-			fa[x]=to[con[x]^1];
+			val[x]=sdom[x],fa[x]=to[con[x]^1];
 		}
 		for(int _=1;_<=tim;_++){
 			int x=id[_];
@@ -134,6 +134,7 @@ namespace T{
 		cnt=e=0;
 		memset(head+1,-1,n<<2);
 		memset(mark,0,tot);
+		memset(vis+1,0,n);
 	}
 }
 int main(){
@@ -144,7 +145,7 @@ int main(){
 			G::add(u,v);
 		}
 		G::dominate(n);
-		for(int _=1;_<=G::tim;_++){
+		for(int _=2;_<=G::tim;_++){
 			int x=G::id[_];
 			T::ae(G::idom[x],x);
 		}
