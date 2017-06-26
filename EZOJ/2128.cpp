@@ -21,7 +21,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(b<a){a=b;}
 }
-const int N=200010;
+const int N=200010,INF=0x7f7f7f7f;
 namespace G{
 	const int E=N*2;
 	int to[E],bro[E],head[N],e;
@@ -35,7 +35,7 @@ namespace G{
 	void dfs(int x){
 		id[dfn[x]=++tim]=x;
 		for(int i=head[x];~i;i=bro[i]){
-			if((i&1)==0&&dfn[to[i]]==0){
+			if((i&1)==0&&dfn[to[i]]==INF){
 				con[to[i]]=i;
 				dfs(to[i]);
 			}
@@ -57,7 +57,7 @@ namespace G{
 		inline void ae(const int &u,const int &v){
 			to[e]=v,bro[e]=head[u],head[u]=e++;
 		}
-		inline void work(int);
+		inline void clr(int);
 	}
 	int fa[N],val[N];
 	int root(int x){
@@ -65,18 +65,20 @@ namespace G{
 			return x;
 		}
 		int rt=root(fa[x]);
-		apdfn(val[x],val[fa[x]]);
+		if(dfn[sdom[val[fa[x]]]]<dfn[sdom[val[x]]]){
+			val[x]=val[fa[x]];
+		}
 		return fa[x]=rt;
 	}
 	inline int eval(int x){
 		root(x);
 		return val[x];
 	}
-	inline void B::work(int x){
+	inline void B::clr(int x){
 		for(int i=head[x],v;~i;i=bro[i]){
 			v=to[i];
 			assert(sdom[v]==x);
-			idom[v]=x==eval(v)?x:val[v];
+			idom[v]=x==sdom[eval(v)]?x:val[v];
 			assert(eval(v)==val[v]);
 		}
 	}
@@ -88,13 +90,14 @@ namespace G{
 		}
 		for(int _=tim;_>=1;_--){
 			int x=id[_];
+			B::clr(x);
 			for(int i=head[x];~i;i=bro[i]){
 				if(i&1){
-					apdfn(sdom[x],eval(to[i]));
+					apdfn(sdom[x],sdom[eval(to[i])]);
 				}
 			}
-			B::work(x),B::ae(sdom[x],x);
-			val[x]=sdom[x],fa[x]=to[con[x]^1];
+			B::ae(sdom[x],x);
+			fa[x]=to[con[x]^1];
 		}
 		for(int _=1;_<=tim;_++){
 			int x=id[_];
@@ -106,7 +109,7 @@ namespace G{
 	inline void init(int n){
 		e=tim=0;
 		memset(head+1,-1,n<<2);
-		memset(dfn+1,0,n<<2);
+		memset(dfn+1,127,n<<2);
 		B::init(n);
 	}
 }
