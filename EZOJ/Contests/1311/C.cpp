@@ -99,10 +99,7 @@ namespace G{
 		if(color[a]==color[b]){
 			int ans=0;
 			if(sum[1]){
-				if(sum[1]!=2&&sum[1]!=-2){
-					return -1;
-				}
-				ans=1;
+				ans=abs(sum[1]/2);
 				color[a]-=sum[1]/2;
 				color[b]-=sum[1]/2;
 				dfs2(1,-1);
