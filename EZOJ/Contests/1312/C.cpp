@@ -51,7 +51,8 @@ inline int inv(const int &x){
 }
 int fac[N],invfac[N];
 inline int c(int n,int k){
-	if(k>n){
+	assert(n>=0);
+	if(k>n||k<0){
 		return 0;
 	}
 	return mul(fac[n],mul(invfac[k],invfac[n-k]));
@@ -68,7 +69,7 @@ inline int work(int n,int k){
 	{//00 11
 		int cur=0;
 		for(int t=n-4;t>=3;t-=2){
-			apadd(ans,mul(intcnt(3,m-1,(n-t)/2+1,n-1-t),c(n-t-3,k-(t+1)/2-1)));
+			apadd(cur,mul(intcnt(3,m-1,(n-t)/2+1,n-1-t),c(n-t-3,k-(t+1)/2-1)));
 		}
 		apadd(ans,mul(cur,2));
 	}
