@@ -175,7 +175,9 @@ namespace P{
 				return -1;
 			}
 			g[x]+=f[x];
-			ans+=g[x];
+			if(f[x]){
+				ans+=g[x];
+			}
 			for(int i=head[x];~i;i=bro[i]){
 				g[to[i]]+=g[x];
 			}
