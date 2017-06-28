@@ -25,6 +25,7 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 }
 const int n=ni,k=ni,N=10010,K=5,INF=0x7f7f7f7f;
 int col[N];
+bool vis[N];
 namespace T{
 	const int E=N*2;
 	int to[E],bro[E],head[N],e=0;
@@ -41,11 +42,11 @@ namespace T{
 	inline void dfs(int x,int e){
 		int *F=f[x];
 		F[0]=0,F[cmap[col[x]]]=1;
+		const static int tot=1<<k;
 		for(int i=head[x],v;~i;i=bro[i]){
 			if(i!=e){
 				dfs(v=to[i],i^1);
 				int *G=f[v];
-				const static int tot=1<<k;
 				for(int s=0;s<tot;s++){
 					for(int t=s;t;t=(t-1)&s){
 						if(F[t]<INF&&G[s^t]<INF){
@@ -55,11 +56,23 @@ namespace T{
 				}
 			}
 		}
+		for(int s=0;s<tot;s++){
+			for(int t=s;t;t=(t-1)&s){
+				apmin(F[t],F[s]);
+			}
+		}
+	}
+	inline bool gen(){
+		int s=0;
+		for(int i=1;i<=n;i++){
+			if(vis[i]){
+				s|=cmap[i]=1<<rand()%k;
+			}
+		}
+		return s+1==(1<<k);
 	}
 	inline int work(){
-		for(int i=1;i<=n;i++){
-			cmap[i]=1<<rand()%k;
-		}
+		while(!gen());
 		memset(f,127,sizeof(f));
 		dfs(1,-1);
 		int ans=INF;
@@ -71,14 +84,15 @@ namespace T{
 }
 int main(){
 	T::init();
+	memset(vis,0,sizeof(vis));
 	for(int i=1;i<=n;i++){
-		col[i]=ni;
+		vis[col[i]=ni]=true;
 	}
 	for(int i=1;i<n;i++){
 		T::add(ni,ni);
 	}
 	int ans=INF;
-	for(int tot=30;tot--;){
+	for(int tot=40;tot--;){
 		apmin(ans,T::work());
 	}
 	printf("%d\n",ans);
