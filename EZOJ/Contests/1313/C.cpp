@@ -3,13 +3,14 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <ctime>
 using namespace std;
 typedef long long lint;
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
 #define cout cerr
 #undef assert
-#define assert
+#define assert(x) {};
 template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
@@ -56,23 +57,43 @@ inline int _n1(lint n){
 	return mul(mul(n,n+1),rev2);
 }
 namespace MillerRabin{
-	inline void apmul(lint &a,const lint &b,const lint &p){
+	inline lint mul(lint a,const lint &b,const lint &p){
 		a=a*b-(lint)((double)a/p*b+0.5)*p;
-		if(a<0){
-			a+=p;
-		}
+		return a<0?a+p:a;
 	}
 	inline lint fpow(lint x,lint n,const lint &p=MOD){
 		lint ans=1;
-		for(;n;n>>=1,apmul(x,x,p)){
+		for(;n;n>>=1,x=mul(x,x,p)){
 			if(n&1){
-				apmul(ans,x,p);
+				ans=mul(ans,x,p);
 			}
 		}
 		return ans;
 	}
-	inline bool isp(lint p){//accurate only to 4034k-1
-		if(p==3493072871ll){
+	inline bool testi(int p){
+		if(p%3==0||p%5==0||p%7==0||p%11==0||p%13==0||p%17==0||p%19==0){
+			return false;
+		}
+		int n=p-1,cnt=0;
+		lint w=1,x=3;
+		for(;(n&1)==0;n>>=1,cnt++);
+		for(;n;n>>=1,(x*=x)%=p){
+			if(n&1){
+				(w*=x)%=p;
+			}
+		}
+		if(w==1){
+			return true;
+		}
+		for(;cnt--;w=mul(w,w,p)){
+			if(w==p-1){
+				return true;
+			}
+		}
+		return false;
+	}
+	inline bool testl(lint p){
+		if(p%3==0||p%5==0||p%7==0||p%11==0||p%13==0||p%17==0||p%19==0||p==3493072871ll){
 			return false;
 		}
 		lint n=p-1;
@@ -82,12 +103,15 @@ namespace MillerRabin{
 		if(n==1){
 			return true;
 		}
-		for(;cnt--;apmul(n,n,p)){
+		for(;cnt--;n=mul(n,n,p)){
 			if(n==p-1){
 				return true;
 			}
 		}
 		return false;
+	}
+	inline bool isp(lint p){//accurate only to 4034k-1
+		return p<=2147483647?testi(p):testl(p);
 	}
 }
 namespace sieve{
@@ -172,10 +196,7 @@ namespace G{
 			for(;i<=r;i+=gap);
 			for(lint _=n+1;i<=_;i+=gap){
 				if(MillerRabin::isp(i-1)){
-					assert(i%2017==0);
-					assert(id[gs]>=i-1);
 					for(;id[j]<i-1;j++);
-					assert(j<=gs);
 					apadd(f[j],(i-1)%MOD);
 				}
 			}
@@ -225,21 +246,23 @@ namespace F{
 		using namespace mapper;
 		using namespace sieve;
 		memset(tag,0,sizeof(tag));
-		for(int i=1;i<=gs;i++){
-			f[i]=1;
-		}
 		for(int i=ps,cur=prime[i];i>=1;cur=prime[--i]){
+			static lint pw[50]={1};
+			static int pwm[50]={1},wu[50]={1};
 			lint p2=(lint)cur*cur;
+			for(int j=0;pw[j]<=n;j++){
+				pw[j+1]=pw[j]*cur;
+				pwm[j+1]=pw[j+1]%MOD;
+				wu[j+1]=(wu[j]*cur+1)%p;
+			}
 			for(int j=gs;id[j]>=p2;j--){
 				if(!tag[j]){
-					assert(f[j]==1);
 					f[j]=getf(i+1,j);
 					tag[j]=true;
 				}
-				lint pw=cur;
-				for(int wu=(cur+1)%p;pw<=id[j];pw*=cur,wu=(wu*cur+1)%p){
-					if(wu){
-						apadd(f[j],mul(pw%MOD,getf(i+1,dfn(id[j]/pw))));
+				for(int k=1;pw[k]<=id[j];k++){
+					if(wu[k]){
+						apadd(f[j],mul(pwm[k],getf(i+1,dfn(id[j]/pw[k]))));
 					}
 				}
 			}
