@@ -24,7 +24,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(b<a){a=b;}
 }
-const int N=500010,D=30,SHIFT=32;
+const int N=500010,D=70,SHIFT=32;
 ull AND=(1ll<<SHIFT)-1;
 struct bigint{
 	int dtop;
