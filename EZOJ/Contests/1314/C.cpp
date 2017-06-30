@@ -6,8 +6,11 @@
 using namespace std;
 typedef long long lint;
 #define cout cerr
+#define int unsigned int
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
+#undef assert
+#define assert(x) {}
 template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
@@ -274,6 +277,7 @@ struct SegmentTree{
 inline SegmentTree* SegmentTree::nn(){
 	return pool++;
 }
+#undef int
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("data.in","r",stdin);
