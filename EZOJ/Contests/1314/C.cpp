@@ -97,6 +97,11 @@ inline mat operator * (const mat &a,const mat &b){
 }
 struct mapper{
 	int a[K];
+	inline void operator *= (const mapper &b){
+		for(int i=0;i<k;i++){
+			a[i]=b.a[a[i]];
+		}
+	}
 };
 struct SegmentTree{
 	typedef SegmentTree* node;
@@ -177,15 +182,23 @@ struct SegmentTree{
 		}
 	}
 	void map(int l,int r,const mapper &v){
-		down();
 		if(lend==l&&rend==r){
-			info*=m=v;
-			tagmap=true;
-			if(k==4&&(m.a[0]&1)){
+			if(tag0||tag2){
+				down();
+			}
+			info*=v;
+			if(tagmap){
+				m*=v;
+			}else{
+				tagmap=true;
+				m=v;
+			}
+			if(k==4&&(v.a[0]&1)){
 				info2*=(mapper){1,0,2,3};
 			}
 			return;
 		}
+		down();
 		if(r<=mid){
 			lson->map(l,r,v);
 		}else if(l>mid){
@@ -218,13 +231,22 @@ struct SegmentTree{
 	}
 	void pull(int l,int r){
 		assert(k==4);
-		down();
 		if(lend==l&&rend==r){
+			if(tag2){
+				set0(l,r);
+			}
+			if(tag0){
+				return;
+			}
+			if(tagmap){
+				down();
+			}
 			tag2=true;
 			info=info2,info2.init(0,r-l+1);
 			info*=(mapper){0,2,1,3};
 			return;
 		}
+		down();
 		if(r<=mid){
 			lson->pull(l,r);
 		}else if(l>mid){
