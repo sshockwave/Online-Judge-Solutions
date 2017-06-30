@@ -23,6 +23,9 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(b<a){a=b;}
 }
 const int N=30010,K=5,MOD=998244353;
+inline int gcd(const int &a,const int &b){
+	return b==0?a:gcd(b,a%b);
+}
 inline int add(const int &a,const int &b){
 	int ans=a+b;
 	if(ans>MOD){
@@ -56,7 +59,7 @@ struct vec{
 };
 struct mat{
 	int a[K][K];
-	inline void ini(){
+	inline void init(){
 		memset(a,0,sizeof(a));
 		for(int i=0;i<k;i++){
 			a[i][i]=1;
@@ -92,7 +95,9 @@ inline mat operator * (const mat &a,const mat &b){
 	}
 	return c;
 }
-int kmap[K];
+struct mapper{
+	int a[K];
+};
 struct SegmentTree{
 	typedef SegmentTree* node;
 	int lend,rend,mid;
@@ -100,26 +105,70 @@ struct SegmentTree{
 	struct Info{
 		vec ans;
 		mat trans;
+		inline void init(int t,int l){
+			ans.clr(),trans.init();
+			ans.a[t]=l;
+			for(int i=0;i<k;i++){
+				if(i!=t){
+					trans.a[i][t]=l;
+				}
+			}
+		}
 		inline friend Info operator + (const Info &a,const Info &b){
 			Info c;
 			c.ans=a.ans+(b.ans*a.trans);
 			c.trans=b.trans*a.trans;
 			return c;
 		}
-	}info;
+		inline void operator *= (const mapper &m){
+			static Info tmp;
+			for(int i=0;i<k;i++){
+				tmp.ans.a[m.a[i]]=ans.a[i];
+				for(int j=0;j<k;j++){
+					tmp.trans.a[m.a[i]][m.a[j]]=trans.a[i][j];
+				}
+			}
+			*this=tmp;
+		}
+	}info,info2;
+	mapper m;
+	bool tag0,tagmap,tag2;
 	inline node nn();
 	inline void up(){
 		assert(lend!=rend);
+		assert(!tag0&&!tagmap&&!tag2);
 		info=lson->info+rson->info;
+		if(k==4){
+			info2=lson->info2+rson->info2;
+		}
+	}
+	void down(){
+		if(lend==rend){
+			tag0=tagmap=tag2=false;
+		}else if(tag0){
+			assert(!tagmap&&!tag2);
+			lson->set0(lend,mid);
+			rson->set0(mid+1,rend);
+			tag0=false;
+		}else if(tagmap){
+			assert(!tag2);
+			lson->map(lend,mid,m);
+			rson->map(mid+1,rend,m);
+			tagmap=false;
+		}else if(tag2){
+			lson->pull(lend,mid);
+			rson->pull(mid+1,rend);
+			tag2=false;
+		}
 	}
 	void build(int l,int r){
 		lend=l,rend=r,mid=(l+r)>>1;
+		tag0=tagmap=tag2=false;
 		if(lend==rend){
-			info.ans.clr(),info.trans.ini();
 			int t=ni;
-			info.ans.a[t]=1;
-			for(int i=0;i<k;i++){
-				info.trans.a[i][t]=1;
+			info.init(t,1);
+			if(k==4){
+				info2.init(t&1,1);
 			}
 		}else{
 			(lson=nn())->build(l,mid);
@@ -127,12 +176,70 @@ struct SegmentTree{
 			up();
 		}
 	}
-	inline Info ask(int l,int r){
-		assert(l<=r);
-		assert(lend<=l&&r<=rend);
+	void map(int l,int r,const mapper &v){
+		down();
+		if(lend==l&&rend==r){
+			info*=m=v;
+			tagmap=true;
+			if(k==4&&(m.a[0]&1)){
+				info2*=(mapper){1,0,2,3};
+			}
+			return;
+		}
+		if(r<=mid){
+			lson->map(l,r,v);
+		}else if(l>mid){
+			rson->map(l,r,v);
+		}else{
+			lson->map(l,mid,v);
+			rson->map(mid+1,r,v);
+		}
+		up();
+	}
+	void set0(int l,int r){
+		if(lend==l&&rend==r){
+			tag0=true,tagmap=tag2=false;
+			info.init(0,r-l+1);
+			if(k==4){
+				info2.init(0,r-l+1);
+			}
+			return;
+		}
+		down();
+		if(r<=mid){
+			lson->set0(l,r);
+		}else if(l>mid){
+			rson->set0(l,r);
+		}else{
+			lson->set0(l,mid);
+			rson->set0(mid+1,r);
+		}
+		up();
+	}
+	void pull(int l,int r){
+		assert(k==4);
+		down();
+		if(lend==l&&rend==r){
+			tag2=true;
+			info=info2,info2.init(0,r-l+1);
+			info*=(mapper){0,2,1,3};
+			return;
+		}
+		if(r<=mid){
+			lson->pull(l,r);
+		}else if(l>mid){
+			rson->pull(l,r);
+		}else{
+			lson->pull(l,mid);
+			rson->pull(mid+1,r);
+		}
+		up();
+	}
+	Info ask(int l,int r){
 		if(lend==l&&rend==r){
 			return info;
 		}
+		down();
 		if(r<=mid){
 			return lson->ask(l,r);
 		}
@@ -141,150 +248,49 @@ struct SegmentTree{
 		}
 		return lson->ask(l,mid)+rson->ask(mid+1,r);
 	}
-	inline void apmul(int l,int r){
-		assert(l<=r);
-		assert(lend<=l&&r<=rend);
-		if(lend==rend){
-			int t;
-			for(int i=0;i<k;i++){
-				if(info.ans.a[i]){
-					t=kmap[i];
-					break;
-				}
-			}
-			info.ans.clr(),info.trans.ini();
-			info.ans.a[t]=1;
-			for(int i=0;i<k;i++){
-				info.trans.a[i][t]=1;
-			}
-			return;
-		}
-		if(r<=mid){
-			lson->apmul(l,r);
-		}else if(l>mid){
-			rson->apmul(l,r);
-		}else{
-			lson->apmul(l,mid);
-			rson->apmul(mid+1,r);
-		}
-		up();
-	}
-	inline void apadd(int l,int r){
-		assert(l<=r);
-		assert(lend<=l&&r<=rend);
-		if(lend==l&&rend==r){
-			Info nf=info;
-			for(int i=0;i<k;i++){
-				info.ans.a[kmap[i]]=nf.ans.a[i];
-			}
-			for(int i=0;i<k;i++){
-				for(int j=0;j<k;j++){
-					info.trans.a[kmap[i]][kmap[j]]=nf.trans.a[i][j];
-				}
-			}
-			return;
-		}
-		if(r<=mid){
-			lson->apadd(l,r);
-		}else if(l>mid){
-			rson->apadd(l,r);
-		}else{
-			lson->apadd(l,mid);
-			rson->apadd(mid+1,r);
-		}
-		up();
-	}
 }seg,pol[N*2],*pool;
 inline SegmentTree* SegmentTree::nn(){
 	return pool++;
 }
-namespace brute{
-	int a[N];
-	int kmap[K];
-	int nxt[N][K];
-	int f[N];
-	inline int calc(int l,int r){
-		int pos[K];
-		for(int i=0;i<k;i++){
-			pos[i]=r+1;
-		}
-		for(int i=r;i>=l;i--){
-			for(int j=0;j<k;j++){
-				nxt[i][j]=pos[j];
-			}
-			pos[a[i]]=i;
-		}
-		memset(f+l,0,(r-l+1)<<2);
-		for(int i=0;i<k;i++){
-			f[pos[i]]=1;
-		}
-		int ans=0;
-		for(int i=l;i<=r;i++){
-			apadd(ans,f[i]);
-			for(int j=0;j<k;j++){
-				apadd(f[nxt[i][j]],f[i]);
-			}
-		}
-		return ans;
-	}
-	inline void work(int n,int tot){
-		for(int i=1;i<=n;i++){
-			a[i]=ni;
-		}
-		while(tot--){
-			int t=ni,l=ni,r=ni;
-			if(t<=2){
-				int v=ni;
-				if(t==1){
-					for(int i=0;i<k;i++){
-						kmap[i]=(i+v)%k;
-					}
-				}else{
-					for(int i=0;i<k;i++){
-						kmap[i]=(i*v)%k;
-					}
-				}
-				for(int i=l;i<=r;i++){
-					a[i]=kmap[a[i]];
-				}
-			}else{
-				printf("%d\n",calc(l,r));
-			}
-		}
-	}
-}
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("data1.in","r",stdin);
+	freopen("data.in","r",stdin);
 	freopen("data.out","w",stdout);
 #endif
 	for(int tot=ni,n,tot2;tot--;){
 		n=ni,k=ni,tot2=ni;
-		if(n<=3010){
-			brute::work(n,tot2);
-			continue;
-		}
 		pool=pol;
 		seg.build(1,n);
 		while(tot2--){
 			int t=ni,l=ni,r=ni;
 			if(t==1){
 				int v=ni;
-				for(int i=0;i<k;i++){
-					kmap[i]=(i+v)%k;
+				if(v==0){
+					continue;
 				}
-				seg.apadd(l,r);
+				mapper m;
+				for(int i=0;i<k;i++){
+					m.a[i]=(i+v)%k;
+				}
+				seg.map(l,r,m);
 			}else if(t==2){
 				int v=ni;
-				for(int i=0;i<k;i++){
-					kmap[i]=(i*v)%k;
+				if(v==0){
+					seg.set0(l,r);
+				}else if(v==2&&k==4){
+					seg.pull(l,r);
+				}else if(v!=1){
+					assert(gcd(v,k)==1);
+					mapper m;
+					for(int i=0;i<k;i++){
+						m.a[i]=(i*v)%k;
+					}
+					seg.map(l,r,m);
 				}
-				seg.apmul(l,r);
 			}else{
 				assert(t==3);
 				printf("%d\n",seg.ask(l,r).ans.sum());
 			}
 		}
-		cout<<" ";
 	}
 }
