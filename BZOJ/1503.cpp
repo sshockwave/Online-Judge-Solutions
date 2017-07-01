@@ -93,16 +93,13 @@ namespace T{
 	}
 }
 int main(){
-	srand(1333);
-	//srand(time(0));
+	srand(2344553);
 	int cnt=0;
 	for(int tot=ni,mn=ni,delta=0,val;tot--;){//real=val+delta
 		switch(nc()){
 			case 'I':
 				val=ni;
-				if(val<mn){
-					cnt++;
-				}else{
+				if(val>=mn){
 					T::insert(val-delta);
 				}
 				break;
