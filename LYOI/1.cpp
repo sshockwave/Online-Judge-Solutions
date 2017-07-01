@@ -23,5 +23,7 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(b<a){a=b;}
 }
 int main(){
+	freopen("ab.in","r",stdin);
+	freopen("ab.out","w",stdout);
 	printf("%d\n",ni-ni);
 }
