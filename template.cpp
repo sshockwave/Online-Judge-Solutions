@@ -5,6 +5,7 @@
 #include <cctype>
 using namespace std;
 typedef long long lint;
+#define cout cerr
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
 template<class T>inline T next_num(){
@@ -22,5 +23,4 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(b<a){a=b;}
 }
 int main(){
-	
 }
