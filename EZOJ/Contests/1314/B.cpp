@@ -3,8 +3,10 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <ctime>
 using namespace std;
 typedef long long lint;
+typedef unsigned long long ull;
 #define cout cerr
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
@@ -109,15 +111,17 @@ int main(){
 	memset(g,0,sizeof(g));
 	memset(x,0,sizeof(x));
 	x[1]=1,ntt(x,sh,0);
-	f[0][0]=1,ntt(f[0],sh,0);
-	memcpy(f[1],f[0],sizeof(f[0]));
-	for(int i=1;i<=n;i++){
-		for(int k=1;k<i;k++){
-			for(int j=0;j<sn;j++){
-				apadd(f[i][j],mul(f[i-k][j],g[k][j]));
-				apadd(g[i][j],mul(g[i-k][j],add(f[k][j],g[k][j])));
-				apadd(g[i][j],mul(mul(f[i-k][j],f[k][j]),x[j]));
+	for(int i=0;i<sn;i++){
+		f[0][i]=f[1][i]=1;
+	}
+	for(int i=2;i<=n;i++){
+		for(int j=0;j<sn;j++){
+			ull F=0,G=0;
+			for(int k=1;k<i;k++){
+				F+=(ull)f[i-k][j]*g[k][j]%MOD;
+				G+=((ull)g[i-k][j]*(f[k][j]+g[k][j])+(ull)f[i-k][j]*f[k][j]%MOD*x[j])%MOD;
 			}
+			f[i][j]=F%MOD,g[i][j]=G%MOD;
 		}
 	}
 	for(int i=1;i<=n;i++){
