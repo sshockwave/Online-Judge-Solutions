@@ -5,6 +5,7 @@
 #include <cctype>
 using namespace std;
 typedef long long lint;
+#define cout cerr
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
 template<class T>inline T next_num(){
@@ -22,7 +23,22 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 	if(b<a){a=b;}
 }
 const int N=510,MOD=998244353;
-int f[N][N][2];
+template<class T>inline int mod(const T &x){
+	return x>=MOD?x%MOD:x;
+}
+inline int add(const int &a,const int &b){
+	return mod(a+b);
+}
+inline int sub(const int &a,const int &b){
+	return add(a,MOD-b);
+}
+inline int mul(const int &a,const int &b){
+	return mod((lint)a*b);
+}
+inline void apadd(int &a,const int &b){
+	a=add(a,b);
+}
+int f[N][N],g[N][N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("tree.in","r",stdin);
@@ -30,20 +46,24 @@ int main(){
 #endif
 	int n=ni;
 	memset(f,0,sizeof(f));
-	f[1][0][0]=f[1][1][1]=1;
-	for(int i=1;i<n;i++){//max subtree size
-		for(int j=i+1;j<=n;j++){
-			for(int k=0;k<j;k++){
-				for(int l=0;l<=k;l++){
-					apadd(f[j][k][0],add(add(f[j-i][k-l][0],f[i][l][0]),f[i][l][1]));
-					apadd(f[j][k][1],add(f[j-i][k-l][0],f[i][l][0]));
+	memset(g,0,sizeof(g));
+	f[0][0]=f[1][0]=1;
+	for(int i=1;i<=n;i++){
+		for(int j=0,_=i/2;j<=_;j++){
+			for(int k=1;k<i;k++){//last subtree
+				for(int l=0;l<=j;l++){//contribute from last subtree
+					apadd(f[i][j],mul(f[i-k][j-l],g[k][l]));
+					apadd(g[i][j],mul(g[i-k][j-l],add(f[k][l],g[k][l])));
+					if(l){
+						apadd(g[i][j],mul(f[i-k][j-l],f[k][l-1]));
+					}
 				}
 			}
 		}
 	}
 	for(int i=1;i<=n;i++){
 		for(int j=0;j<=n;j++){
-			printf("%d ",f[i][j][0]+f[i][j][1]);
+			printf("%d ",add(f[i][i-j],g[i][i-j]));
 		}
 		putchar('\n');
 	}
