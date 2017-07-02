@@ -27,7 +27,7 @@ struct Node{
 	}
 }null=(Node){&null,&null,0},*root[N]={&null};
 inline Node* nn(Node *x=&null){
-	static Node *n=new Node[N];
+	static Node *n=new Node[N*logN];
 	return *n=*x,n++;
 }
 void ins(Node* &x,Node *pt){
@@ -39,7 +39,7 @@ void ins(Node* &x,Node *pt){
 		x->size++,x->sum=F(x->pre[x->lson->size],x->rson->sum);
 	}
 }
-inline Data ask(Node *x,int kth){//from right
+Data ask(Node *x,int kth){//from right
 	if(kth<=x->rson->size){
 		return ask(x->rson,kth);
 	}
