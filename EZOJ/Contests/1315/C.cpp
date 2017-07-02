@@ -53,6 +53,7 @@ int ins(int x,int p,const Data &v,int l=1,int r=N-1){
 		rson(x)=ins(rson(x),p,v,mid+1,r);
 		val[x]=F(val[lson(x)],val[rson(x)]);
 	}
+	return x;
 }
 Data ask(int x,int l,int r,int lend=1,int rend=N-1){
 	if(lend==l&&rend==r){
