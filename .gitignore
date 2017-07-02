@@ -1,5 +1,9 @@
-*
-
-!*.cpp
-
-!*.md
+*.exe
+*.in
+*.out
+$RECYCLE.BIN/ 
+*.ans
+*.data.cpp
+*.brute.cpp
+*.bat
+*.sh
