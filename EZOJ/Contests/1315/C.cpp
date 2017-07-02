@@ -6,87 +6,70 @@
 #include "oath.h"
 using namespace std;
 typedef long long lint;
-#define ni (next_num<int>())
-#define nl (next_num<lint>())
-template<class T>inline T next_num(){
-	T i=0;char c;
-	while(!isdigit(c=getchar())&&c!='-');
-	bool flag=c=='-';
-	flag?(c=getchar()):0;
-	while(i=i*10-'0'+c,isdigit(c=getchar()));
-	return flag?-i:i;
-}
-template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
-	if(b<a){a=b;}
-}
-template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
-	if(a<b){a=b;}
-}
-const int N=300010,D=N*2;
-int tim=0;
-#define lson(x) son[x][0]
-#define rson(x) son[x][1]
-int son[D][2],tag[D],nn=0;
-Data val[D];
-int root[N],last[N],len[N];
-inline int renew(int x){
-	if(tag[x]<tim){
-		nn++;
-		lson(nn)=lson(x),rson(nn)=rson(x);
-		val[nn]=val[x];
-		tag[nn]=tim;
-		x=nn;
+const int N=300010,logN=20;
+struct Node{
+	Node *lson,*rson;
+	int size;
+	Data val,sum,*pre;
+	void push(Data arr[]){
+		if(size==0){
+			return;
+		}
+		rson->push(arr);
+		arr+=rson->size;
+		arr[1]=F(arr[0],val);
+		lson->push(arr+1);
 	}
-	return x;
-}
-int ins(int x,int p,const Data &v,int l=1,int r=N-1){
-	x=renew(x);
-	if(l==r){
-		val[x]=v;
-		return x;
+	inline void init(){
+		static Data *pool=new Data[N*logN];
+		pre=pool,pool+=size;
+		*pre=val,lson->push(pre),sum=pre[lson->size];
 	}
-	int mid=(l+r)>>1;
-	if(p<=mid){
-		lson(x)=ins(lson(x),p,v,l,mid);
-		val[x]=val[lson(x)];
+}null=(Node){&null,&null,0},*root[N]={&null};
+inline Node* nn(Node *x=&null){
+	static Node *n=new Node[N];
+	return *n=*x,n++;
+}
+void ins(Node* &x,Node *pt){
+	if(x->lson->size==x->rson->size){
+		pt->lson=x,pt->size=x->size+1;
+		pt->init(),x=pt;
 	}else{
-		rson(x)=ins(rson(x),p,v,mid+1,r);
-		val[x]=F(val[lson(x)],val[rson(x)]);
+		ins((x=nn(x))->rson,pt);
+		x->size++,x->sum=F(x->pre[x->lson->size],x->rson->sum);
 	}
-	return x;
 }
-Data ask(int x,int l,int r,int lend=1,int rend=N-1){
-	if(lend==l&&rend==r){
-		return val[x];
+inline Data ask(Node *x,int kth){//from right
+	if(kth<=x->rson->size){
+		return ask(x->rson,kth);
 	}
-	int mid=(lend+rend)>>1;
-	if(r<=mid){
-		return ask(lson(x),l,r,lend,mid);
-	}else if(l>mid){
-		return ask(rson(x),l,r,mid+1,rend);
+	if(x->rson->size){
+		return F(x->rson->sum,x->pre[kth-x->rson->size-1]);
 	}else{
-		return F(ask(lson(x),l,mid,lend,mid),ask(rson(x),mid+1,r,mid+1,rend));
+		return x->pre[kth-1];
 	}
 }
+int last[N][logN],tim=0;
 void Init(){
-	memset(tag,0,sizeof(tag));
-	memset(son,0,sizeof(son));
-	memset(val,0,sizeof(val));
-	memset(root,0,sizeof(root));
 	memset(last,0,sizeof(last));
-	memset(len,0,sizeof(len));
 }
 void Add_element(int id, Data x){
-	last[++tim]=id;
-	len[tim]=len[id]+1;
-	root[tim]=ins(root[id],len[tim],x);
+	last[++tim][0]=id;
+	for(int j=0;last[tim][j+1]=last[last[tim][j]][j];j++);
+	Node *pt=nn();
+	pt->val=x;
+	ins(root[tim]=root[id],pt);
 }
 void Del_element(int id){
-	id=last[id];
-	root[++tim]=root[id];
-	last[tim]=last[id];
-	len[tim]=len[id];
+	tim++,id=last[id][0];
+	memcpy(last[tim],last[id],sizeof(last[id]));
+	root[tim]=root[id];
 }
 Data Query_range(int id,int l,int r){
-	return ask(root[id],l,r);
+	for(int j=0,diff=root[id]->size-r;root[id]->size!=r;j++){
+		if((diff>>j)&1){
+			id=last[id][j];
+		}
+	}
+	return ask(root[id],r-l+1);
 }
