@@ -162,7 +162,7 @@ int work(int a,int b){
 }
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("name1.in","r",stdin);
+	freopen("name.in","r",stdin);
 	freopen("name.out","w",stdout);
 #endif
 	int n=ni;
@@ -179,7 +179,7 @@ int main(){
 		eve[es++]=(Event){l,i,1};
 		eve[es++]=(Event){r+1,i,-1};
 	}
-	sort(eve,eve+es),sort(id+1,id+n+1,idcmp);
+	sort(eve,eve+es),sort(id+1,id+m+1,idcmp);
 	seg.build(1,m,id);
 	lint ans=0;
 	for(int i=1,j=0;i<=n;i++){
