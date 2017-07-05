@@ -24,25 +24,20 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 	if(a<b){a=b;}
 }
-const int N=100010,NN=1000010;
-struct Edge{
-	int u,v,w;
-}e[N];
-int mu[NN],prime[NN],mnp[NN],ps=0;
-bool np[NN];
+const int N=100010,Q=110,W=1000010;
+int mu[W],prime[W],mnp[W],ps=0;
+bool np[W];
 inline void sieve(){
 	memset(np,0,sizeof(np));
-	for(int i=2;i<NN;i++){
+	for(int i=2;i<W;i++){
 		if(!np[i]){
 			prime[ps++]=i;
 			mu[i]=-1;
 			mnp[i]=i;
 		}
-		assert(mnp[i]);
-		for(int j=0,cur=2;j<ps&&i*cur<NN;cur=prime[++j]){
+		for(int j=0,cur=2;j<ps&&i*cur<W;cur=prime[++j]){
 			np[i*cur]=true;
 			mnp[i*cur]=cur;
-			assert(cur);
 			if(i%cur==0){
 				mu[i*cur]=0;
 				break;
@@ -52,77 +47,134 @@ inline void sieve(){
 		}
 	}
 }
-lint lastans[NN],ans=0;
-namespace unifind{
-	int fa[N],tag[N],size[N],tim=0;
+struct Edge{
+	int u,v,w;
+	vector<int>vec;
+	inline void fact(){
+		vec.push_back(1);
+		for(int x=w,p;x!=1;){
+			p=mnp[x];
+			while(x/=p,x%p==0);
+			for(int i=0,n=vec.size();i<n;i++){
+				vec.push_back(vec[i]*p);
+			}
+		}
+	}
+}e[N+Q];
+struct Query{
+	int k,x;
+	lint ans;
+	inline void ae(const set<int>&s);
+}q[Q];
+struct Node{
+	int fa,size,dep,tag;
+};
+namespace uni1{
+	Node node[N];
+	int tim=0;
+	inline void reset(int x){
+		if(node[x].tag<tim){
+			node[x]=(Node){0,1,0,tim};
+		}
+	}
+	inline Node getnode(int x){
+		return reset(x),node[x];
+	}
 	int root(int x){
-		if(tag[x]<tim||fa[x]==x){
+		reset(x);
+		if(node[x].fa==0){
 			return x;
 		}
-		return fa[x]=root(fa[x]);
+		return node[x].fa=root(node[x].fa);
 	}
-	inline lint work(const set<int>&s){
+	inline void uni(int u,int v){
+		if(node[u].dep<node[v].dep){
+			swap(u,v);
+		}
+		node[v].fa=u;
+		node[u].size+=node[v].size;
+		if(node[u].dep==node[v].dep){
+			node[u].dep++;
+		}
+	}
+	inline lint solve(const vector<int>&g){
 		tim++;
 		lint ans=0;
-		for(set<int>::iterator it=s.begin();it!=s.end();it++){
-			int u=root(e[*it].u),v=root(e[*it].v);
-			if(tag[u]<tim){
-				tag[u]=tim,fa[u]=u,size[u]=1;
-			}
-			if(tag[v]<tim){
-				tag[v]=tim,fa[v]=v,size[v]=1;
-			}
-			ans+=(lint)size[u]*size[v];
-			if(size[v]>size[u]){
-				swap(u,v);
-			}
-			fa[v]=u,size[u]+=size[v];
+		for(int i=0,n=g.size();i<n;i++){
+			int u=root(e[g[i]].u),v=root(e[g[i]].v);
+			ans+=(lint)node[u].size*node[v].size;
+			uni(u,v);
 		}
 		return ans;
 	}
 }
-set<int>s[NN];
-int mx=0;
-vector<int>vec;
-inline void tear(int cur){
-	vec.clear(),vec.push_back(1);
-	while(cur!=1){
-		int p=mnp[cur];
-		assert(p);
-		for(;cur%p==0;cur/=p);
-		for(int i=0,tn=vec.size();i<tn;i++){
-			vec.push_back(vec[i]*p);
+namespace uni2{
+	Node node[N];
+	int tim=0;
+	int root(int x){
+		if(node[x].tag<tim){
+			node[x]=uni1::getnode(x);
+			node[x].tag=tim;
+		}
+		if(node[x].fa==0){
+			return x;
+		}
+		return node[x].fa=root(node[x].fa);
+	}
+	inline void uni(int u,int v){
+		if(node[u].dep<node[v].dep){
+			swap(u,v);
+		}
+		node[v].fa=u;
+		node[u].size+=node[v].size;
+		if(node[u].dep==node[v].dep){
+			node[u].dep++;
+		}
+	}
+	inline lint solve(const vector<int>&g){
+		tim++;
+		lint ans=0;
+		for(int i=0,n=g.size();i<n;i++){
+			int u=root(e[g[i]].u),v=root(e[g[i]].v);
+			ans+=(lint)node[u].size*node[v].size;
+			uni(u,v);
+		}
+		return ans;
+	}
+	struct Graph{
+		Query *q;
+		vector<int>e;
+		inline lint run();
+	};
+	vector<Graph>g[W];
+	inline void work(){
+		for(int i=2;i<W;i++){
+			if(!g[i].empty()){
+				lint ans=uni1::solve(g[i][0].e);
+				for(int j=1,tn=g[i].size();j<tn;j++){
+					g[i][j].q->ans+=(solve(g[i][j].e)+ans)*mu[i];
+				}
+			}
 		}
 	}
 }
-inline void ins(int id,int cur){
-	tear(cur);
-	for(int i=1,tn=vec.size();i<tn;i++){
-		assert(vec[i]!=1);
-		s[vec[i]].insert(id);
+inline void pushe(int w,Query *q,int e){
+	using namespace uni2;
+	int x=g[w].size();
+	if(g[w][x-1].q!=q){
+		g[w].push_back(Graph());
+		g[w][x].q=q;
+	}else{
+		x--;
 	}
-	apmax(mx,vec[vec.size()-1]);
+	g[w][x].e.push_back(e);
 }
-inline void dins(int id,int cur){
-	tear(cur);
-	for(int i=1,tn=vec.size();i<tn;i++){
-		assert(vec[i]!=1);
-		int x=vec[i];
-		ans-=lastans[x];
-		s[x].insert(id);
-		lastans[x]=unifind::work(s[x])*mu[x];
-		ans+=lastans[x];
-	}
-}
-inline void ddel(int id,int cur){
-	tear(cur);
-	for(int i=1,tn=vec.size();i<tn;i++){
-		assert(vec[i]!=1);
-		int x=vec[i];
-		ans-=lastans[x];
-		s[x].erase(id);
-		lastans[x]=unifind::work(s[x])*mu[x];
-		ans+=lastans[x];
+inline void ae(Query *q,const set<int>&s){
+	for(set<int>::iterator it=s.begin(),ed=s.end();it!=s.end();it++){
+		vector<int>&vec=e[*it].vec;
+		for(int i=1,n=vec.size();i<n;i++){
+			pushe(vec[i],q,*it);
+		}
 	}
 }
 int main(){
@@ -132,23 +184,39 @@ int main(){
 #endif
 	sieve();
 	int n=ni;
+	static int last[N];
 	for(int i=1;i<n;i++){
 		e[i]=(Edge){ni,ni,ni};
-		ins(i,e[i].w);
+		last[i]=i;
 	}
-	memset(lastans,0,sizeof(lastans));
-	ans=(lint)n*(n-1)/2;
-	for(int i=2;i<=mx;i++){
-		if(!s[i].empty()){
-			lastans[i]=unifind::work(s[i])*mu[i];
-			ans+=lastans[i];
+	static bool vis[N+Q];
+	memset(vis,0,sizeof(vis));
+	int tot=ni,es=n;
+	for(int i=1;i<=tot;i++){
+		q[i]=(Query){ni,ni};
+		vis[q[i].k]=vis[n+i-1]=true;
+		e[es]=e[q[i].k];
+		e[es].w=q[i].x;
+		e[es].fact();
+	}
+	set<int>s,ini;
+	for(int i=1;i<n;i++){
+		if(vis[i]){
+			s.insert(i);
+		}else{
+			ini.insert(i);
 		}
 	}
-	printf("%lld\n",ans);
-	for(int tot=ni;tot--;){
-		int k=ni,x=ni;
-		ddel(k,e[k].w),dins(k,x);
-		e[k].w=x;
-		printf("%lld\n",ans);
+	ae(0,ini),ae(q,s);
+	for(int i=1;i<=tot;i++){
+		s.erase(last[q[i].k]);
+		s.insert(n-i+1);
+		last[q[i].k]=n-i+1;
+		ae(q+i,s);
+	}
+	uni2::work();
+	lint a1=(lint)n*(n-1)>>1;
+	for(int i=0;i<=tot;i++){
+		printf("%lld\n",q[i].ans+a1);
 	}
 }
