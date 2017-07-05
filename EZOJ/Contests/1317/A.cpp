@@ -44,7 +44,7 @@ int main(){
 #endif
 	int n=ni;
 	for(int i=0;i<n;i++){
-		a[i]=ni;
+		a[i]=nl;
 	}
 	solve(a,n);
 	for(int i=0;i<n;i++){
