@@ -3,11 +3,10 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <complex>
-#include <cmath>
+#include <ctime>
 using namespace std;
 typedef long long lint;
-typedef long double ld;
+#define cout cerr
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
 template<class T>inline T next_num(){
@@ -35,9 +34,6 @@ inline int mod(const lint &x){
 inline int add(const int &a,const int &b){
 	return mod(a+b);
 }
-inline int sub(const int &a,const int &b){
-	return add(a,MOD-b);
-}
 inline int mul(const int &a,const int &b){
 	return mod((lint)a*b);
 }
@@ -47,19 +43,7 @@ inline int sqr(const int &x){
 inline void apadd(int &a,const int &b){
 	a=add(a,b);
 }
-inline void apmul(int &a,const int &b){
-	a=mul(a,b);
-}
-inline int fpow(int x,int n){
-	int ans=1;
-	for(;n;n>>=1,apmul(x,x)){
-		if(n&1){
-			apmul(ans,x);
-		}
-	}
-	return ans;
-}
-int f[N],g[N][N];
+int g[N][N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("icefall.in","r",stdin);
@@ -68,19 +52,10 @@ int main(){
 	for(int tot=ni;tot--;){
 		int n=ni;
 		MOD=ni;
-		memset(f,0,sizeof(f));
-		int pow2=1;
-		for(int i=1;i<=n;i++){
-			f[i]=pow2;
-			apmul(pow2,2);
-		}
-		memset(g,0,sizeof(g));
 		g[0][0]=1;
 		for(int i=1;i<=n;i++){
 			for(int j=i;j<=n;j++){
-				for(int k=i-1;k<j;k++){
-					apadd(g[i][j],mul(mul(g[i-1][k],f[j-k]),k+1));
-				}
+				g[i][j]=add(mul(2,g[i][j-1]),mul(j,g[i-1][j-1]));
 			}
 		}
 		int ans=0;
