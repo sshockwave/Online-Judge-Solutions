@@ -3,9 +3,10 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <map>
 using namespace std;
 typedef long long lint;
+typedef unsigned int uint;
+#define cout cerr
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
 template<class T>inline T next_num(){
@@ -16,83 +17,101 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
+template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
+	if(b<a){a=b;}
+}
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 	if(a<b){a=b;}
 }
-template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
-	if(a>b){a=b;}
+const int N=5010;
+uint prime[N],ps=0;
+bool np[N];
+uint mu[N],_mu[N][N],R[N],mnp[N],lnk[N];
+inline uint getR(int n){
+	uint ans=0;
+	for(int l=1,x,r;l<=n;l=r+1){
+		x=n/l,r=n/x;
+		ans+=x*(r-l+1);
+	}
+	return ans;
 }
-const int N=2010,MOD=(1u<<31)-1;
-inline int add(const int &a,const int &b){
-	return (a+b)&MOD;
-}
-inline int mul(const int &a,const int &b){
-	return (lint)a*b&MOD;
-}
-inline void apadd(int &a,const int &b){
-	a=add(a,b);
-}
-struct State{
-	int a,b,c,p;//sorted
-	State(int _a,int _b,int _c,int _p):a(_a),b(_b),c(_c),p(_p){}
-	inline friend bool operator < (const State &a,const State &b){
-		if(a.a==b.a){
-			if(a.b==b.b){
-				if(a.c==b.c){
-					return a.p<b.p;
-				}
-				return a.c<b.c;
-			}
-			return a.b<b.b;
+inline void sieve(uint n){
+	memset(np,0,sizeof(np));
+	mu[1]=R[1]=1;
+	for(uint i=2;i<=n;i++){
+		if(!np[i]){
+			prime[ps++]=i;
+			mnp[i]=i,mu[i]=-1,lnk[i]=1;
 		}
-		return a.a<b.a;
-	}
-};
-int nxt[N];//todo
-int dfs(int a,int b,int c,int p){
-	if(a>b){
-		swap(a,b);
-	}
-	if(b>c){
-		swap(b,c);
-	}
-	if(a>b){
-		swap(a,b);
-	}
-	if(c<p){
-		return 1;
-	}
-	static map<State,int>cache;
-	map<State,int>::iterator it=cache.find(State(a,b,c,p));
-	if(it!=cache.end()){
-		return it->second;
-	}
-	int ans=0;
-	for(int i=0,_a=a;_a;i++,_a/=p){
-		for(int j=0,_b=b;_b;j++,_b/=p){
-			for(int k=0,_c=c;_c;k++,_c/=p){
-				apadd(ans,mul(dfs(_a,_b,_c,nxt[p]),i+j+k+1));
+		R[i]=getR(i);
+		for(uint j=0,cur=2,num=i<<1;j<ps&&num<=n;num=i*(cur=prime[++j])){
+			np[num]=true,mnp[num]=cur;
+			if(i%cur==0){
+				mu[num]=0,lnk[num]=lnk[i];
+				break;
+			}else{
+				mu[num]=-mu[i],lnk[num]=i;
 			}
 		}
 	}
-	return cache[State(a,b,c,p)]=ans;
-}
-inline bool isprime(int n){
-	for(int i=2;i*i<=n;i++){
-		if(n%i==0){
-			return false;
+	for(uint i=1;i<=n;i++){
+		_mu[i][1]=mu[i];
+		for(uint j=2;i*j<=n;j++){
+			_mu[i][j]=_mu[i][j-1]+mu[i*j];
 		}
 	}
-	return true;
+}
+uint A,B,C;
+uint vec[32];
+inline uint fact(int x){
+	int qt=0;
+	vec[qt++]=1;
+	for(;x!=1;x=lnk[x]){
+		for(int i=0,p=mnp[x],tn=qt;i<tn;i++){
+			vec[qt++]=vec[i]*p;
+		}
+	}
+	return qt;
+}
+inline uint F(int n,int x){
+	uint ans=0;
+	for(int i=0,tn=fact(x);i<tn;i++){
+		ans+=mu[vec[i]]*R[n/vec[i]];
+	}
+	return ans;
+}
+inline uint G(uint B,uint C,uint i,uint d){
+	uint ans=0;
+	for(uint l=1,x1,x2,r;l<=B;l=r+1){
+		x1=B/l,x2=C/l,r=min(B/x1,C/x2);
+		ans+=(_mu[d][r]-_mu[d][l-1])*F(x1,i)*F(x2,i);
+	}
+	return ans;
+}
+uint gcd(uint a,uint b){
+	return b==0?a:gcd(b,a%b);
+}
+inline uint H(int i){
+	uint ans=0;
+	for(int j=0,tn=fact(i);j<tn;j++){
+		ans+=G(B/vec[j],C/vec[j],i,vec[j])*mu[vec[j]];
+	}
+	return ans;
+}
+inline void sortabc(){
+	if(A>B){swap(A,B);}
+	if(B>C){swap(B,C);}
+	if(A>B){swap(A,B);}
 }
 int main(){
-	int last=N;
-	for(int i=N-1;i>1;i--){
-		if(isprime(i)){
-			nxt[i]=last;
-			last=i;
-		}
+#ifndef ONLINE_JUDGE
+	freopen("skyfall.in","r",stdin);
+	freopen("skyfall.out","w",stdout);
+#endif
+	A=ni,B=ni,C=ni,sortabc(),sieve(C);
+	uint ans=0;
+	for(uint i=1;i<=A;i++){
+		ans+=A/i*H(i);
 	}
-	int a=ni,b=ni,c=ni;
-	printf("%d\n",dfs(a,b,c,2));
+	printf("%u\n",ans&((1<<30)-1));
 }
