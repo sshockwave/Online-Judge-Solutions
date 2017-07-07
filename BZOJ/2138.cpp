@@ -102,7 +102,7 @@ struct SegmentTree{
 	}
 	void addf(int l,int r,int d){
 		if(lend==l&&rend==r){
-			df+=d;
+			f+=d,df+=d;
 			return;
 		}
 		down();
@@ -118,7 +118,7 @@ struct SegmentTree{
 	}
 	void addg(int l,int r,int d){
 		if(lend==l&&rend==r){
-			dg+=d;
+			g+=d,dg+=d;
 			return;
 		}
 		down();
@@ -133,12 +133,14 @@ struct SegmentTree{
 		up();
 	}
 }seg;
+int f[N],g[N];
 inline int work(int mx){
 	int l=ni,r=ni;
 	int t=seg.ming(r,n);
 	if(l>1){
-		t-=seg.maxf(1,l-1);
+		t-=max(seg.maxf(1,l-1),0);
 	}
+	assert(t>=0);
 	apmin(t,mx);
 	seg.addf(l,n,-t);
 	seg.addg(r,n,-t);
