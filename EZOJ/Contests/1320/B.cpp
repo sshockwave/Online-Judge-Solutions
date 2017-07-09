@@ -98,10 +98,10 @@ struct SegmentTree{
 			}
 			{//copy b
 				bl=l.bl,br=r.br;
-				if(l.r2l){
+				if(l.l2r){
 					apmax(bl,r.bl);
 				}
-				if(r.l2r){
+				if(r.r2l){
 					apmax(br,l.br);
 				}
 			}
@@ -169,7 +169,7 @@ struct SegmentTree{
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("emerald.in","r",stdin);
-	freopen("emerald.out","w",stdin);
+	freopen("emerald.out","w",stdout);
 #endif
 	int n=ni,tot=ni;
 	for(int i=1;i<=n;i++){
@@ -182,8 +182,8 @@ int main(){
 		if(op=='U'){
 			val[x]=y;
 			seg.upd(x);
-		}else{
-			seg.rev(x,y);
+		}else if(x<y){
+			seg.rev(x,y-1);
 		}
 		printf("%d\n",seg.cur->ans);
 	}
