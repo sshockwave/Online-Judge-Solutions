@@ -63,6 +63,7 @@ struct Matrix{
 			static Matrix id=(Matrix){1,0,0,0,1,0,0,0,1};
 			tmp=*this;
 			*this=id;
+			return;
 		}
 		*this^=n>>1;
 		*this=(*this)*(*this);
@@ -124,46 +125,43 @@ inline int bsgs(Vector vec){
 	}
 	return -1;
 }
-int cnt[2],a[P],as,loop;
+int a[P],as,loop;
 inline int bitchop(int n){
 	int l=0,r=as+1,mid;
 	while(l<r){
-		mid=(l+r)>>1;
+		mid=((l+r)>>1)+1;
 		if(a[mid]>n){
-			l=mid+1;
+			r=mid-1;
 		}else{
-			r=mid;
+			l=mid;
 		}
 	}
 	return l;
 }
 inline lint calc(lint n){
-	if(n<2){
-		return cnt[n];
-	}
-	n--;
-	return (n/loop)*a[as]+bitchop(n%loop)+cnt[1];
+	return (n/loop)*as+bitchop(n%loop);
 }
 inline void work(){
 	H::init();
-	Vector ini=(Vector){ni,ni};
+	Vector ini;
+	ini.a[1]=ni,ini.a[0]=ni;
 	bstep.a[0][0]=ni;
 	bstep.a[0][1]=ni;
 	bstep.a[0][2]=ni;
 	MOD=ni;
 	int C=ni,Q=ni;
-	cnt[0]=0,cnt[1]=ini.a[0]==C;
 	for(rtP=0;rtP*rtP<MOD;rtP++);
 	gstep=bstep,gstep^=rtP;
 	Vector cur=ini;
-	for(int i=0,tn=MOD*MOD;i<tn&&H::ins(cur.hash(),i);cur=gstep*cur,i+=rtP);
+	for(int i=rtP+2,tn=rtP*rtP*MOD;cur=gstep*cur,i<=tn&&H::ins(cur.hash(),i);i+=rtP);
 	loop=INF,cur=ini;
-	for(int i=1;cur=bstep*cur,i<rtP;i++){
+	for(int i=0;i<rtP;cur=bstep*cur,i++){
 		int val=H::eval(cur.hash());
 		if(~val){
-			apmin(loop,val-i);
+			apmin(loop,val-i-2);
 		}
 	}
+	H::ins(ini.hash(),2);
 	as=0;
 	for(int i=0;i<MOD;i++){
 		int val=bsgs((Vector){C,i});
