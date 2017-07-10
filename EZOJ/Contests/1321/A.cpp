@@ -3,12 +3,11 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <queue>
 using namespace std;
 typedef long long lint;
 typedef unsigned int uint;
-#define ni (next_num<int>())
 #define cout cerr
+#define ni (next_num<int>())
 #define nu (next_num<uint>())
 template<class T>inline T next_num(){
 	T i=0;char c;
@@ -19,54 +18,37 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=10000010;
-uint x[N*2],cnt[N],tag[N],tim=0;
-inline void getx(int n){
-	x[0]=nu,x[1]=nu;
-	uint a=nu,b=nu,c=nu;
-	for(int i=2;i<=n;i++){
-		x[i]=a*x[i-2]+b*x[i-1]+c;
-	}
-	for(int i=0;i<=n;i++){
-		x[i]>>=2;
-	}
-}
-struct node{
-	uint x,val,tag;
-	inline friend bool operator < (const node &a,const node &b){
-		return a.val>b.val;
-	}
-};
-priority_queue<node>q;
+const uint UINF=2147483647u;
+uint num[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("minval.in","r",stdin);
 	freopen("minval.out","w",stdout);
 #endif
 	int n=ni,m=ni;
-	getx(m<<1);
-	memset(cnt,0,n<<2);
-	memset(tag,0,n<<2);
-	for(int i=1,tn=m<<1;i<tn;i+=2){
-		cnt[x[i]%=n]++;
+	uint x0=nu,x1=nu,a=nu,b=nu,c=nu,x2=a*x0+b*x1+c,x3;
+	x0=x1,x1=x2;
+	for(int i=1;i<=n;i++){
+		num[i]=UINF;
 	}
-	uint mn=2147483647u,pw=1,ans=0;
-	for(int i=1,tn=m<<1;i<tn;i+=2){
-		uint a=x[i],b=x[i+1];
-		tag[a]=++tim;
-		for(;!q.empty()&&q.top().tag<tag[q.top().x];q.pop());
-		if(--cnt[a]==0){
-			if(b<mn){
-				mn=b;
+	uint mn=UINF,mnp,pw=1,ans=0;
+	for(int i=1;i<=m;i++){
+		uint x=(x0>>2)%n,v=x1>>2;
+		num[x]=v;
+		if(v<=mn){
+			mn=v,mnp=x;
+		}else if(x==mnp){
+			mn=UINF;
+			for(int i=1;i<=n;i++){
+				if(num[i]<mn){
+					mn=num[i];
+					mnp=i;
+				}
 			}
-		}else{
-			q.push((node){a,b,tim});
 		}
-		pw*=10099u;
-		if(q.empty()||mn<=q.top().val){
-			ans+=mn*pw;
-		}else{
-			ans+=q.top().val*pw;
-		}
+		pw*=10099u,ans+=mn*pw;
+		x2=a*x0+b*x1+c,x3=a*x1+b*x2+c;
+		x0=x2,x1=x3;
 	}
 	printf("%u\n",ans);
 }
