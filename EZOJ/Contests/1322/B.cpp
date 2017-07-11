@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -16,29 +17,109 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=10010;
-int n;
-lint sum[N],cnt[N],ans[N];
-int as;
-inline int bitchop(lint s){
-	int l=1,r=n,mid;
-	while(l<r){
-		mid=(l+r)>>1;
-		if(sum[mid]<s){
-			l=mid+1;
-		}else if(sum[mid]>s){
-			r=mid-1;
-		}else{
-			return mid;
+inline void apmin(int &a,const int &b){
+	if(b<a){
+		a=b;
+	}
+}
+const int N=10010,S=65,INF=0x7f7f7f7f;
+int n,sh;
+lint sum[N],cnt[N];
+namespace DP{
+	lint val[S];
+	int f[N];
+	inline void dp(int n,lint mx){
+		sort(val+1,val+n+1);
+		memset(f,127,sizeof(f));
+		int i=1,x0=1;
+		for(;i<=n&&val[i]==0;i++);
+		for(;sum[x0];x0++);
+		f[x0]=0;
+		lint pre=0,cur;
+		for(int j=1;i<=n;i++){
+			pre+=cur=val[i];
+			for(;sum[j]<pre&&sum[j]<mx;j++);
+			for(int p=j,q=j;p>=x0&&q>=x0;q--){
+				for(;p>=x0&&sum[p]+cur>sum[q];p--);
+				if(sum[p]+cur==sum[q]&&f[p]<INF){
+					apmin(f[q],i);
+				}
+			}
 		}
 	}
-	return l;
 }
-inline void pushans(lint x){
-	ans[as++]=x;
-	lint nxt;
-	for(int i=1;nxt=sum[i]+x,nxt>=sum[1]&&nxt<=sum[n];i++){
-		cnt[bitchop(sum[i]+x)]-=cnt[i];
+inline void work(int caseid){
+	{//get sh
+		lint sum=0;
+		for(int i=1;i<=n;i++){
+			sum+=cnt[i];
+		}
+		for(sh=0;(1ll<<sh)<sum;sh++);
+	}
+	int x=0;
+	{//0
+		for(;(1ll<<x)<cnt[1];x++);
+		for(int i=1;i<=n;i++){
+			cnt[i]>>=x;
+		}
+		for(int i=1;i<=x;i++){
+			DP::val[i]=0;
+		}
+	}
+	x++;
+	for(int i=2;x<=sh;x++){
+		for(;cnt[i]==0;i++);
+		lint w=DP::val[x]=sum[i]-sum[1];
+		for(int p=1,q=i;;p++){
+			for(;p<=n&&cnt[p]==0;p++);
+			if(p>n){
+				break;
+			}
+			for(;q<=n&&sum[q]<sum[p]+w;q++);
+			if(q>n){
+				break;
+			}
+			assert(sum[q]==sum[p]+w);
+			cnt[q]-=cnt[p];
+		}
+	}
+	DP::dp(sh,sum[n]);
+	lint cur=sum[n];
+	for(int i=n;cur;){
+		for(;cur<sum[i];i--);
+		cur+=DP::val[DP::f[i]]=-DP::val[DP::f[i]];
+	}
+	for(int i=1;i<=sh;i++){
+		DP::val[i]=-DP::val[i];
+	}
+	sort(DP::val+1,DP::val+sh+1);
+	printf("Case #%d:",caseid);
+	for(int i=1;i<=sh;i++){
+		printf(" %lld",DP::val[i]);
+	}
+	putchar('\n');
+}
+namespace I{
+	lint a[N],b[N];
+	int ord[N];
+	inline bool idcmp(const int &i,const int &j){
+		return a[i]<a[j];
+	}
+	inline void narr(lint a[]){
+		for(int i=1;i<=n;i++){
+			a[i]=nl;
+		}
+	}
+	inline void get(){
+		narr(a),narr(b);
+		for(int i=1;i<=n;i++){
+			ord[i]=i;
+		}
+		sort(ord+1,ord+n+1,idcmp);
+		for(int i=1;i<=n;i++){
+			sum[i]=a[ord[i]];
+			cnt[i]=b[ord[i]];
+		}
 	}
 }
 int main(){
@@ -46,33 +127,9 @@ int main(){
 	freopen("subset.in","r",stdin);
 	freopen("subset.out","w",stdout);
 #endif
-	for(int tcnt=1,tot=ni;tcnt<=tot;tcnt++){
-		n=ni,as=0;
-		for(int i=1;i<=n;i++){
-			sum[i]=nl;
-		}
-		for(int i=1;i<=n;i++){
-			cnt[i]=nl;
-		}
-		{//0
-			int sh=0;
-			for(;(1<<sh)<cnt[1];sh++);
-			if(sh){
-				for(int i=1;i<=n;i++){
-					cnt[i]>>=sh;
-				}
-				for(;sh--;ans[as++]=0);
-			}
-		}
-		for(int i=1;i<=n;i++){
-			if(sum[i]&&cnt[i]){
-				pushans(sum[i]);
-			}
-		}
-		printf("Case #%d:",tcnt);
-		for(int i=0;i<as;i++){
-			printf(" %lld",ans[i]);
-		}
-		putchar('\n');
+	for(int i=1,tot=ni;i<=tot;i++){
+		n=ni;
+		I::get();
+		work(i);
 	}
 }
