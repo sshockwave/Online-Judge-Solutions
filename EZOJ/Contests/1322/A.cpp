@@ -144,7 +144,7 @@ namespace W{
 	}
 }
 int main(){
-#ifndef ONILNE_JUDGE
+#ifndef ONLINE_JUDGE
 	freopen("chain.in","r",stdin);
 	freopen("chain.out","w",stdout);
 #endif
