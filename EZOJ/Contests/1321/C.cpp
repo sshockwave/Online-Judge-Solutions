@@ -23,7 +23,6 @@ int n;
 struct Line{
 	int l,r,v;
 	Line(int _l,int _r,int _v):l(_l),r(_r),v(_v){}
-	inline Line nxt();
 	inline void del();
 	inline void ins();
 	inline void put();
@@ -41,34 +40,35 @@ struct Treap{
 	inline void up(){
 		size=lson->size+rson->size+1;
 	}
-	inline bool rot(bool d){
+	inline node rot(bool d){
 		node fa=son[!d];
-		if(fa==&null){
-			return false;
+		if(fa!=&null){
+			fa->pt=pt,*pt=fa,pt=fa->son+d;
+			(son[!d]=*pt)->pt=son+(!d),*pt=this;
+			up(),fa->up();
 		}
-		son[!d]=fa->son[d],fa->son[d]=this;
-		*pt=fa,pt=fa->son+d;
-		up(),fa->up();
-		return true;
+		return fa;
 	}
 	void ins(int v,node *p){
 		if(this==&null){
-			static node n=new Treap[N*20];
+			static node n=new Treap[N*30];
 			*(*p=n++)=(Treap){v,rand(),1,&null,&null,p};
 		}else{
+			size++;
 			assert(val!=v);
-			node &s=v<val?lson:rson;
-			s->ins(v,&s);
-			if(s->wei>wei){
+			son[v>val]->ins(v,son+(v>val));
+			if(son[v>val]->wei>wei){
 				rot(v<val);
 			}
 		}
 	}
 	void del(int v){
+		assert(this!=&null);
 		if(val==v){
-			while(rot(lson->val>rson->val));
+			for(node fa;fa=rot(lson->val>rson->val),fa!=&null;fa->size--);
 			*pt=&null;
 		}else{
+			size--;
 			(v<val?lson:rson)->del(v);
 		}
 	}
@@ -115,18 +115,27 @@ namespace BIT{
 }
 set<Line>a,b[C];
 typedef set<Line>::iterator iter;
-inline Line Line::nxt(){
-	iter it=b[v].find(*this);
-	return *(--it);
-}
 inline void Line::del(){
-	BIT::del(r,nxt().l);
-	a.erase(*this),b[v].erase(*this);
+	a.erase(*this);
+	iter it=b[v].find(*this),pre=it,nxt=it;
+	pre++,nxt--;
+	BIT::del(r,nxt->l);
+	if(pre!=b[v].end()){
+		BIT::del(pre->r,l);
+		BIT::add(pre->r,nxt->l);
+	}
+	b[v].erase(it);
 }
 inline void Line::put(){
 	if(l<=r){
-		a.insert(*this),b[v].insert(*this);
-		BIT::add(r,nxt().l);
+		a.insert(*this);
+		iter it=b[v].insert(*this).first,pre=it,nxt=it;
+		pre++,nxt--;
+		if(pre!=b[v].end()){
+			BIT::del(pre->r,nxt->l);
+			BIT::add(pre->r,l);
+		}
+		BIT::add(r,nxt->l);
 	}
 }
 inline void Line::ins(){
@@ -144,6 +153,15 @@ inline void Line::ins(){
 		return;
 	}
 	assert(it_l!=a.end());
+	{
+		iter it=it_l;
+		Line cur=*--it;
+		assert(cur.r>r);
+		if(cur.l<=r){
+			cur.del();
+			Line(r+1,cur.r,cur.v).put();
+		}
+	}
 	for(iter i=it_l;i!=it_r;){
 		Line cur=*i++;
 		cur.del();
@@ -193,9 +211,7 @@ namespace I{
 		arr[0]=0;
 		for(int r=n,l=n;r>=1;r=l){
 			for(;arr[l]==arr[r];l--);
-			a.insert(Line(l+1,r,arr[r]));
-			BIT::add(r,b[arr[r]].begin()->l);
-			b[arr[r]].insert(Line(l+1,r,arr[r]));
+			Line(l+1,r,arr[r]).put();
 		}
 	}
 	inline void put(){
