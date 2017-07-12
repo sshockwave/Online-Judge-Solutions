@@ -45,6 +45,6 @@ A
 A
 ABC
 ABD
-BCD
+ABCD
 AC
-AB
+ABD
