@@ -18,7 +18,7 @@ template<class T>inline T next_num(){
 }
 const int N=50010,X=1000010;
 namespace BIT{
-	int c[N];
+	int c[X];
 	inline int bit(int x){
 		return x&(-x);
 	}
@@ -72,8 +72,9 @@ int main(){
 	}
 	sort(pt+1,pt+n+1);
 	sort(q,q+qs);
-	for(int i=1,j=0;i<=n;i++){
-		for(;j<qs&&q[j].x<=pt[i].y;q[j++].work());
+	for(int i=0,j=1;i<qs;i++){
+		for(;j<=n&&pt[j].y<=q[i].x;BIT::add(pt[j++].x,1));
+		q[i].work();
 	}
 	for(int i=1;i<=tot;i++){
 		printf("%d\n",ans[i]);
