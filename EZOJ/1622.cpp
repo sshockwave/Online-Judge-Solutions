@@ -85,10 +85,10 @@ int main(){
 	memset(mat,0,sizeof(mat));
 	for(int tot=ni;tot--;){
 		int u=ni,v=ni;
-		mat[u][u]++;
-		mat[v][v]++;
-		mat[u][v]--;
-		mat[v][u]--;
+		apadd(mat[u][u],1);
+		apadd(mat[v][v],1);
+		apsub(mat[u][v],1);
+		apsub(mat[v][u],1);
 	}
 	printf("%d\n",det(n-1));
 }
