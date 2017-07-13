@@ -16,7 +16,7 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const double EPS=1e-7;
+const double EPS=1e-8;
 inline double okay(double x){
 	return x>=-EPS&&x<=EPS;
 }
@@ -25,8 +25,8 @@ inline double f(double x){
 	return sqrt(a*(1-x*x/b));
 }
 inline double simpson(double l,double m,double r,double fl,double fm,double fr,double est){
-	double lm=(l+m)*0.5,flm=f(lm),le=(fl+flm*4+fm)/6;
-	double rm=(l+m)*0.5,frm=f(rm),re=(fm+frm*4+fr)/6;
+	double lm=(l+m)*0.5,flm=f(lm),le=(fl+flm*4+fm)*(m-l)/6;
+	double rm=(m+r)*0.5,frm=f(rm),re=(fm+frm*4+fr)*(r-m)/6;
 	return okay(le+re-est)?le+re:simpson(l,lm,m,fl,flm,fm,le)+simpson(m,rm,r,fm,frm,fr,re);
 }
 int main(){
