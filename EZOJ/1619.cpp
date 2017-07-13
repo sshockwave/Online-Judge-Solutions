@@ -84,9 +84,9 @@ int main(){
 		T::ins(s);
 	}
 	T::dfs(1,&SAM::ini);
-	int ans=0;
+	lint ans=0;
 	for(SAM* i=SAM::pol;i<SAM::pool;i++){
 		ans+=i->val-i->lnk->val;
 	}
-	printf("%d\n",ans);
+	printf("%lld\n",ans);
 }
