@@ -25,7 +25,7 @@ const int N=100010,D=2;
 inline lint sqr(int x){
 	return (lint)x*x;
 }
-int d=0;
+int d;
 struct Point{
 	int x[D];
 	inline friend Point operator - (const Point &a,const Point &b){
@@ -37,46 +37,52 @@ struct Point{
 	inline lint d2(){
 		return sqr(x[0])+sqr(x[1]);
 	}
-}pt[N],qpt;
+}pt[N];
+int id[N],qid;
 struct Result{
 	int x;
 	lint val;
-	Result(int _x):x(_x),val((qpt-pt[x]).d2()){}
+	Result(int _x):x(_x),val((pt[qid]-pt[x]).d2()){}
 	inline friend bool operator < (const Result &a,const Result &b){
-		return a.val<b.val;
+		return a.val==b.val?a.x<b.x:a.val<b.val;
 	}
 };
 namespace T{
 #define lson(x) son[x][0]
 #define rson(x) son[x][1]
-	int son[N][2],dim[N],root;
+	int son[N][2],dim[N];
 	inline void init(){
 		memset(son,0,sizeof(son));
 	}
-	int build(int l,int r,int t){
-		d=t;
+	inline bool idcmp(int a,int b){
+		return pt[a]<pt[b];
+	}
+	int build(int l,int r,int _d){
 		int mid=(l+r)>>1;
-		dim[mid]=t;
-		nth_element(pt+l,pt+mid,pt+r+1);
+		d=_d;
+		nth_element(id+l,id+mid,id+r+1,idcmp);
+		int x=id[mid];
+		dim[x]=_d;
 		if(l<mid){
-			lson(mid)=build(l,mid-1,t^1);
+			lson(x)=build(l,mid-1,_d^1);
 		}
 		if(mid<r){
-			rson(mid)=build(mid+1,r,t^1);
+			rson(x)=build(mid+1,r,_d^1);
 		}
-		return mid;
+		return x;
 	}
-	Result ask(int x){
-		d=dim[x];
-		bool d=qpt<pt[x];
-		Result ans(x);
+	Result ans(0);
+	void ask(int x){
+		if(x!=qid){
+			apmin(ans,Result(x));
+		}
+		bool d=pt[qid].x[dim[x]]>pt[x].x[dim[x]];
 		if(son[x][d]){
-			apmin(ans,ask(son[x][d]));
+			ask(son[x][d]);
 		}
-		if(son[x][!d]&&ans.val>sqr(pt[x].x[dim[x]]-qpt.x[dim[x]])){
-			apmin(ans,ask(son[x][!d]));
+		if(son[x][!d]&&ans.val>=sqr(pt[x].x[dim[x]]-pt[qid].x[dim[x]])){
+			ask(son[x][!d]);
 		}
-		return ans;
 	}
 }
 int main(){
@@ -88,10 +94,13 @@ int main(){
 	int n=ni;
 	for(int i=1;i<=n;i++){
 		pt[i]=(Point){ni,ni};
+		id[i]=i;
 	}
-	T::root=T::build(1,n,0);
+	int root=T::build(1,n,0);
 	for(int i=1;i<=n;i++){
-		qpt=pt[i];
-		printf("%d\n",T::ask(T::root).x);
+		qid=i;
+		T::ans.val=0x7f7f7f7f7f7f7f7fll;
+		T::ask(root);
+		printf("%d\n",T::ans.x);
 	}
 }
