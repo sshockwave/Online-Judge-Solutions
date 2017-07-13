@@ -5,43 +5,48 @@
 #include <cctype>
 using namespace std;
 typedef long long lint;
+#define cout cerr
 #define ni (next_num<int>())
-#define nl (next_num<lint>())
-template<typename T>inline T next_num(){
+template<class T>inline T next_num(){
 	T i=0;char c;
-	while(!isdigit(c=getchar()));
+	while(!isdigit(c=getchar())&&c!='-');
+	bool flag=c=='-';
+	flag?(c=getchar()):0;
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
-	return i;
+	return flag?-i:i;
 }
-inline void apmax(int &a,int b){
+inline void apmax(int &a,const int &b){
 	if(a<b){
 		a=b;
 	}
 }
-const int N=2000010;
-char s[N];
-int rad[N];
+const int N=1000010;
+char s[N<<1];
+int rad[N<<1];
 int main(){
-	int n=0,ans=0;
-	s[n++]='{';
-	s[n++]='#';
-	char c;
-	while(isalpha(s[n++]=getchar())){
+#ifndef ONLINE_JUDGE
+	freopen("manacher.in","r",stdin);
+	freopen("manacher.out","w",stdout);
+#endif
+	int n=0;
+	{
+		static char t[N];
+		scanf("%s",t);
+		s[n++]='{';
 		s[n++]='#';
-	}
-	s[n-1]='#';
-	s[n]='}';
-	memset(rad,0,sizeof(rad));
-	for(int i=1,j,p=0,mx=0;i<n;i++){
-		if(mx>i){
-			j=min(mx-i,rad[(p<<1)-i]);
-		}else{
-			j=0;
+		for(int i=0;t[i];i++){
+			s[n++]=t[i],s[n++]='#';
 		}
-		for(;s[i-j]==s[i+j];j++);
-		rad[i]=--j;
-		if(i+j>mx){
-			mx=i+j,p=i;
+		s[n]='}';
+	}
+	rad[0]=0;
+	int ans=0;
+	for(int i=1,j=0;i<n;i++){
+		rad[i]=i<j+rad[j]?min(j+rad[j]-i,rad[(j<<1)-i]):0;
+		for(;s[i-rad[i]]==s[i+rad[i]];rad[i]++);
+		rad[i]--;
+		if(i+rad[i]>j+rad[j]){
+			j=i;
 		}
 		apmax(ans,rad[i]);
 	}
