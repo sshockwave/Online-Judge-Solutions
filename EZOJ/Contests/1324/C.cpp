@@ -66,16 +66,30 @@ inline void search2(int x,int y,int steps){
 		}
 	}
 }
-inline void search3(int x,int y,int steps){
+inline void search3(int x,int y,int steps,int a[]){
 	memset(f,0,sizeof(f));
 	f[0][x+N][y+N]=1;
 	for(int t=0;t<steps;t++){
+		lint cnt=0;
 		for(int i=-t;i<=t;i++){
 			for(int j=cabs(i)-t,tj=t-cabs(i);j<=tj;j++){
 				trans(t+1,i+x+N,j+y+N,f[t][i+x+N][j+y+N]);
+				if(!mat[i+x+N][j+y+N]){
+					cnt+=f[t][i+x+N][j+y+N];
+				}
+			}
+		}
+		a[t]=cnt%MOD;
+	}
+	lint cnt=0;
+	for(int i=-steps;i<=steps;i++){
+		for(int j=cabs(i)-steps,tj=steps-cabs(i);j<=tj;j++){
+			if(!mat[i+x+N][j+y+N]){
+				cnt+=f[steps][i+x+N][j+y+N];
 			}
 		}
 	}
+	a[steps]=cnt%MOD;
 }
 int g[N],h[N],any[N];
 inline int work(int x,int y){
@@ -88,18 +102,15 @@ inline int work(int x,int y){
 	for(int i=2,ti=steps-dis1;i<=ti;i+=2){
 		h[i]=f[i][x+N][y+N];
 	}
-	for(int i=0;i<K;i++){
-		for(int j=steps,tj=dis1+(i<<1);j>=tj;j--){
+	for(int i=1;i<K;i++){
+		for(int j=steps,tj=dis1+((i-1)<<1);j>=tj;j--){
 			for(int k=j+2;k<=steps;k+=2){
 				apadd(g[k],mul(g[j],h[k-j]));
 			}
 			g[j]=0;
 		}
 	}
-	search3(x,y,steps-dis1-(K-1)*2);
-	for(int i=0,ti=steps-dis1-(K-1)*2;i<=ti;i++){
-		any[i]=f[i][x+N][y+N];
-	}
+	search3(x,y,steps-dis1-(K-1)*2,any);
 	lint ans=0;
 	for(int i=dis1+(K-1)*2;i<=steps;i++){
 		ans+=mul(g[i],any[steps-i]);
@@ -108,7 +119,7 @@ inline int work(int x,int y){
 }
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("wander1.in","r",stdin);
+	freopen("wander.in","r",stdin);
 	freopen("wander.out","w",stdout);
 #endif
 	steps=ni;
