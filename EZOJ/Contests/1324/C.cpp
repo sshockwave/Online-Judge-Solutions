@@ -66,7 +66,7 @@ inline void search2(int x,int y,int steps){
 		}
 	}
 }
-inline void search3(int x,int y,int steps,int a[]){
+inline void search3(int x,int y,int steps,int any[]){
 	memset(f,0,sizeof(f));
 	f[0][x+N][y+N]=1;
 	for(int t=0;t<steps;t++){
@@ -79,7 +79,7 @@ inline void search3(int x,int y,int steps,int a[]){
 				}
 			}
 		}
-		a[t]=cnt%MOD;
+		any[t]=cnt%MOD;
 	}
 	lint cnt=0;
 	for(int i=-steps;i<=steps;i++){
@@ -89,12 +89,15 @@ inline void search3(int x,int y,int steps,int a[]){
 			}
 		}
 	}
-	a[steps]=cnt%MOD;
+	any[steps]=cnt%MOD;
 }
 int g[N],h[N],any[N];
 inline int work(int x,int y){
 	search1(x,y);
 	int dis1=cabs(x)+cabs(y);
+	if(steps<dis1+(K-1)*2){
+		return 0;
+	}
 	for(int i=dis1;i<=steps;i++){
 		g[i]=f[i][x+N][y+N];
 	}
@@ -130,14 +133,14 @@ int main(){
 		int x=ni,y=ni;
 		mat[x+N][y+N]=1;
 	}
-	int ans=0;
+	lint ans=0;
 	for(int i=-steps;i<=steps;i++){
 		for(int j=cabs(i)-steps,tj=steps-cabs(i);j<=tj;j++){
 			if(!mat[i+N][j+N]){
-				apadd(ans,work(i,j));
+				ans+=work(i,j);
 			}
 		}
 	}
-	printf("%d\n",ans);
+	printf("%lld\n",ans%MOD);
 	return 0;
 }
