@@ -1,9 +1,11 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#define NDEBUG
 #include <cassert>
 #include <cctype>
-#include <set>
+#include <vector>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -39,8 +41,6 @@ struct Point{
 }pt[N];
 int pos[N];
 inline void ptswp(int a,int b){
-	assert(pt[pos[a]].id==a);
-	assert(pt[pos[b]].id==b);
 	swap(pt[pos[a]],pt[pos[b]]);
 	swap(pos[a],pos[b]);
 }
@@ -49,19 +49,17 @@ inline bool ptless(int a,int b){
 	lint va=pt[pos[a]].v,vb=pt[pos[b]].v;
 	return xa==xb?(va==vb?a<b:va<vb):xa<xb;
 }
-struct intcmp{
-	inline bool operator () (int a,int b){
-		return pos[a]>pos[b];
-	}
-};
-typedef set<int,intcmp>si;
-typedef si::iterator iter;
-inline void jmp(si &s){
-	for(iter it=s.begin();it!=s.end();it++){
-		int x=*it;
-		for(int i=pos[x],ti=min((i/rt+1)*rt-1,n-1);i<ti;i++){
-			if(ptless(pt[i+1].id,x)){
-				ptswp(x,pt[i+1].id);
+typedef vector<int>vi;
+inline bool poscmp(int a,int b){
+	return pos[a]>pos[b];
+}
+inline void jmp(vi &vec){
+	sort(vec.begin(),vec.end(),poscmp);
+	for(int i=0,ti=vec.size();i<ti;i++){
+		int x=vec[i];
+		for(int j=pos[x],tj=min((j/rt+1)*rt-1,n-1);j<tj;j++){
+			if(ptless(pt[j+1].id,x)){
+				ptswp(pt[j+1].id,x);
 			}else{
 				break;
 			}
@@ -87,11 +85,12 @@ inline int ask(int x){
 	}
 	return ans;
 }
-si op[N];
+vi op[N];
 inline void ins(){
 	pt[n]=(Point){n,nl,nl};
 	pt[n].x-=pt[n].v*tim;
-	int x=n,o=x/rt,s=o*rt;
+	pos[n]=n;
+	int x=n,s=x/rt*rt;
 	for(;x>s;x--){
 		if(ptless(n,pt[x-1].id)){
 			ptswp(n,pt[x-1].id);
@@ -100,16 +99,16 @@ inline void ins(){
 			break;
 		}
 	}
-	for(int i=o;i<x;i++){
+	for(int i=s;i<x;i++){
 		assert(ptless(pt[i].id,n));
 		if(pt[i].v>pt[x].v){
-			op[crs(pt[i],pt[x])].insert(pt[i].id);
+			op[crs(pt[i],pt[x])].push_back(pt[i].id);
 		}
 	}
-	for(int i=x+1,ti=min(s+rt-1,n-1);i<ti;i++){
+	for(int i=x+1,ti=min(s+rt-1,n);i<=ti;i++){
 		assert(ptless(n,pt[i].id));
 		if(pt[i].v<pt[x].v){
-			op[crs(pt[i],pt[x])].insert(n);
+			op[crs(pt[i],pt[x])].push_back(n);
 		}
 	}
 	n++;
