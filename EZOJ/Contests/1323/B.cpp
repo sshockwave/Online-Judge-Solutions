@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <set>
@@ -9,6 +8,7 @@ using namespace std;
 typedef long long lint;
 #define cout cerr
 #define ni (next_num<int>())
+#define nl (next_num<lint>())
 template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
@@ -29,45 +29,46 @@ struct Point{
 	inline lint pos(){
 		return x+v*tim;
 	}
-	inline friend bool operator < (Point &a,Point &b){
-		lint xa=a.pos(),xb=b.pos();
-		return xa==xb?a.v<b.v:xa<xb;
-	}
-	inline friend int crs(const Point &a,const Point &b){
-		assert(a.v!=b.v);
+	inline friend int crs(Point &a,Point &b){
 		lint dx=b.x-a.x,dv=a.v-b.v;
-		lint ans=dx/dv+(dx%dv!=0);
+		assert(dv);
+		lint ans=dx/dv+1;
 		assert(ans>=0);
-		if(ans>=N){
-			return N-1;
-		}
-		return ans;
-	}
-	inline friend ostream & operator << (ostream & out,Point a){
-		out<<"(x="<<a.pos()<<",v="<<a.v<<",id="<<a.id<<")";
-		return out;
+		return ans<N?ans:N-1;
 	}
 }pt[N];
 int pos[N];
-inline void swp(int a,int b){
+inline void ptswp(int a,int b){
 	assert(pt[pos[a]].id==a);
 	assert(pt[pos[b]].id==b);
 	swap(pt[pos[a]],pt[pos[b]]);
 	swap(pos[a],pos[b]);
+}
+inline bool ptless(int a,int b){
+	lint xa=pt[pos[a]].pos(),xb=pt[pos[b]].pos();
+	lint va=pt[pos[a]].v,vb=pt[pos[b]].v;
+	return xa==xb?(va==vb?a<b:va<vb):xa<xb;
 }
 struct intcmp{
 	inline bool operator () (int a,int b){
 		return pos[a]>pos[b];
 	}
 };
-inline void jmp(const set<int,intcmp>&vec){
-	for(set<int,intcmp>::iterator it=vec.begin();it!=vec.end();it++){
+typedef set<int,intcmp>si;
+typedef si::iterator iter;
+inline void jmp(si &s){
+	for(iter it=s.begin();it!=s.end();it++){
 		int x=*it;
-		for(int i=pos[x],ti=min((i/rt+1)*rt-1,n-1);i<ti&&pt[i+1]<pt[i];swp(x,pt[i+1].id),i++){
+		for(int i=pos[x],ti=min((i/rt+1)*rt-1,n-1);i<ti;i++){
+			if(ptless(pt[i+1].id,x)){
+				ptswp(x,pt[i+1].id);
+			}else{
+				break;
+			}
 		}
 	}
 }
-inline int ask(int l,int r,int x){//mx <= x
+inline int bitchop(int l,int r,int x){
 	l--;
 	while(l<r){
 		int mid=((l+r)>>1)+1;
@@ -80,37 +81,33 @@ inline int ask(int l,int r,int x){//mx <= x
 	return l;
 }
 inline int ask(int x){
-	if(n==0){
-		return 0;
-	}
 	int ans=0;
 	for(int i=0;i<n;i+=rt){
-		ans+=ask(i,min(i+rt-1,n-1),x)-i+1;
+		ans+=bitchop(i,min(i+rt-1,n-1),x)-i+1;
 	}
 	return ans;
 }
-set<int,intcmp>op[N];
+si op[N];
 inline void ins(){
-	lint tx=ni,tv=ni;
-	tx-=tv*tim;
-	pt[n]=(Point){n,tx,tv};
-	pos[n]=n;
-	int o=n/rt,s=o*rt,x=n;
+	pt[n]=(Point){n,nl,nl};
+	pt[n].x-=pt[n].v*tim;
+	int x=n,o=x/rt,s=o*rt;
 	for(;x>s;x--){
-		if(pt[x]<pt[x-1]){
-			assert(pt[x].id==n);
-			swp(n,pt[x-1].id);
-			assert(pt[x-1].id==n);
+		if(ptless(n,pt[x-1].id)){
+			ptswp(n,pt[x-1].id);
 		}else{
+			assert(ptless(pt[x-1].id,n));
 			break;
 		}
 	}
-	for(int i=s;i<x;i++){
+	for(int i=o;i<x;i++){
+		assert(ptless(pt[i].id,n));
 		if(pt[i].v>pt[x].v){
 			op[crs(pt[i],pt[x])].insert(pt[i].id);
 		}
 	}
-	for(int i=x+1;i<=n;i++){
+	for(int i=x+1,ti=min(s+rt-1,n-1);i<ti;i++){
+		assert(ptless(n,pt[i].id));
 		if(pt[i].v<pt[x].v){
 			op[crs(pt[i],pt[x])].insert(n);
 		}
