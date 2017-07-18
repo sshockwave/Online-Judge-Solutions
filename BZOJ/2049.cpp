@@ -21,6 +21,7 @@ inline char nc(){
 	return c;
 }
 const int N=10010;
+int n;
 namespace T{
 	//shape
 #define lson(x) son[x][0]
@@ -36,18 +37,20 @@ namespace T{
 	//basic
 	inline void flip(int x){
 		if(x){
+			swap(lson(x),rson(x));
 			rev[x]=!rev[x];
 		}
 	}
 	inline void down(int x){
 		if(rev[x]){
-			swap(lson(x),rson(x));
 			flip(lson(x)),flip(rson(x));
 			rev[x]=false;
 		}
 	}
 	inline int side(int x){
-		down(fa[x]);
+		if(x==0){
+			return -1;
+		}
 		if(lson(fa[x])==x){
 			return 0;
 		}
@@ -56,18 +59,24 @@ namespace T{
 		}
 		return -1;
 	}
+	inline void fix(int x){
+		if(~side(x)){
+			fix(fa[x]);
+		}
+		down(x);
+	}
 	//splay
 	inline void rot(int x){
-		down(fa[x]),down(x);
-		bool d=side(x);
-		int f=fa[x],&s=son[x][!d];
-		son[f][d]=s,fa[s]=f,s=f;
+		bool w=side(x);
+		int f=fa[x],&s=son[x][!w];
+		son[f][w]=s,fa[s]=f,s=f;
 		if(~side(f)){
 			son[fa[f]][side(f)]=x;
 		}
 		fa[x]=fa[f],fa[f]=x;
 	}
 	inline int splay(int x){
+		fix(x);
 		while(~side(x)){
 			if(side(fa[x])==-1){
 				rot(x);
@@ -82,6 +91,7 @@ namespace T{
 	//lct
 	inline void access(int x){
 		for(rson(splay(x))=0;fa[x];rot(rson(splay(fa[x]))=x));
+		assert(!rev[x]);
 	}
 	inline void chroot(int x){
 		access(x),flip(x);
@@ -90,26 +100,28 @@ namespace T{
 		access(u),chroot(v),fa[rson(u)=v]=u;
 	}
 	inline void cut(int x){
-		access(x),fa[lson(x)]=0,lson(x)=0;
+		access(x),lson(x)=fa[lson(x)]=0;
 	}
 	inline bool con(int u,int v){
+		if(u==v){
+			return true;
+		}
 		access(u),access(v);
 		return fa[u];
 	}
 	inline int par(int x){
 		access(x);
 		int t=lson(x);
-		for(;rson(t);t=rson(t));
+		for(;down(t),rson(t);t=rson(t));
 		return splay(t);
 	}
 	inline void cut(int u,int v){
-		assert(par(u)==v||par(v)==u);
 		cut(par(u)==v?u:v);
 	}
 }
 int main(){
 	T::init();
-	ni;
+	n=ni;
 	for(int tot=ni;tot--;){
 		switch(nc()){
 			case 'C':
