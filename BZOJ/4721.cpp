@@ -1,79 +1,75 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+//#define NDEBUG
+#include <cassert>
+#include <cctype>
 #include <algorithm>
-#define N 100010
-#define M 7000010
-#define INF 0x7f7f7f7f
 using namespace std;
-inline bool is_num(char c){
-	return c>='0'&&c<='9';
+typedef long long lint;
+#define cout cerr
+#define ni (next_num<int>())
+template<class T>inline T next_num(){
+	T i=0;char c;
+	while(!isdigit(c=getchar())&&c!='-');
+	bool flag=c=='-';
+	flag?(c=getchar()):0;
+	while(i=i*10-'0'+c,isdigit(c=getchar()));
+	return flag?-i:i;
 }
-inline int next_int(){
-	int i=0;char c;
-	while(!is_num(c=getchar()));
-	for(;is_num(c);i=i*10-'0'+c,c=getchar());
-	return i;
-}
-int len[N],lque[N+M],rque[N+M],qhead=1,lhead=0,rhead=0,tail=0;
-bool lencmp(int a,int b){
-	return a>b;
+const int N=100010,M=7000010,INF=0x7f7f7f7f;
+int n,m,q,u,v,t;
+namespace worm{
+	int len[N],a[M],b[M],qa=0,qb=0,qh=0,qt=0,delta=0;
+	inline bool lencmp(const int &a,const int &b){
+		return a>b;
+	}
+	inline void get(){
+		for(int i=0;i<n;i++){
+			len[i]=ni;
+		}
+		sort(len,len+n,lencmp);
+	}
+	inline void add(int x){
+		a[qt]=(lint)u*x/v,b[qt]=x-a[qt];
+		a[qt]-=delta,b[qt]-=delta;
+		qt++;
+	}
+	inline int pop(){
+		if(qh<n&&(qa==qt||len[qh]>=a[qa])&&(qb==qt||len[qh]>=b[qb])){
+			return len[qh++]+delta;
+		}else if(qa<qt&&(qb==qt||a[qa]>=b[qb])){
+			return a[qa++]+delta;
+		}else{
+			return b[qb++]+delta;
+		}
+	}
 }
 int main(){
-	int n=next_int(),m=next_int(),q=next_int(),t,delta=0;
-	long long u=next_int(),v=next_int();
-	t=next_int();
-	for(int i=1;i<=n;i++){
-		len[i]=next_int();
-	}
-	sort(len+1,len+n+1,lencmp);
-	for(int i=1,cur,*head,px;i<=m;i++){
-		cur=-INF;
-		if(qhead<=n&&len[qhead]>cur){
-			head=&qhead;
-			cur=len[qhead];
-		}
-		if(lhead<tail&&lque[lhead]>cur){
-			head=&lhead;
-			cur=lque[lhead];
-		}
-		if(rhead<tail&&rque[rhead]>cur){
-			head=&rhead;
-			cur=rque[rhead];
-		}
-		(*head)++;
-		cur+=delta;
-		if(i%t==0){
-			if(i!=t){
+	n=ni,m=ni,q=ni,u=ni,v=ni,t=ni;
+	worm::get();
+	for(int i=1,j=0;i<=m;i++){
+		int len=worm::pop();
+		worm::delta+=q;
+		worm::add(len);
+		if(++j==t){
+			j=0;
+			printf("%d",len);
+			if(i+t<=m){
 				putchar(' ');
 			}
-			printf("%d",cur);
 		}
-		px=u*cur/v;
-		delta+=q;
-		lque[tail]=px-delta,rque[tail]=cur-px-delta,tail++;
 	}
 	putchar('\n');
-	for(int i=1,cur,*head;i<=n+m;i++){
-		cur=-INF;
-		if(qhead<=n&&len[qhead]>cur){
-			head=&qhead;
-			cur=len[qhead];
-		}
-		if(lhead<tail&&lque[lhead]>cur){
-			head=&lhead;
-			cur=lque[lhead];
-		}
-		if(rhead<tail&&rque[rhead]>cur){
-			head=&rhead;
-			cur=rque[rhead];
-		}
-		(*head)++;
-		if(i%t==0){
-			if(i!=t){
+	for(int i=1,j=0,ti=n+m;i<=ti;i++){
+		int len=worm::pop();
+		if(++j==t){
+			j=0;
+			printf("%d",len);
+			if(i+t<=ti){
 				putchar(' ');
 			}
-			printf("%d",cur+delta);
 		}
 	}
+	return 0;
 }
