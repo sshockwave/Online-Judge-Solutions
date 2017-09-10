@@ -22,7 +22,7 @@ inline int bchop(int v){
 	int l=0,r=ls;
 	while(l<r){
 		int mid=((l+r)>>1)+1;
-		if(a[mid]>v){
+		if(lst[mid]>v){
 			l=mid;
 		}else{
 			r=mid-1;
