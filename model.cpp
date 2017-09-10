@@ -16,4 +16,9 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 int main(){
+#ifndef ONLINE_JUDGE
+	freopen("model.in","r",stdin);
+	freopen("model.out","w",stdout);
+#endif
+	return 0;
 }
