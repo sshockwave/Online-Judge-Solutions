@@ -38,7 +38,7 @@ int main(){
 	freopen("B.in","r",stdin);
 	freopen("B.out","w",stdout);
 #endif
-	lst[0]=INF;
+	a[0]=0,lst[0]=INF;
 	int n=ni,l=ni;
 	for(int i=1;i<=n;i++){
 		sa[i]=i;
@@ -56,7 +56,7 @@ int main(){
 	}
 	sort(sa+1,sa+n+1,asort);
 	for(int i=1,j=0;l;l--,i++){
-		for(;assert(i<=n),sa[i]<j||f[sa[i]]<l;i++);
+		for(;sa[i]<j||a[sa[i]]==a[j]||f[sa[i]]<l;i++);
 		printf("%d ",a[j=sa[i]]);
 	}
 	putchar('\n');
