@@ -20,7 +20,7 @@ inline int add(const int &a,const int &b){
 	return (a+b)%MOD;
 }
 inline int mul(const int &a,const int &b){
-	return a*b%MOD;
+	return (lint)a*b%MOD;
 }
 struct Mat{
 	int a[2][2];
@@ -64,11 +64,15 @@ namespace seg{
 		Node *lson,*rson;
 	};
 	typedef Node* node;
+	inline void cov(node x,const Mat &m){
+		x->tag=true;
+		x->offset=m*x->offset;
+		x->sum=m*x->sum;
+	}
 	inline void down(node x){
 		assert(x->lend!=x->rend);
 		if(x->tag){
-			x->lson->tag=true,x->lson->offset=x->offset*x->lson->offset;
-			x->rson->tag=true,x->rson->offset=x->offset*x->rson->offset;
+			cov(x->lson,x->offset),cov(x->rson,x->offset);
 			x->tag=false,x->offset=id;
 		}
 	}
@@ -95,9 +99,7 @@ namespace seg{
 	int ql,qr;
 	void mul(node x,const Mat &m){
 		if(ql<=x->lend&&x->rend<=qr){
-			x->tag=true;
-			x->offset=m*x->offset;
-			x->sum=m*x->sum;
+			cov(x,m);
 			return;
 		}
 		down(x);
