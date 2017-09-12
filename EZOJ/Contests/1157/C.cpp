@@ -58,7 +58,7 @@ int main(){
 		for(int i=1;i<=seg;i++){
 			c[i][0]=1;
 			for(int j=1;j<=i;j++){
-				c[i][j]=c[i-1][j-1]+c[i-1][j];
+				c[i][j]=add(c[i-1][j-1],c[i-1][j]);
 			}
 		}
 	}{//f
