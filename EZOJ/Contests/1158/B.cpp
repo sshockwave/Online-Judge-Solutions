@@ -42,12 +42,12 @@ inline void work(int n,int len,int cend[]){
 		pos[a[i]]=i;
 	}
 	for(int i=n;i>=1;i--){
+		cend[i]=aend[1];
 		aend[len+1]=i;
 		int t=pos[c[i]];
 		if(~t){
 			aend[t]=aend[t+1];
 		}
-		cend[i]=aend[1];
 	}
 }
 int cend1[N],cend2[N];
