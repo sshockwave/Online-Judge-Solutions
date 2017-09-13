@@ -104,7 +104,7 @@ int main(){
 			node[i]=G::nn();
 		}
 		for(int i=0;i<n;i++){
-			int a=-INF,b=-INF;
+			int a=-WINF,b=-WINF;
 			for(int j=0;j<div[i];j++){
 				int t=ni;
 				if(t>a){
@@ -119,17 +119,13 @@ int main(){
 			}
 			if(bitcnt(i)&1){
 				G::add(G::s,node[i],WINF-b);
-				if(div[i]){
-					G::add(node[i],G::t,WINF-a);
-				}
+				G::add(node[i],G::t,WINF-a);
 				for(int j=1;j<n;j<<=1){
 					G::add(node[i],node[i^j],u[i]^u[i^j]);
 				}
 			}else{
 				G::add(G::s,node[i],WINF-a);
-				if(div[i]){
-					G::add(node[i],G::t,WINF-b);
-				}
+				G::add(node[i],G::t,WINF-b);
 			}
 		}
 	}
