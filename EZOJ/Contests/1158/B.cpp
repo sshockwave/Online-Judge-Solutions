@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <set>
 #include <algorithm>
 using namespace std;
 typedef long long lint;
@@ -28,92 +27,78 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 	}
 }
 const int N=1000010;
-set<int>pos[N];
-int c[N],a[N],mat1[N],mat2[N],pt[N];
-inline bool mvpt(int n,int len){
-	for(int i=1;i<=len&&pt[i]<=pt[i-1];i++){
-		set<int>::iterator it=pos[a[i]].upper_bound(pt[i-1]);
-		if(it==pos[a[i]].end()){
-			return false;
-		}
-		pt[i]=*it;
-	}
-	return true;
-}
-bool calc[N];
-inline void nxtpt(){
-	while(!calc[++pt[0]]);
-}
-inline void work(int n,int k,int len,int end[]){
-	for(int i=1;i<=k;i++){
-		pos[i].clear();
-	}
+int c[N],a[N],aend[N];
+inline void read(int a[],int n){
 	for(int i=1;i<=n;i++){
-		pos[c[i]].insert(i);
-	}
-	memset(pt+1,0,len<<2);
-	for(int i=0;i<=n;i++){
-		end[i]=n+1;
-	}
-	for(pt[0]=0;mvpt(n,len);nxtpt()){
-		end[pt[0]]=pt[len];
+		a[i]=ni;
 	}
 }
-int diff[N];
-inline void mark(int l,int r){
-	if(l<=r){
-		diff[l]++,diff[r+1]--;
+int pos[N];
+inline void work(int n,int len,int cend[]){
+	memset(cend,0,(len+1)<<2);
+	memset(pos,-1,sizeof(pos));
+	for(int i=1;i<=len;i++){
+		aend[i]=n+1;
+		pos[a[i]]=i;
+	}
+	for(int i=n;i>=1;i--){
+		aend[len+1]=i;
+		int t=pos[c[i]];
+		if(~t){
+			aend[t]=aend[t+1];
+		}
+		cend[i]=aend[1];
 	}
 }
+int cend1[N],cend2[N];
 int fir[N],las[N];
+int diff[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("prz.in","r",stdin);
 	freopen("prz.out","w",stdout);
 #endif
 	int n=ni,k=ni;
-	for(int i=1;i<=k;i++){
-		fir[i]=n+1,las[i]=0;
-	}
-	for(int i=1;i<=n;i++){
-		c[i]=ni;
-		apmin(fir[c[i]],i);
-		apmax(las[c[i]],i);
-	}
-	memset(calc,0,sizeof(calc));
-	for(int i=1;i<=k;i++){
-		calc[fir[i]]=calc[las[i]]=true;
-	}
+	read(c,n);
 	int len1=ni,len2=ni;
-	for(int i=1;i<=len1;i++){
-		a[i]=ni;
-	}
-	work(n,k,len1,mat1);
-	for(int i=1;i<=len2;i++){
-		a[i]=ni;
-	}
+	read(a,len1);
+	work(n,len1,cend1);
+	read(a,len2);
 	reverse(c+1,c+n+1);
-	reverse(calc+1,calc+n+1);
-	work(n,k,len2,mat2);
+	work(n,len2,cend2);
 	reverse(c+1,c+n+1);
-	reverse(mat2+1,mat2+n+1);
+	reverse(cend2+1,cend2+n+1);
 	for(int i=1;i<=n;i++){
-		mat2[i]=n+1-mat2[i];
+		cend2[i]=n+1-cend2[i];
 	}
-	mat1[n+1]=n+1,mat2[0]=0;
+	memset(fir,0,sizeof(fir));
+	memset(las,0,sizeof(las));
+	memset(diff,0,sizeof(diff));
+	for(int i=1;i<=n;i++){
+		las[c[i]]=i;
+	}
+	for(int i=n;i>=1;i--){
+		fir[c[i]]=i;
+	}
 	for(int i=1;i<=k;i++){
-		mark(mat1[fir[i]],mat2[las[i]]);
-	}
-	int cnt=0;
-	for(int i=1;i<=n;i++){
-		diff[i]+=diff[i-1];
-		if(diff[i]>0&&c[i]==a[len2]){
-			cnt++;
+		if(fir[i]){
+			assert(las[i]);
+			int l=cend1[fir[i]],r=cend2[las[i]];
+			if(l<=r){
+				diff[l]++,diff[r+1]--;
+			}
 		}
 	}
-	printf("%d\n",cnt);
-	for(int i=1;i<=n;i++){
-		if(diff[i]>0&&c[i]==a[len2]){
+	int ans=0;
+	for(int i=1,t=a[len2];i<=n;i++){
+		diff[i]+=diff[i-1];
+		if(diff[i]>0&&c[i]==t){
+			ans++;
+		}
+	}
+	printf("%d\n",ans);
+	for(int i=1,t=a[len2];i<=n;i++){
+		if(diff[i]>0&&c[i]==t){
 			printf("%d ",i);
 		}
 	}
