@@ -19,6 +19,7 @@ template<class T>inline T next_num(){
 const int N=51;
 ld f[2][N][N];
 inline double work(int n,int m){
+	memset(f,0,sizeof(f));
 	if(n>m){
 		swap(n,m);
 	}
