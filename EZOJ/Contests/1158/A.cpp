@@ -15,58 +15,130 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=600,INF=0x7f7f7f7f;
-int w[N][N];
-int val[N];
-int u[N];
-int ans=-INF;
-int n,m;
-int a[N],besta[N];
+const int N=260,INF=0x7f7f7f7f,WINF=1<<10;
+namespace G{
+	const int E=(N*2+8*(1<<(8-1)))<<1;
+	int to[E],bro[E],cap[E],head[N],s,t;
+	inline int nn(){
+		static int n=0;
+		return ++n;
+	}
+	inline void ae(int u,int v,int c){
+		static int e=0;
+		to[e]=v,bro[e]=head[u],cap[e]=c,head[u]=e++;
+	}
+	inline void init(){
+		memset(head,-1,sizeof(head));
+		s=nn(),t=nn();
+	}
+	inline void add(int u,int v,int c){
+		ae(u,v,c),ae(v,u,0);
+	}
+	int dis[N],que[N];
+	inline bool bfs(){
+		memset(dis,-1,sizeof(dis));
+		int qh=0,qt=dis[s]=0;
+		que[qt++]=s;
+		while(qh<qt){
+			int x=que[qh++];
+			for(int i=head[x],v;~i;i=bro[i]){
+				if(cap[i]&&dis[v=to[i]]==-1){
+					dis[v]=dis[x]+1;
+					if(v==t){
+						return true;
+					}
+					que[qt++]=v;
+				}
+			}
+		}
+		return ~dis[t];
+	}
+	int aug(int x,int a){
+		if(x==t){
+			return a;
+		}
+		int d,r=a;
+		for(int i=head[x],v;(~i)&&r;i=bro[i]){
+			if(cap[i]&&dis[v=to[i]]==dis[x]+1){
+				d=aug(v,min(r,cap[i]));
+				cap[i]-=d,cap[i^1]+=d,r-=d;
+			}
+		}
+		if(r){
+			dis[x]=-1;
+		}
+		return a-r;
+	}
+	inline int dinic(){
+		int flow=0;
+		for(;bfs();flow+=aug(s,INF));
+		return flow;
+	}
+}
 inline int lb(int x){
 	return x&(-x);
 }
-void dfs(int i,int sum){
-	if(i==n){
-		if(sum>ans){
-			for(int j=0;j<n;j++){
-				besta[j]=a[j];
-			}
-			ans=sum;
-		}
-		return;
-	}
-	for(a[i]=0;a[i]<m;a[i]++){
-		int dt=w[i][a[i]];
-		for(int j=i;j;j^=lb(j)){
-			int x=i^lb(j);
-			if(a[x]>=val[x]||a[i]>=val[i]){
-				dt+=u[i]^u[x];
-			}
-		}
-		dfs(i+1,sum+dt);
-	}
+inline int bitcnt(int x){
+	int cnt=0;
+	for(;x;x^=lb(x),cnt++);
+	return cnt;
 }
+int node[N];
+int wj[2][N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("ram.in","r",stdin);
 	freopen("ram.out","w",stdout);
 #endif
-	n=1<<ni,m=1<<ni;
-	for(int i=0;i<n;i++){
-		val[i]=ni;
-	}
-	for(int i=0;i<n;i++){
-		u[i]=ni;
-	}
-	for(int i=0;i<n;i++){
-		for(int j=0;j<m;j++){
-			w[i][j]=ni;
+	int n=1<<ni,m=1<<ni;
+	G::init();
+	{//graph
+		static int div[N],u[N];
+		for(int i=0;i<n;i++){
+			div[i]=ni;
+		}
+		for(int i=0;i<n;i++){
+			u[i]=ni;
+		}
+		for(int i=0;i<n;i++){
+			node[i]=G::nn();
+		}
+		for(int i=0;i<n;i++){
+			int a=-INF,b=-INF;
+			for(int j=0;j<div[i];j++){
+				int t=ni;
+				if(t>a){
+					a=t,wj[0][i]=j;
+				}
+			}
+			for(int j=div[i];j<m;j++){
+				int t=ni;
+				if(t>b){
+					b=t,wj[1][i]=j;
+				}
+			}
+			if(bitcnt(i)&1){
+				G::add(G::s,node[i],WINF-b);
+				if(div[i]){
+					G::add(node[i],G::t,WINF-a);
+				}
+				for(int j=1;j<n;j<<=1){
+					G::add(node[i],node[i^j],u[i]^u[i^j]);
+				}
+			}else{
+				G::add(G::s,node[i],WINF-a);
+				if(div[i]){
+					G::add(node[i],G::t,WINF-b);
+				}
+			}
 		}
 	}
-	dfs(0,0);
-	for(int i=0;i<n;i++){
-		printf("%d ",besta[i]);
+	{//flow
+		G::dinic();
+		for(int i=0;i<n;i++){
+			printf("%d ",wj[(bitcnt(i)&1)==(G::dis[node[i]]==-1)][i]);
+		}
+		putchar('\n');
 	}
-	putchar('\n');
 	return 0;
 }
