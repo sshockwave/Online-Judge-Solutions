@@ -45,16 +45,16 @@ namespace G{
 	inline bool bfs(){
 		memset(dis+1,-1,n<<2);
 		int qh=0,qt=0;
-		dis[s]=0,que[qt++]=s;
+		dis[t]=0,que[qt++]=t;
 		while(qh<qt){
 			int x=que[qh++];
 			for(int i=head[x],v;~i;i=bro[i]){
-				if(cap[i]&&dis[v=to[i]]==-1){
+				if(cap[i^1]&&dis[v=to[i]]==-1){
 					dis[v=to[i]]=dis[x]+1,que[qt++]=v;
 				}
 			}
 		}
-		return ~dis[t];
+		return ~dis[s];
 	}
 	lint aug(int x,lint a){
 		if(x==t){
@@ -62,7 +62,7 @@ namespace G{
 		}
 		lint d,r=a;
 		for(int i=head[x],v;(~i)&&r;i=bro[i]){
-			if(cap[i]&&dis[v=to[i]]==dis[x]+1){
+			if(cap[i]&&dis[v=to[i]]==dis[x]-1){
 				d=aug(v,min(r,cap[i]));
 				cap[i]-=d,cap[i^1]+=d,r-=d;
 			}
