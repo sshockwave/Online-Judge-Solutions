@@ -46,7 +46,7 @@ int main(){
 	for(int i=1;i<=n;i++){
 		b[i]=ni;
 		_b[i]=_b[i-1]+b[i];
-		_bi[i]=_bi[i-1]+i*b[i];
+		_bi[i]=_bi[i-1]+(lint)i*b[i];
 	}
 	f[0]=a[0]=0;
 	int qh=0,qt=0;
@@ -55,7 +55,7 @@ int main(){
 		for(;qh+1<qt&&fcmp(i,que[qh],que[qh+1]);qh++);
 		int j=que[qh];
 		f[i]=f[j]+i*(_b[i]-_b[j])-(_bi[i]-_bi[j])+a[i];
-		for(;qh+1<qt&&dy(i,que[qt-2])*dx(que[qt-1],que[qt-2])<=dx(i,que[qt-1])*dy(que[qt-1],que[qt-2]);qt--);
+		for(;qh+1<qt&&dy(i,que[qt-2])*dx(que[qt-1],que[qt-2])<=dx(i,que[qt-2])*dy(que[qt-1],que[qt-2]);qt--);
 		que[qt++]=i;
 	}
 	printf("%lld\n",f[n]);
