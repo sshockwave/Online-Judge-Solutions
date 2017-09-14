@@ -23,7 +23,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 const int N=43;
 const lint LINF=0x7f7f7f7f7f;
 namespace G{
-	const int N=43*43,E=N*3;
+	const int N=43*43,E=43*43*300;
 	int to[E],bro[E],head[N],e,n,s,t;
 	lint cap[E];
 	inline int nn(){
