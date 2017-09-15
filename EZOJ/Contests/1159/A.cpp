@@ -40,6 +40,9 @@ namespace T{
 		}
 	}
 }
+inline bool ascend(int i,int j,int k){
+	return (size[k]-size[i])*(j-i)>(size[j]-size[i])*(k-i);
+}
 int K[N];
 int que[N],ans[N];
 int main(){
@@ -61,7 +64,7 @@ int main(){
 	}
 	int *qh=que,*qt=que;
 	for(int i=1;i<=mx;i++){
-		for(;qt>que&&size[*(qt-1)]*i>=size[i]**(qt-1);qt--);
+		for(;qt>que+1&&!ascend(*(qt-2),*(qt-1),i);qt--);
 		*(qt++)=i;
 	}
 	for(int i=1;i<=n;i++){
