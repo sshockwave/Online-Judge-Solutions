@@ -98,6 +98,9 @@ namespace T{
 	inline void ae(int u,int v){
 		to[e]=v,bro[e]=head[u],head[u]=e++;
 	}
+	inline void add(int u,int v){
+		ae(u,v),ae(v,u);
+	}
 	int f[N],rt[N];
 	void dfs(int x,int fa){
 		vis[x]=true;
@@ -122,7 +125,7 @@ inline int Main(){
 	int n=ni;
 	Trie::init(),T::init(n);
 	for(int tot=ni;tot--;){
-		T::ae(ni,ni);
+		T::add(ni,ni);
 	}
 	int ans=0;
 	for(int i=1;i<=n;i++){
