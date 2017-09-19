@@ -31,9 +31,10 @@ struct state{
 map<state,int>m[N];
 int mx;
 inline void pushstate(map<state,int>&m,int i,int j,int k,int v){
-	if(i>mx||j>mx||k>mx){
+	if(i>mx){
 		return;
 	}
+	apmin(j,mx+1),apmin(k,mx+1);
 	map<state,int>::iterator it=m.find((state){i,j,k});
 	if(it!=m.end()){
 		apmin(it->second,v);
