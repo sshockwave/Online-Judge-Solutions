@@ -15,63 +15,73 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=14;
-bool con[N][N];
-int n;
-lint ans=0;
-bool vis[N];
-void dfs2(int x){
-	vis[x]=true;
-	for(int i=1;i<=n;i++){
-		if(con[x][i]&&!vis[i]){
-			dfs2(i);
-		}
+template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
+	if(a<b){
+		a=b;
 	}
 }
-bool check(){
-	//cout<<"checking"<<endl;
-	memset(vis,0,sizeof(vis));
-	dfs2(1);
-	for(int i=1;i<=n;i++){
-		if(!vis[i]){
-			return false;
+const int N=50;
+struct bint{
+	static const int D=10000,MOD=100000;
+	int d[D],ds;
+	bint(){
+		ds=0;
+		memset(d,0,sizeof(d));
+	}
+	inline void carry(){
+		for(int i=0;i<ds;i++){
+			d[i+1]+=d[i]/MOD,d[i]%=MOD;
 		}
-	}/*
-	cout<<"con:"<<endl;
-	for(int i=1;i<=n;i++){
-		for(int j=1;j<=n;j++){
-			cout<<con[i][j]<<" ";
+		for(;d[ds];ds++){
+			d[ds+1]+=d[ds]/MOD,d[ds]%=MOD;
 		}
-		cout<<endl;
-	}*/
-	return true;
-}
-void dfs(int x,int y,int rest){
-	if(x==y){
-		x++,y=1;
 	}
-	if(x>n){
-		if(rest==0){
-			ans+=check();
+	inline void operator += (const bint &b){
+		apmax(ds,b.ds);
+		for(int i=0;i<ds;i++){
+			d[i]+=b.d[i];
 		}
-		return;
+		carry();
 	}
-	if(n*(n-1)/2-(x-1)*(x-2)/2-y>=rest){
-		dfs(x,y+1,rest);
+	inline void operator *= (int b){
+		for(int i=0;i<ds;i++){
+			d[i]*=b;
+		}
+		carry();
 	}
-	if(rest){
-		con[x][y]=con[y][x]=true;
-		dfs(x,y+1,rest-1);
-		con[x][y]=con[y][x]=false;
+	inline void operator /= (int b){
+		for(int i=ds-1,r=0;i>=0;i--){
+			r=r*MOD+d[i];
+			d[i]=r/b,r%=b;
+		}
+		for(;ds&&d[ds];ds--);
 	}
-}
-int tmp[]={1,0,0,1,15,222,3660,68295,1436568,33779340};
+	inline void print(){
+		printf("%d",d[max(ds-1,0)]);
+		for(int i=ds-2;i>=0;i--){
+			printf("%05d",d[i]);
+		}
+		putchar('\n');
+	}
+}ans,cur;
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("calc.in","r",stdin);
-	freopen("calc.ans","w",stdout);
+	freopen("calc.out","w",stdout);
 #endif
-	n=ni;
-	printf("%d\n",tmp[n]);
+	int n=ni;
+	cur.ds=1,cur.d[0]=1;
+	for(int i=1;i<n;i++){
+		cur*=n;
+	}
+	for(int k=1;k<=n;k++){
+		if(k>=3){
+			ans+=cur;
+		}
+		cur/=n;
+		cur*=n-k;
+	}
+	ans/=2;
+	ans.print();
 	return 0;
 }
