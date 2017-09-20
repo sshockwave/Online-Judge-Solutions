@@ -1,9 +1,11 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <algorithm>
+#include <queue>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -21,152 +23,63 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 		a=b;
 	}
 }
-const int N=100010,E=200010;
-const lint LINF=0x7f7f7f7f7f7f7f7f;
-bool good[N];
-namespace seg{
-	struct Node;
-	typedef Node* node;
-	struct Node{
-		int l,r,m;
-		node lson,rson;
-		int mx;
-		inline void up(){
-			mx=max(lson->mx,rson->mx);
-		}
-	}*rt;
-	node build(int l,int r){
-		static node n=new Node[N*2];
-		node x=n++;
-		x->l=l,x->r=r,x->m=(l+r)>>1;
-		if(l!=r){
-			x->lson=build(l,x->m);
-			x->rson=build(x->m+1,r);
-		}
-		return x;
-	}
-	void set(node x,int p,int v){
-		if(x->l==x->r){
-			assert(x->l==p);
-			x->mx=v;
-		}else{
-			set(p<=x->m?x->lson:x->rson,p,v);
-			x->up();
-		}
-	}
-	int ask(node x,int l,int r){
-		assert(x->l<=l&&r<=x->r);
-		if(x->l==l&&x->r==r){
-			return x->mx;
-		}
-		if(r<=x->m){
-			return ask(x->lson,l,r);
-		}
-		if(l>x->m){
-			return ask(x->rson,l,r);
-		}
-		return max(ask(x->lson,l,x->m),ask(x->rson,x->m+1,r));
-	}
-}
+const int N=100010,E=200010,logN=20;
 namespace T{
-	const int E=N*2;
-	int to[E],bro[E],val[E],head[N],e=0;
-	typedef int arr[N];
-	arr fa,son,size,dep,top,dfn;
+	const int E=N<<1;
+	int to[E],bro[E],head[N],e=0;
+	lint val[E];
+	int fa[N][logN],dep[N],ldep[N];
+	lint mx[N][logN];
 	inline void init(){
 		memset(head,-1,sizeof(head));
-		fa[1]=dep[1]=son[0]=size[0]=0;
 	}
-	inline void ae(int u,int v,int w){
+	inline void ae(int u,int v,lint w){
 		to[e]=v,bro[e]=head[u],val[e]=w,head[u]=e++;
 	}
-	inline void add(int u,int v,int w){
+	inline void add(int u,int v,lint w){
 		ae(u,v,w),ae(v,u,w);
 	}
-	void dfs1(int x){
-		size[x]=1,son[x]=0;
+	void dfs(int x){
+		for(int &j=ldep[x]=0;(fa[x][j+1]=fa[fa[x][j]][j]);j++){
+			mx[x][j+1]=max(mx[x][j],mx[fa[x][j]][j]);
+		}
 		for(int i=head[x],v;~i;i=bro[i]){
-			if((v=to[i])!=fa[x]){
-				fa[v]=x;
+			if((v=to[i])!=fa[x][0]){
+				fa[v][0]=x;
+				mx[v][0]=val[i];
 				dep[v]=dep[x]+1;
-				dfs1(v);
-				size[x]+=size[v];
-				if(size[v]>size[son[x]]){
-					son[x]=v;
-				}
+				dfs(v);
 			}
 		}
 	}
-	int tim=0;
-	void dfs2(int x){
-		dfn[x]=++tim;
-		top[x]=son[fa[x]]==x?top[fa[x]]:x;
-		if(son[x]){
-			dfs2(son[x]);
-		}
-		for(int i=head[x],v;~i;i=bro[i]){
-			if((v=to[i])==fa[x]){
-				seg::set(seg::rt,dfn[x],val[i]);
-			}else if(v!=son[x]){
-				dfs2(v);
-			}
-		}
-	}
-	inline int ask(int u,int v){
-		int ans=0;
-		while(top[u]!=top[v]){
-			if(dep[top[u]]<dep[top[v]]){
-				swap(u,v);
-			}
-			apmax(ans,seg::ask(seg::rt,dfn[top[u]],dfn[u]));
-			u=fa[top[u]];
-		}
-		if(u==v){
-			return ans;
-		}
+	lint ask(int u,int v){
 		if(dep[u]<dep[v]){
 			swap(u,v);
 		}
-		return max(ans,seg::ask(seg::rt,dfn[v]+1,dfn[u]));
-	}
-}
-struct Edge{
-	int u,v,w;
-	inline friend bool operator < (const Edge &a,const Edge &b){
-		return a.w<b.w;
-	}
-}e[E];
-namespace uni{
-	int fa[N];
-	inline void init(){
-		memset(fa,0,sizeof(fa));
-	}
-	int root(int x){
-		if(fa[x]==0){
-			return x;
+		int ans=0;
+		for(int j=ldep[u];j>=0&&dep[u]>dep[v];j--){
+			if(dep[fa[u][j]]>=dep[v]){
+				apmax(ans,mx[u][j]);
+				u=fa[u][j];
+			}
 		}
-		return fa[x]=root(fa[x]);
-	}
-}
-inline void Main456(int n,int tot){
-	T::init();
-	for(int i=0;i<tot;i++){
-		e[i]=(Edge){ni,ni,ni};
-	}
-	sort(e,e+tot);
-	uni::init();
-	for(int i=0;i<tot;i++){
-		int u=uni::root(e[i].u),v=uni::root(e[i].v);
-		if(u!=v){
-			T::add(e[i].u,e[i].v,e[i].w);
-			uni::fa[u]=v;
+		assert(dep[u]==dep[v]);
+		if(u==v){
+			return ans;
 		}
-	}
-	seg::rt=seg::build(1,n),T::dfs1(1),T::dfs2(1);
-	for(tot=ni;tot--;){
-		printf("%d\n",T::ask(ni,ni));
+		for(int j=max(ldep[u],ldep[v]);j>=0;j--){
+			if(fa[u][j]!=fa[v][j]){
+				apmax(ans,max(mx[u][j],mx[v][j]));
+				u=fa[u][j];
+				v=fa[v][j];
+			}
+		}
+		apmax(ans,max(mx[u][0],mx[v][0]));
+		assert(fa[u][0]==fa[v][0]);
+		return ans;
 	}
 }
+bool good[N];
 namespace G{
 	const int E=200010*2;
 	int to[E],bro[E],val[E],head[N],e=0;
@@ -179,77 +92,95 @@ namespace G{
 	inline void add(int u,int v,int w){
 		ae(u,v,w),ae(v,u,w);
 	}
+	struct state{
+		int x;
+		lint d;
+		inline friend bool operator < (const state &a,const state &b){
+			return a.d>b.d;
+		}
+	};
+	priority_queue<state>q;
 	lint dis[N];
-	int que[N];
-	bool inque[N];
-	inline void spfa(int s,lint mx){
+	int fr[N];
+	inline void dij(int n){
 		memset(dis,127,sizeof(dis));
-		memset(inque,0,sizeof(inque));
-		int qh=0,qt=0;
-		que[qt++]=s,inque[s]=true,dis[s]=0;
-		while(qh!=qt){
-			int x=que[qh++];
-			if(qh==N){
-				qh=0;
+		for(int i=1;i<=n;i++){
+			if(good[i]){
+				dis[i]=0,fr[i]=i,q.push((state){i,0});
 			}
-			inque[x]=false;
+		}
+		while(!q.empty()){
+			int x=q.top().x;
+			lint d=q.top().d;
+			q.pop();
+			if(d>dis[x]){
+				continue;
+			}
 			for(int i=head[x],v;~i;i=bro[i]){
-				if(dis[v=to[i]]>dis[x]+val[i]&&dis[x]+val[i]<=mx){
-					dis[v]=good[v]?0:dis[x]+val[i];
-					if(!inque[v]){
-						que[qt++]=v,inque[v]=true;
-						if(qt==N){
-							qt=0;
-						}
-					}
+				if(dis[v=to[i]]>d+val[i]){
+					dis[v]=d+val[i];
+					fr[v]=fr[x];
+					q.push((state){v,dis[v]});
 				}
 			}
-			assert(!inque[x]);
+		}
+	}
+	inline lint eval(int e){
+		return dis[to[e]]+dis[to[e^1]]+val[e];
+	}
+	int lst[E>>1],ls=0;
+	inline bool lscmp(int a,int b){
+		return eval(a)<eval(b);
+	}
+	int fa[N];
+	int root(int x){
+		if(fa[x]==0){
+			return x;
+		}
+		return fa[x]=root(fa[x]);
+	}
+	inline void kruskal(){
+		for(int i=0;i<e;i+=2){
+			if(fr[to[i]]!=fr[to[i^1]]){
+				lst[ls++]=i;
+			}
+		}
+		sort(lst,lst+ls,lscmp);
+		memset(fa,0,sizeof(fa));
+		for(int i=0;i<ls;i++){
+			int e=lst[i],u=fr[to[e]],v=fr[to[e^1]];
+			if(root(u)!=root(v)){
+				T::add(u,v,eval(e));
+				fa[root(u)]=root(v);
+			}
 		}
 	}
 }
-lint mx=0;
-inline lint work(int s,int t){
-	lint l=0,r=mx;
-	while(l<r){
-		lint m=(l+r)>>1;
-		G::spfa(s,m);
-		if(G::dis[t]<LINF){
-			r=m;
-		}else{
-			l=m+1;
-		}
-	}
-	return l;
-}
-char s[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("travel.in","r",stdin);
 	freopen("travel.out","w",stdout);
 #endif
-	G::init();
-	int n=ni,tot=ni;
-	scanf("%s",s+1);
-	bool flag=true;
-	for(int i=1;i<=n;i++){
-		good[i]=s[i]=='1';
-		if(!good[i]){
-			flag=false;
+	int n=ni,tot=ni,rt;
+	{
+		static char s[N];
+		scanf("%s",s+1);
+		for(int i=1;i<=n;i++){
+			good[i]=s[i]=='1';
+			if(good[i]){
+				rt=i;
+			}
 		}
 	}
-	if(flag){
-		Main456(n,tot);
-		return 0;
-	}
+	T::init(),G::init();
 	while(tot--){
-		int u=ni,v=ni,w=ni;
-		mx+=w;
-		G::add(u,v,w);
+		int u=ni,v=ni;
+		G::add(u,v,ni);
 	}
+	T::fa[rt][0]=0,T::dep[rt]=1;
+	G::dij(n),G::kruskal(),T::dfs(rt);
 	for(tot=ni;tot--;){
-		int x=ni,y=ni;
-		printf("%lld\n",work(x,y));
+		printf("%lld\n",T::ask(ni,ni));
 	}
 	return 0;
 }
