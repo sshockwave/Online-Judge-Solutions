@@ -15,9 +15,12 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=1000000010,K=1000010,MOD=998244353;
+const int N=1000000010,SH=18,K=1<<SH,MOD=998244353;
 inline int add(const int &a,const int &b){
 	return (a+b)%MOD;
+}
+inline int sub(const int &a,const int &b){
+	return add(a,MOD-b);
 }
 inline int mul(const int &a,const int &b){
 	return (lint)a*b%MOD;
@@ -40,56 +43,56 @@ inline int fpow(int x,int n){
 inline int inv(int x){
 	return fpow(x,MOD-2);
 }
-inline int bigfac(int n){
-	const static int lst[]=
-	{
-		1,295201906,160030060,957629942,545208507,213689172,760025067,939830261,506268060,39806322,
-		808258749,440133909,686156489,741797144,390377694,12629586,544711799,104121967,495867250,421290700,
-		117153405,57084755,202713771,675932866,79781699,956276337,652678397,35212756,655645460,468129309,
-		761699708,533047427,287671032,206068022,50865043,144980423,111276893,259415897,444094191,593907889,
-		573994984,892454686,566073550,128761001,888483202,251718753,548033568,428105027,742756734,546182474,
-		62402409,102052166,826426395,159186619,926316039,176055335,51568171,414163604,604947226,681666415,
-		511621808,924112080,265769800,955559118,763148293,472709375,19536133,860830935,290471030,851685235,
-		242726978,169855231,612759169,599797734,961628039,953297493,62806842,37844313,909741023,689361523,
-		887890124,380694152,669317759,367270918,806951470,843736533,377403437,945260111,786127243,80918046,
-		875880304,364983542,623250998,598764068,804930040,24257676,214821357,791011898,954947696,183092975,
-	};
-	if(n>=MOD){
-		return 0;
-	}
-	int t=n/10000000,ans=lst[t];
-	for(int i=t*10000000+1;i<=n;i++){
-		apmul(ans,i);
-	}
-	return ans;
-}
-int fac[K],invfac[K];
-inline int c(int n,int m){
-	return mul(fac[n],mul(invfac[m],invfac[n-m]));
-}
-int f[2][K];
-inline int getans(int n,int ans){
-	apmul(ans,n);
-	apmul(ans,fpow(2,(lint)(n-1)*(n-2)/2%(MOD-1)));
-	return ans;
-}
-inline int work(int n,int k){
-	bool r=0;
-	memset(f,0,sizeof(f));
-	f[r][0]=1;
-	for(int t=2;t<=n;t++){
-		r=!r;
-		f[r][0]=mul(mul(f[!r][0],2),inv(t-1));
-		for(int i=1;i<=k;i++){
-			lint sum=0;
-			for(int j=0;j<i;j++){
-				sum+=mul(c(i-1,j),f[!r][j]);
+namespace poly{
+	const int SH=18,N=1<<SH;
+	int n,sh,invn;
+	int o[SH+1][N>>1],io[SH+1][N>>1],rev[N];
+	inline void init(int _n){
+		for(sh=0;(1<<sh)<_n;sh++);
+		n=1<<sh,invn=inv(n),rev[0]=0;
+		for(int i=1;i<n;i++){
+			rev[i]=(rev[i>>1]>>1)|((i&1)<<(sh-1));
+		}
+		for(int i=1;i<=sh;i++){
+			int full=1<<i,half=full>>1;
+			int w=1,wn=fpow(3,(MOD-1)/full),iw=1,iwn=inv(wn);
+			for(int j=0;j<half;j++,apmul(w,wn),apmul(iw,iwn)){
+				o[i][j]=w,io[i][j]=iw;
 			}
-			f[r][i]=sum%MOD;
 		}
 	}
-	return mul(f[r][k],bigfac(n-1));
+	inline void ntt(int a[],int d){
+		for(int i=0;i<n;i++){
+			if(rev[i]<i){
+				swap(a[rev[i]],a[i]);
+			}
+		}
+		for(int i=1;i<=sh;i++){
+			int full=1<<i,half=full>>1;
+			for(int j=0;j<half;j++){
+				int w=(~d)?o[i][j]:io[i][j];
+				for(int k=j;k<n;k+=full){
+					int p=a[k],q=mul(a[k+half],w);
+					a[k]=add(p,q);
+					a[k+half]=sub(p,q);
+				}
+			}
+		}
+		if(d==-1){
+			for(int i=0;i<n;i++){
+				apmul(a[i],invn);
+			}
+		}
+	}
+	inline void mul(int a[],int b[]){
+		ntt(a,1),ntt(b,1);
+		for(int i=0;i<n;i++){
+			apmul(a[i],b[i]);
+		}
+		ntt(a,-1);
+	}
 }
+int fac[K],invfac[K];
 inline void gmath(int n){
 	fac[0]=1;
 	for(int i=1;i<=n;i++){
@@ -100,33 +103,27 @@ inline void gmath(int n){
 		invfac[i-1]=mul(invfac[i],i);
 	}
 }
-inline int Main(int n,int k){
-	if(k==0){
-		return fpow(2,n-1);
-	}
-	if(k==1){
-		return n==1?0:mul(n-1,fpow(2,n-2));
-	}
-	if(n>=MOD){
-		return 0;
-	}else if(n<=1000000){
-		gmath(n);
-		lint ans=0;
-		for(int i=0;i<n;i++){
-			ans+=mul(c(n-1,i),fpow(i,k));
-		}
-		return ans%MOD;
-	}else{
-		gmath(k);
-		return work(n,k);
-	}
-}
+int a[K],b[K];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("value.in","r",stdin);
 	freopen("value.out","w",stdout);
 #endif
-	int n=ni,k=ni;
-	printf("%d\n",getans(n,Main(n,k)));
+	int n=ni-1,k=ni;
+	gmath(k);
+	poly::init(k*2+1);
+	memset(a,0,sizeof(a));
+	memset(b,0,sizeof(b));
+	for(int i=0;i<=k;i++){
+		a[i]=mul(fpow(MOD-1,i),invfac[i]);
+		b[i]=mul(fpow(i,k),invfac[i]);
+	}
+	poly::mul(a,b);
+	lint ans=0;
+	for(int i=0,c=1,ti=min(n,k);i<=ti;apmul(c,n-i),i++){
+		ans+=mul(a[i],mul(c,fpow(2,n-i)));
+	}
+	n++;
+	printf("%d\n",mul(ans%MOD,mul(n,fpow(2,(lint)(n-1)*(n-2)/2%(MOD-1)))));
 	return 0;
 }
