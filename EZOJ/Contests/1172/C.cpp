@@ -34,7 +34,6 @@ namespace T{
 		to[e]=v,bro[e]=head[u],head[u]=e++;
 	}
 	inline void add(int u,int v){
-		cout<<"add("<<u<<","<<v<<")"<<endl;
 		ae(u,v),ae(v,u);
 	}
 	void dfs1(int x){
@@ -93,7 +92,7 @@ namespace seg{
 		int mx;
 	};
 	node build(int l,int r){
-		node n=new Node[N*rtN*2];
+		static node n=new Node[N*rtN*2];
 		node x=n++;
 		x->l=l,x->m=(l+r)>>1,x->r=r;
 		if(l==r){
@@ -123,7 +122,7 @@ namespace seg{
 seg::node rt[rtN+1];
 inline int T::ask1(int u,int v,int k){
 	int w=lca(u,v),ou=k-1,ov=(1+dep[u]-dep[w]+dep[v]-dep[w])%k;
-	int R=((n-1)/k+1)*k,ans=0;
+	int R=(n-1)/k+1,ans=0;
 	while(top[u]!=top[v]){
 		if(dep[top[u]]<dep[top[v]]){
 			swap(u,v),swap(ou,ov);
@@ -134,16 +133,16 @@ inline int T::ask1(int u,int v,int k){
 			apmax(ans,seg::ask(rt[k],l%k*R+l/k,r%k*R+r/k));
 		}
 		ou=(ou-(dep[u]-dep[fa[top[u]]]))%k;
-		if(ou){
+		if(ou<0){
 			ou+=k;
 		}
 		u=fa[top[u]];
 	}
-	assert(((dfn[u]-ou)%k+k)%k==((dfn[v]-ov)%k+k)%k);
 	if(dep[u]<dep[v]){
 		swap(u,v),swap(ou,ov);
 	}
-	int l=dfn[v]+(k-ov)%k,r=dfn[u]-ou;
+	assert(((dfn[u]-ou)%k+k)%k==((dfn[v]+ov)%k+k)%k);
+	int l=dfn[v]+ov,r=dfn[u]-ou;
 	if(l<=r){
 		assert(l%k==r%k);
 		apmax(ans,seg::ask(rt[k],l%k*R+l/k,r%k*R+r/k));
@@ -152,11 +151,11 @@ inline int T::ask1(int u,int v,int k){
 }
 inline int T::ask2(int u,int v,int k){
 	int w=lca(u,v),ans=0;
-	u=go(u,k-1),v=go(v,(1+dep[u]-dep[w]+dep[v]-dep[w])%k);
-	for(;u;u=go(u,k)){
+	v=go(v,(1+dep[u]-dep[w]+dep[v]-dep[w])%k),u=go(u,k-1);
+	for(;dep[u]>=dep[w];u=go(u,k)){
 		apmax(ans,pval[u]);
 	}
-	for(;v;v=go(v,k)){
+	for(;dep[v]>=dep[w];v=go(v,k)){
 		apmax(ans,pval[v]);
 	}
 	return ans;
@@ -176,8 +175,8 @@ int main(){
 		T::add(ni,ni);
 	}
 	T::dfs1(1),T::dfs2(1);
-	for(int i=1;i<=rtN;i++){
-		R=((n-1)/i+1)*i,C=i;
+	for(int i=1,ti=min(rtN,n);i<=ti;i++){
+		R=(n-1)/i+1,C=i;
 		rt[i]=seg::build(0,R*C-1);
 	}
 	while(tot--){
