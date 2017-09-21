@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -20,7 +21,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 		a=b;
 	}
 }
-const int N=100010,rtN=20;
+const int N=110000,rtN=40;
 namespace T{
 	const int E=N<<1;
 	int to[E],bro[E],head[N],e=0;
@@ -90,9 +91,8 @@ namespace seg{
 		int l,m,r;
 		node lson,rson;
 		int mx;
-	};
+	}pol[N*2],*n;
 	node build(int l,int r){
-		static node n=new Node[N*rtN*2];
 		node x=n++;
 		x->l=l,x->m=(l+r)>>1,x->r=r;
 		if(l==r){
@@ -119,7 +119,7 @@ namespace seg{
 		return max(ask(x->lson,l,x->m),ask(x->rson,x->m+1,r));
 	}
 }
-seg::node rt[rtN+1];
+seg::node rt;
 inline int T::ask1(int u,int v,int k){
 	int w=lca(u,v),ou=k-1,ov=(1+dep[u]-dep[w]+dep[v]-dep[w])%k;
 	int R=(n-1)/k+1,ans=0;
@@ -130,7 +130,7 @@ inline int T::ask1(int u,int v,int k){
 		if(dfn[top[u]]<=dfn[u]-ou){
 			int r=dfn[u]-ou,l=dfn[top[u]]+(r-dfn[top[u]])%k;
 			assert(l<=r),assert(l%k==r%k);
-			apmax(ans,seg::ask(rt[k],l%k*R+l/k,r%k*R+r/k));
+			apmax(ans,seg::ask(rt,l%k*R+l/k,r%k*R+r/k));
 		}
 		ou=(ou-(dep[u]-dep[fa[top[u]]]))%k;
 		if(ou<0){
@@ -145,7 +145,7 @@ inline int T::ask1(int u,int v,int k){
 	int l=dfn[v]+ov,r=dfn[u]-ou;
 	if(l<=r){
 		assert(l%k==r%k);
-		apmax(ans,seg::ask(rt[k],l%k*R+l/k,r%k*R+r/k));
+		apmax(ans,seg::ask(rt,l%k*R+l/k,r%k*R+r/k));
 	}
 	return ans;
 }
@@ -159,6 +159,10 @@ inline int T::ask2(int u,int v,int k){
 		apmax(ans,pval[v]);
 	}
 	return ans;
+}
+int u[N],v[N],k[N],lst[N],ans[N];
+inline int lscmp(int a,int b){
+	return k[a]<k[b];
 }
 int main(){
 #ifndef ONLINE_JUDGE
@@ -175,17 +179,25 @@ int main(){
 		T::add(ni,ni);
 	}
 	T::dfs1(1),T::dfs2(1);
-	for(int i=1,ti=min(rtN,n);i<=ti;i++){
-		R=(n-1)/i+1,C=i;
-		rt[i]=seg::build(0,R*C-1);
+	for(int i=1;i<=tot;i++){
+		u[i]=ni,v[i]=ni,k[i]=ni,lst[i]=i;
 	}
-	while(tot--){
-		int u=ni,v=ni,k=ni;
-		if(k>n){
-			puts("0");
+	sort(lst+1,lst+tot+1,lscmp);
+	for(int i=1;i<=tot;i++){
+		int q=lst[i];
+		if(k[q]<=rtN){
+			if(k[q]!=k[lst[i-1]]){
+				C=k[q],R=(n-1)/C+1;
+				seg::n=seg::pol;
+				rt=seg::build(0,R*C-1);
+			}
+			ans[q]=T::ask1(u[q],v[q],k[q]);
 		}else{
-			printf("%d\n",(k<=rtN?T::ask1:T::ask2)(u,v,k));
+			ans[q]=T::ask2(u[q],v[q],k[q]);
 		}
+	}
+	for(int i=1;i<=tot;i++){
+		printf("%d\n",ans[i]);
 	}
 	return 0;
 }
