@@ -36,7 +36,7 @@ int main(){
 		int t=ni;
 		lint k=nl;
 		for(int j=0;j<SH;j++){
-			if(k&(1<<j)){
+			if(k&(1ll<<j)){
 				t=nxt[t][j];
 			}
 		}
