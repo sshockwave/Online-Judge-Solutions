@@ -16,7 +16,7 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int T=20,MOD=100000007;
+const int T=20,MOD=1000000007;
 inline int add(const int &a,const int &b){
 	return (a+b)%MOD;
 }
