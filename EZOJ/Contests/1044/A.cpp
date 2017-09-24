@@ -3,11 +3,11 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <map>
+#include <algorithm>
 #include <vector>
+#include <map>
 using namespace std;
 typedef long long lint;
-typedef long double ld;
 #define cout cerr
 #define ni (next_num<int>())
 #define nl (next_num<lint>())
@@ -20,53 +20,43 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=100010;
-const lint LINF=0x7f7f7f7f7f7f7f7f;
 lint gcd(lint a,lint b){
-	return b==0?a:gcd(b,a%b);
+	return b?gcd(b,a%b):a;
 }
-lint a[N];
-typedef map<lint,vector<int> > mlv;
-mlv m;
-int stk[N],ss=0;
-lint val[N];
-lint _xor[N];
+typedef map<lint,vector<int> >mp;
+mp m;
+lint a[N],val[N],_xor[N];
+int que[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("opening.in","r",stdin);
 	freopen("opening.out","w",stdout);
 #endif
-	int n=ni;
+	int n=ni,t=0;
 	_xor[0]=0;
 	for(int i=1;i<=n;i++){
-		a[i]=nl;
-		_xor[i]=a[i]^_xor[i-1];
+		_xor[i]=(a[i]=nl)^_xor[i-1];
 	}
-	lint target=nl;
-	int l=-1,r=-1;
-	stk[ss]=n+1,val[ss]=1,ss++;
-	for(int i=n;i>=1;i--){
-		for(;gcd(val[ss-1],a[i])!=val[ss-1];ss--);
-		stk[ss]=i,val[ss]=a[i],ss++;
-		m[_xor[i]].push_back(i);
-		for(int j=ss-1;j;j--){
-			if(target%val[j]==0){
-				mlv::iterator it=m.find((target/val[j])^_xor[i-1]);
+	lint num=nl;
+	que[t]=0,val[t]=1,t++;
+	for(int i=1,j,k;i<=n;i++){
+		que[t]=i,val[t]=a[i],t++;
+		m[_xor[i-1]].push_back(i);
+		for(j=0,k=t,t=0;j<k;t++){
+			val[t]=gcd(a[i],val[j]);
+			for(;j<k&&gcd(a[i],val[j])==val[t];que[t]=que[j++]);
+			if(num%val[t]==0){
+				mp::iterator it=m.find((num/val[t])^_xor[i]);
 				if(it!=m.end()){
-					int mn=stk[j],mx=stk[j-1];
-					for(int k=it->second.size();k>=0;k++){
-						if(it->second[k]>=mn&&it->second[k]<mx){
-							l=i,r=it->second[k];
-							break;
-						}
+					vector<int>::iterator p=upper_bound(it->second.begin(),it->second.end(),t?que[t-1]:0);
+					if(p!=it->second.end()&&*p<=que[t]){
+						printf("%d %d\n",*p,i);
+						return 0;
 					}
 				}
 			}
 		}
 	}
-	if(~l){
-		printf("%d %d\n",l,r);
-	}else{
-		puts("no solution");
-	}
+	puts("no solution");
 	return 0;
 }
