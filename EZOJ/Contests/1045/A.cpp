@@ -32,7 +32,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
 }
 const int N=100010,INF=0x7f7f7f7f;
 const lint LINF=0x7f7f7f7f7f7f7f7f;
-const double EPS=1e-4;
+const double EPS=1e-7;
 struct Point{
 	int x,y;
 	inline friend Point operator - (const Point &a,const Point &b){
@@ -79,7 +79,9 @@ namespace revG{
 			contri[i]=(lint)contri[i-1]*(c-1)%1632899;
 		}
 		assert(contri[96]&&contri[97]==0);
-		memset(f,0,sizeof(f));
+		for(int i=1;i<=ns;i++){
+			f[nlst[i]][97]=0;
+		}
 		for(int i=96;i>=1;i--){
 			for(int j=1;j<=ns;j++){
 				int x=nlst[j];
@@ -93,7 +95,7 @@ namespace revG{
 	}
 }
 namespace G{
-	const int E=N<<1;
+	const int E=N<<2;
 	int to[E],bro[E],val[E],head[N],e=0;
 	bool vis[N];
 	inline void init(){
@@ -121,8 +123,8 @@ namespace G{
 		}
 		return crs(pa,pb)>0;
 	}
-	int lnode[N],rnode[N];
-	int out[N],ids[N];
+	int lnode[E],rnode[E];
+	int out[E],ids[E];
 	void dfs(int x){
 		vis[x]=true;
 		int os=0;
@@ -154,7 +156,7 @@ namespace G{
 		}
 	}
 }
-inline double caly(int e,int x){
+inline double caly(int e,double x){
 	Point el=pt[G::to[e<<1]],er=pt[G::to[(e<<1)|1]];
 	return (double)(er.y-el.y)/(er.x-el.x)*(x-el.x)+el.y;
 }
@@ -183,32 +185,26 @@ namespace seg{
 		}
 		return x;
 	}
+	int xl,xr;
 	void cover(node x,int e){
-		int xl=pt[G::to[e<<1]].x,xr=pt[G::to[(e<<1)|1]].x;
-		if(xl>xr){
-			swap(xl,xr);
-		}
 		if(xl<=lst[x->l]&&xr>=lst[x->r+1]){
 			x->e.push_back(e);
-			return;
-		}
-		if(x->l==x->r){
 			return;
 		}
 		if(xl<lst[x->m+1]){
 			cover(x->lson,e);
 		}
-		if(xr>=lst[x->m+1]){
+		if(xr>lst[x->m+1]){
 			cover(x->rson,e);
 		}
 	}
 	double yval[G::E];
 	inline bool ecmp(int a,int b){
-		return yval[a]<yval[b];
+		return yval[a]+EPS<yval[b];
 	}
 	void sortvec(node x){
 		for(int i=0,ti=x->e.size();i<ti;i++){
-			yval[x->e[i]]=caly(x->e[i],lst[x->l]);
+			yval[x->e[i]]=caly(x->e[i],(double)(lst[x->l]+lst[x->r+1])/2);
 		}
 		sort(x->e.begin(),x->e.end(),ecmp);
 		if(x->l!=x->r){
@@ -236,7 +232,7 @@ namespace seg{
 		if(tmp<b){
 			return (Info){G::lnode[e],tmp};
 		}else{
-			return (Info){G::rnode[e],-1e30};
+			return (Info){global,-1e30};
 		}
 	}
 	Info ask(node x,double a,double b){
@@ -253,12 +249,15 @@ int main(){
 	freopen("dis.in","r",stdin);
 	freopen("dis.out","w",stdout);
 #endif
-	int n=ni,tot=ni,ls=0,mnx=INF,mxx=0;
+	int n=ni,tot=ni,ls=0,mnx=INF,mxx=0,dmost=1;
 	for(int i=1;i<=n;i++){
 		pt[i]=(Point){ni,ni};
 		lst[++ls]=pt[i].x;
 		apmin(mnx,pt[i].x);
 		apmax(mxx,pt[i].x);
+		if(pt[i].y<pt[dmost].y){
+			dmost=i;
+		}
 	}
 	G::init(),revG::init();
 	while(tot--){
@@ -270,15 +269,24 @@ int main(){
 	revG::work();
 	sort(lst+1,lst+ls+1);
 	ls=unique(lst+1,lst+ls+1)-lst-1;
-	lst[ls+1]=INF;
-	seg::rt=seg::build(1,ls);
+	seg::rt=seg::build(1,ls-1);
 	for(int i=0;i<G::e;i+=2){
-		if(pt[G::to[i]].x!=pt[G::to[i^1]].x){
+		seg::xl=pt[G::to[i]].x,seg::xr=pt[G::to[i^1]].x;
+		if(seg::xl!=seg::xr){
+			if(seg::xl>seg::xr){
+				swap(seg::xl,seg::xr);
+			}
 			seg::cover(seg::rt,i>>1);
 		}
 	}
 	seg::sortvec(seg::rt);
-	global=seg::ask(seg::rt,mnx,-1).n;
+	global=G::head[dmost];
+	for(int i=G::head[dmost];~i;i=G::bro[i]){
+		if(G::solarcmp(i,global)){
+			global=i;
+		}
+	}
+	global=G::rnode[global];
 	for(int tot=ni;tot--;){
 		double a,b,c,d;
 		int t;
