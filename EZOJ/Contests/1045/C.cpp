@@ -65,8 +65,11 @@ struct Circle{
 	int a,b,c;
 	Circle(set<int>s){
 		a=b=c=0;
-		int *pt=&a;
-		for(;pt<=(&c)&&!s.empty();(*pt++)=*s.begin(),s.erase(s.begin()));
+		int *p=&a;
+		for(;p<=(&c)&&!s.empty();(*p++)=*s.begin(),s.erase(s.begin()));
+		if(c&&crs(pt[b]-pt[c],pt[a]-pt[c])>0){
+			swap(b,c);
+		}
 	}
 	inline double R(){
 		if(b==0){
@@ -75,7 +78,7 @@ struct Circle{
 		if(c==0){
 			return dist(a,b)/2;
 		}
-		return dist(a,b)/sqrt(1-sqr(dot(pt[a]-pt[c],pt[b]-pt[c])/(dist(a,c)*dist(b,c))));
+		return dist(a,b)/(sqrt(1-sqr(dot(pt[a]-pt[c],pt[b]-pt[c])/(dist(a,c)*dist(b,c))))*2);
 	}
 	inline bool has(int d){
 		if(b==0){
@@ -85,9 +88,9 @@ struct Circle{
 			return dot(pt[d]-pt[a],pt[d]-pt[b])<=0;
 		}
 		double t=R()*(dot(pt[b]-pt[a],pt[c]-pt[a])/(dist(a,b)*dist(a,c)))/dist(b,c);
-		double cx=-(pt[c].y-pt[b].y)*t+(pt[c].x+pt[b].x)/2.0;
-		double cy=(pt[c].x-pt[b].x)*t+(pt[c].y+pt[b].y)/2.0;
-		return sqr(pt[d].x-cx)+sqr(pt[d].y-cy)<=(pt[b]-pt[c]).d2();
+		double cx=-(pt[c].y-pt[b].y)*t+(pt[b].x+pt[c].x)/2.0;
+		double cy=(pt[c].x-pt[b].x)*t+(pt[b].y+pt[c].y)/2.0;
+		return sqr(pt[d].x-cx)+sqr(pt[d].y-cy)<=sqr(R());
 	}
 };
 Circle solve(Int S,set<int>Q){
