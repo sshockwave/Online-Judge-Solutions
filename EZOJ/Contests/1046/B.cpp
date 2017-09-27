@@ -113,7 +113,7 @@ inline int work(int n,int m){
 		sumj+=mul(mul(p,_n1[q]),sub(f2[r],f2[l-1]));
 		sumij+=mul(mul(_n1[p],_n1[q]),sub(f3[r],f3[l-1]));
 	}
-	int ans=sub(add(mul(mul(n+1,m+1),sum),sumij),add(mul(m+1,sumi),mul(n+1,sumj)));
+	int ans=sub(add(mul(mul(n+1,m+1),sum%MOD),sumij%MOD),add(mul(m+1,sumi%MOD),mul(n+1,sumj%MOD)));
 	return sub(ans,mul(_n1[n],_n1[m]));
 }
 inline int Main(){
