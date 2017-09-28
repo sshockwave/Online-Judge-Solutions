@@ -122,7 +122,8 @@ int main(){
 	memset(sum,0,sizeof(sum));
 	memset(cnt,0,sizeof(cnt));
 	sum[0]=INF;
-	for(int i=1,l=0,r=0;i<=tot;i++){
+	alt(ett[1]);
+	for(int i=1,l=1,r=1;i<=tot;i++){
 		const Query &cur=q[lst[i]];
 		for(;l<cur.l;alt(ett[l++]));
 		for(;r>cur.r;alt(ett[r--]));
