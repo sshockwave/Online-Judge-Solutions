@@ -21,10 +21,8 @@ template<class T>inline T next_num(){
 const int K=6,logN=64,T=7,NT=logN+T;
 namespace LB{
 	ull a[logN];
-	bool vis[logN];
 	inline void init(){
 		memset(a,0,sizeof(a));
-		memset(vis,0,sizeof(vis));
 	}
 	inline void ins(ull x){
 		for(int i=logN-1;x;i--){
@@ -41,7 +39,7 @@ namespace LB{
 }
 ull all=0;
 int n,mxlen=0;
-int vis[logN],ans[NT];
+int ans[NT];
 struct sbase{
 	ull a[K];
 	int k,pos[K];
@@ -109,10 +107,9 @@ int main(){
 		ull tmp=no;
 		all|=tmp;
 		LB::ins(tmp);
-		for(;(((1ull<<mxlen)-1)&tmp)!=tmp;mxlen++);
+		for(;(tmp>>mxlen)>1;mxlen++);
 	}
 	memset(ans,0,sizeof(ans));
-	memset(vis,0,sizeof(vis));
 	dfs(1,T,0);
 	for(int i=0;i<NT-1;i++){
 		ans[i+1]+=ans[i]>>1;
