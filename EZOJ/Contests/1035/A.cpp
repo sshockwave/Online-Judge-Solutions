@@ -18,7 +18,7 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int logN=64,T=7,NT=logN+T;
+const int K=6,logN=64,T=7,NT=logN+T;
 namespace LB{
 	ull a[logN];
 	bool vis[logN];
@@ -40,28 +40,59 @@ namespace LB{
 	}
 }
 ull all=0;
-int n,mxlog=0;
-int ans[NT];
+int n,mxlen=0;
+int vis[logN],ans[NT];
+struct sbase{
+	ull a[K];
+	int k,pos[K];
+	inline void ins(ull x){
+		for(int i=k-1;x;i--){
+			if((x>>pos[i])&1){
+				if(a[i]){
+					x^=a[i];
+				}else{
+					a[i]=x;
+					return;
+				}
+			}
+		}
+	}
+	sbase(ull cur):k(0){
+		memset(a,0,sizeof(a));
+		for(int i=0;i<=mxlen;i++){
+			if((cur>>i)&1){
+				a[k]=0,pos[k]=i,k++;
+			}
+		}
+		for(int i=mxlen;i>=0;i--){
+			ins(LB::a[i]&cur);
+		}
+	}
+	inline bool test(ull x){
+		for(int i=k-1;i>=0&&x;i--){
+			ull v=x^a[i];
+			if(v<x){
+				x=v;
+			}
+		}
+		return x==0;
+	}
+};
 inline void dfs(int x,int e,ull cur){
 	if(x>n){
 		ans[e]++;
 		return;
 	}
-	for(int i=0;i<=mxlog;i++){
+	for(int i=0;i<=mxlen;i++){
 		if((all>>i)&1){
-			//find independent
-			int j=i;
-			for(;j<=mxlog;j++){
-				if(((LB::a[j]>>i)&1)&&!LB::vis[j]){
-					break;
-				}
-			}
-			if(j<=mxlog){
-				LB::vis[j]=true;
-				dfs(x+1,e+i-1,cur^LB::a[j]);
-				LB::vis[j]=false;
-			}else if((cur>>i)&1){
+			if((cur>>i)&1){
 				dfs(x+1,e+i,cur);
+			}else{
+				ull join=cur|(1ull<<i);
+				sbase lb(join);
+				if(lb.test(join)){
+					dfs(x+1,e+i-lb.test(cur),join);
+				}
 			}
 		}
 	}
@@ -78,9 +109,10 @@ int main(){
 		ull tmp=no;
 		all|=tmp;
 		LB::ins(tmp);
-		for(;(((1ull<<mxlog)-1)&tmp)!=tmp;mxlog++);
+		for(;(((1ull<<mxlen)-1)&tmp)!=tmp;mxlen++);
 	}
 	memset(ans,0,sizeof(ans));
+	memset(vis,0,sizeof(vis));
 	dfs(1,T,0);
 	for(int i=0;i<NT-1;i++){
 		ans[i+1]+=ans[i]>>1;
