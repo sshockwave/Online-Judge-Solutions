@@ -23,7 +23,7 @@ template<class T>inline T sqr(T x){
 }
 const int N=66000;
 inline bool isz(ld x){
-	const static double EPS=1e-5;
+	const static double EPS=1e-4;
 	return x>=-EPS&&x<=EPS;
 }
 ld faca,facb,ans=0.1;
@@ -49,11 +49,15 @@ namespace T{
 	struct Node;
 	typedef Node* node;
 	struct Node{
-		ld x[3];
+		ld x[3],mn[3],mx[3];
 		node lson,rson;
 		int d,size,id;
 		inline void up(){
 			size=lson->size+rson->size+1;
+			for(int i=0;i<3;i++){
+				mn[i]=min(x[i],min(lson->mn[i],rson->mn[i]));
+				mx[i]=max(x[i],max(lson->mx[i],rson->mx[i]));
+			}
 		}
 		inline bool bal(){
 			return lson->size*10<=size*7&&rson->size*10<=size*7;
@@ -64,7 +68,7 @@ namespace T{
 		inline friend Node operator - (const Node &a,const Node &b){
 			return (Node){a.x[0]-b.x[0],a.x[1]-b.x[1],a.x[2]-b.x[2]};
 		}
-	}*rt,null=(Node){0,0,0,0,0,0,0,0};
+	}*rt,null=(Node){0,0,0,N,N,N,-N,-N,-N};
 	inline node nn(){
 		static node n=new Node[N<<1];
 		return n++;
@@ -102,8 +106,8 @@ namespace T{
 	inline void ins(node &x,node n,int d){
 		if(x==&null){
 			n->d=d;
-			n->size=1;
 			n->lson=n->rson=&null;
+			n->up();
 			x=n;
 			return;
 		}
@@ -112,10 +116,10 @@ namespace T{
 		}else{
 			ins(x->rson,n,nxt[d]);
 		}
-		x->size++;
 		if(!x->bal()){
 			pt=&x;
 		}
+		x->up();
 	}
 	inline void ins(node x){
 		pt=0;
@@ -126,50 +130,33 @@ namespace T{
 		}
 	}
 	inline bool inc(ld a,ld b,ld c){
-		return a<=b&&b<=c;
+		const static double EPS=1e-5;
+		return a<b+EPS&&b<c+EPS;
 	}
-	inline node ask(node x,node pt,ld r2,node lb,node ub){
+	inline node ask(node x,node pt,ld r2){
 		if(x==&null){
 			return 0;
 		}
 		if(x->id&&isz((*x-*pt).d2()-r2)){
 			return x;
 		}
-		//validity check
-		const static ld EPS=1e-8;
-		double x0=sqr(pt->x[0]-lb->x[0]),x1=sqr(pt->x[0]-ub->x[0]);
-		double y0=sqr(pt->x[1]-lb->x[1]),y1=sqr(pt->x[1]-ub->x[1]);
-		double z0=sqr(pt->x[2]-lb->x[2]),z1=sqr(pt->x[2]-ub->x[2]);
-		if(max(x0,x1)+max(y0,y1)+max(z0,z1)<r2-EPS){
-			return 0;
-		}
-		if(min(x0,x1)+min(y0,y1)+min(z0,z1)>r2+EPS&&
-				!inc(lb->x[0],pt->x[0],ub->x[0])&&
-				!inc(lb->x[1],pt->x[1],ub->x[1])&&
-				!inc(lb->x[2],pt->x[2],ub->x[2])){
-			return 0;
-		}
-		bool flag=sqr(x->x[x->d]-pt->x[x->d])<r2+EPS;
-		bool side=pt->x[x->d]>x->x[x->d];
-		if(!side||flag){
-			ld oldVal=ub->x[x->d];
-			ub->x[x->d]=x->x[x->d];
-			node ans=ask(x->lson,pt,r2,lb,ub);
-			ub->x[x->d]=oldVal;
-			if(ans){
-				return ans;
+		const static double EPS=1e-4;
+		ld far=0,near=0;
+		for(int i=0;i<3;i++){
+			ld tmp1=sqr(pt->x[i]-x->mn[i]),tmp2=sqr(pt->x[i]-x->mx[i]);
+			far+=max(tmp1,tmp2);
+			if(!inc(x->mn[i],pt->x[i],x->mx[i])){
+				near+=min(tmp1,tmp2);
 			}
 		}
-		if(side||flag){
-			ld oldVal=lb->x[x->d];
-			lb->x[x->d]=x->x[x->d];
-			node ans=ask(x->rson,pt,r2,lb,ub);
-			lb->x[x->d]=oldVal;
-			if(ans){
-				return ans;
-			}
+		if(far<r2-EPS||near>r2+EPS){
+			return 0;
 		}
-		return 0;
+		node ans=ask(x->lson,pt,r2);
+		if(ans){
+			return ans;
+		}
+		return ask(x->rson,pt,r2);
 	}
 }
 T::node pt[N];
@@ -190,8 +177,7 @@ int main(){
 		if(ni){
 			T::Node pt=(T::Node){parse_nd(),parse_nd(),parse_nd()};
 			ld r=parse_nd();
-			static T::Node lb=(T::Node){-N,-N,-N},ub=(T::Node){N,N,N};
-			int id=T::ask(T::rt,&pt,r*r,&lb,&ub)->id;
+			int id=T::ask(T::rt,&pt,r*r)->id;
 			ans=id;
 			printf("%d\n",id);
 		}else{
