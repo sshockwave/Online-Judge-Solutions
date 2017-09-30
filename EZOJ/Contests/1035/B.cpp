@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <map>
@@ -17,68 +16,60 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
-	if(b<a){
-		a=b;
-	}
-}
-const int N=16,MOD=1000000007;
+const int N=15,SN=1<<N,MOD=1000000007;
 inline int add(const int &a,const int &b){
 	return (a+b)%MOD;
+}
+inline int sub(const int &a,const int &b){
+	return add(a,MOD-b);
+}
+inline int mul(const int &a,const int &b){
+	return (lint)a*b%MOD;
 }
 inline void apadd(int &a,const int &b){
 	a=add(a,b);
 }
-int n;
-struct state{
-	int to[N];
-	inline friend bool operator < (const state &a,const state &b){
-		for(int i=1;i<=n;i++){
-			if(a.to[i]!=b.to[i]){
-				return a.to[i]<b.to[i];
-			}
-		}
-		return false;
-	}
-	inline void gen(int u,int v){
-		for(int i=1;i<=n;i++){
-			if((to[i]>>u)&1){
-				to[i]|=to[v];
-			}
-		}
-	}
-};
-typedef map<state,int>mp;
-mp pre,cur;
+int pw2[N*N],bcnt[SN];
+int out[SN],inner[SN];
+int f[SN],g[SN],h[SN],v[SN];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("scon.in","r",stdin);
 	freopen("scon.out","w",stdout);
 #endif
-	n=ni;
-	state tmp;
-	for(int i=1;i<=n;i++){
-		tmp.to[i]=1<<i;
+	int n=ni,sn=1<<n;
+	pw2[0]=1;
+	for(int i=1,tot=ni;i<=tot;i++){
+		int u=ni-1,v=ni-1;
+		out[1<<u]|=1<<v;
+		pw2[i]=mul(pw2[i-1],2);
 	}
-	cur[tmp]=1;
-	for(int tot=ni;tot--;){
-		int u=ni,v=ni;
-		pre=cur;
-		for(mp::iterator it=pre.begin();it!=pre.end();it++){
-			tmp=it->first;
-			tmp.gen(u,v);
-			mp::iterator it2=cur.find(tmp);
-			if(it2==cur.end()){
-				cur[tmp]=it->second;
-			}else{
-				apadd(it2->second,it->second);
+	for(int s=1,b;s<sn;s++){
+		b=s&-s;
+		out[s]=out[s^b]|out[b];
+		bcnt[s]=bcnt[s^b]+1;
+	}
+	for(int s=1;s<sn;s++){
+		for(int i=0;i<n;i++){
+			if((s>>i)&1){
+				inner[s]+=bcnt[out[1<<i]&s];
 			}
 		}
+		int x=s&-s,ns=s^x;
+		for(int t=ns;t;t=(t-1)&ns){
+			apadd(h[s],mul(f[s^t],h[t]));
+		}
+		h[s]=(MOD-h[s])%MOD;
+		for(int t=ns,b;t;t=(t-1)&s){
+			b=s^t;
+			v[b]=v[b^(b&-b)]+bcnt[out[b&-b]&s];
+		}
+		v[s]=inner[s];
+		for(int t=s;t;t=(t-1)&s){
+			apadd(g[s],mul(h[t],pw2[v[t]-inner[t]+inner[s^t]]));
+		}
+		apadd(h[s],f[s]=sub(pw2[inner[s]],g[s]));
 	}
-	for(int i=1,t=((1<<n)-1)<<1;i<=n;i++){
-		tmp.to[i]=t;
-	}
-	mp::iterator it=cur.find(tmp);
-	printf("%d\n",it==cur.end()?0:it->second);
+	printf("%d\n",f[sn-1]);
 	return 0;
 }
