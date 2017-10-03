@@ -17,18 +17,14 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=210,M=410;
-int lst[N][N],rnk[N][N];
+int mat[N][M],pos[N][N];
 int cur[N],lnk[N],dcd[N];
 int que[N];
 inline void Main(){
 	int n=ni,m=ni;
 	for(int i=1;i<=n;i++){
-		for(int j=1,k=1;j<=m;j++){
-			lst[i][k]=ni;
-			if(lst[i][k]){
-				rnk[i][lst[i][k]]=k;
-				k++;
-			}
+		for(int j=1;j<=m;j++){
+			pos[i][mat[i][j]=ni]=j;
 		}
 	}
 	int qh=0,qt=0;
@@ -43,11 +39,14 @@ inline void Main(){
 			qh=0;
 		}
 		for(;;cur[x]++){
-			int v=lst[x][cur[x]],u=lnk[v];
+			int v=mat[x][cur[x]],u=lnk[v];
+			if(v==0){
+				continue;
+			}
 			if(u==0){
 				lnk[v]=x;
 				break;
-			}else if(rnk[u][v]>rnk[x][v]){
+			}else if(pos[u][v]<pos[x][v]){
 				que[qt++]=u;
 				if(qt==N){
 					qt=0;
