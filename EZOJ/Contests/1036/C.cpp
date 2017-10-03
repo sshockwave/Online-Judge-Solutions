@@ -17,52 +17,53 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=210,M=410;
-int mat[N][M],nmat[N][M];
-int des[N];
+int lst[N][N],rnk[N][N];
+int cur[N],lnk[N],dcd[N];
+int que[N];
 inline void Main(){
 	int n=ni,m=ni;
 	for(int i=1;i<=n;i++){
-		for(int j=1;j<=m;j++){
-			mat[i][j]=ni;
+		for(int j=1,k=1;j<=m;j++){
+			lst[i][k]=ni;
+			if(lst[i][k]){
+				rnk[i][lst[i][k]]=k;
+				k++;
+			}
 		}
 	}
-	int tot=1;
+	int qh=0,qt=0;
 	for(int i=1;i<=n;i++){
-		des[i]=i;
-		tot*=i;
+		que[qt++]=i;
+		cur[i]=1;
 	}
-	for(;tot--;next_permutation(des+1,des+n+1)){
-		for(int i=1;i<=n;i++){
-			bool flag=false;
-			for(int j=1;j<=m;j++){
-				if(mat[i][j]==des[i]){
-					flag=true;
-				}
-				nmat[i][j]=flag?des[i]:mat[i][j];
-			}
+	memset(lnk+1,0,n<<2);
+	while(qh!=qt){
+		int x=que[qh++];
+		if(qh==N){
+			qh=0;
 		}
-		bool flag=true;
-		for(int j=1;j<=m&&flag;j++){
-			bool vis[n+1];
-			for(int i=1;i<=n;i++){
-				vis[i]=false;
-			}
-			for(int i=1;i<=n;i++){
-				if(mat[i][j]&&vis[nmat[i][j]]){
-					flag=false;
+		for(;;cur[x]++){
+			int v=lst[x][cur[x]],u=lnk[v];
+			if(u==0){
+				lnk[v]=x;
+				break;
+			}else if(rnk[u][v]>rnk[x][v]){
+				que[qt++]=u;
+				if(qt==N){
+					qt=0;
 				}
-				vis[nmat[i][j]]=true;
+				lnk[v]=x;
+				break;
 			}
-		}
-		if(flag){
-			for(int i=1;i<=n;i++){
-				printf("%d ",des[i]);
-			}
-			putchar('\n');
-			return;
 		}
 	}
-	puts("\\(^o^)/");
+	for(int i=1;i<=n;i++){
+		dcd[lnk[i]]=i;
+	}
+	for(int i=1;i<=n;i++){
+		printf("%d ",dcd[i]);
+	}
+	putchar('\n');
 }
 int main(){
 #ifndef ONLINE_JUDGE
