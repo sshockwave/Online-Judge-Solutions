@@ -16,7 +16,6 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=2010,INF=0x7f7f7f7f;
-int vac[N],cov[N],esc[N];
 int lnk[N];
 bool vis[N];
 namespace G{
@@ -30,7 +29,6 @@ namespace G{
 	}
 	inline void add(int u,int v,int c){
 		ae(u,v,c),ae(v,u,0);
-		cout<<"add("<<u<<","<<v<<")"<<endl;
 	}
 	int dis[N],que[N];
 	inline void bfs(){
@@ -67,39 +65,9 @@ namespace G{
 		int flow=0;
 		for(;bfs(),dis[s]<INF;flow+=aug(s,INF));
 	}
-	void getvac(int x){
-		assert(vac[x]);
-		for(int i=head[x],v;~i;i=bro[i]){
-			v=to[i];
-			if(v!=s&&v!=t&&lnk[v]&&!vac[lnk[v]]){
-				vac[lnk[v]]=true;
-				getvac(lnk[v]);
-			}
-		}
-	}
-	bool instk[N];
-	void dfs(int x){
-		instk[x]=true;
-		if(vac[x]){
-			esc[x]=true;
-		}
-		for(int i=head[x],v;~i;i=bro[i]){
-			v=to[i];
-			if(v!=s&&v!=t&&!instk[v]){
-				if(!cov[v]&&!esc[v]){
-					dfs(v);
-				}
-				if(vac[v]){
-					cov[x]=true;
-				}
-				if(cov[v]){
-					esc[x]=true;
-				}
-			}
-		}
-		instk[x]=false;
-	}
 }
+int que[N];
+int tp[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("cover.in","r",stdin);
@@ -125,32 +93,42 @@ int main(){
 			if(G::to[i]!=G::s&&G::cap[i]==0){
 				lnk[x]=G::to[i];
 				lnk[G::to[i]]=x;
-				cout<<"lnk("<<G::to[i]<<","<<x<<")"<<endl;
 				break;
 			}
 		}
 	}
-	memset(vac,0,sizeof(vac));
-	for(int i=1;i<=n;i++){
+	int qh=0,qt=0;
+	memset(tp,0,sizeof(tp));
+	for(int i=1;i<G::s;i++){
 		if(lnk[i]==0){
-			vac[i]=true;
-			G::getvac(i);
+			tp[i]=-1;
+			que[qt++]=i;
 		}
 	}
-	memset(cov,0,sizeof(cov));
-	memset(esc,0,sizeof(esc));
-	for(int x=1;x<G::s;x++){
-		if(!cov[x]&&!esc[x]){
-			G::dfs(x);
+	while(qh<qt){
+		int x=que[qh++];
+		if(tp[x]==1){
+			if(tp[lnk[x]]==0){
+				tp[lnk[x]]=-1;
+				que[qt++]=lnk[x];
+			}
+		}else for(int i=G::head[x],v;~i;i=G::bro[i]){
+			v=G::to[i];
+			if(v!=G::s&&v!=G::t&&tp[v]==0){
+				tp[v]=1;
+				que[qt++]=v;
+			}
 		}
-		if(!cov[x]){
-			putchar('N');
-		}else if(!esc[x]){
+	}
+	for(int i=1;i<G::s;i++){
+		if(tp[i]==1){
 			putchar('A');
+		}else if(tp[i]==-1){
+			putchar('N');
 		}else{
 			putchar('E');
 		}
-		if(x==n){
+		if(i==n){
 			putchar('\n');
 		}
 	}
