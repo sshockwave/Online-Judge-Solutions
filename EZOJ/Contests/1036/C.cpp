@@ -7,60 +7,49 @@
 using namespace std;
 typedef long long lint;
 #define cout cerr
-#define ni (next_num<int>())
-template<class T>inline T next_num(){
-	T i=0;char c;
-	while(!isdigit(c=getchar())&&c!='-');
-	bool flag=c=='-';
-	flag?(c=getchar()):0;
-	while(i=i*10-'0'+c,isdigit(c=getchar()));
-	return flag?-i:i;
+inline char nchar() {
+	static const int bufl=1<<20;
+	static char buf[bufl],*a,*b;
+	return a==b && (b=(a=buf)+fread(buf,1,bufl,stdin),a==b)?EOF:*a++;
+}
+inline int ni() {
+	int x=0,f=1;
+	char c=nchar();
+	for (;!isdigit(c);c=nchar()) if (c=='-') f=-1;
+	for (;isdigit(c);c=nchar()) x=x*10+c-'0';
+	return x*f;
 }
 const int N=210,M=410;
 int mat[N][M],pos[N][N];
-int cur[N],lnk[N],dcd[N];
-int que[N];
-inline void Main(){
-	int n=ni,m=ni;
-	for(int i=1;i<=n;i++){
-		for(int j=1;j<=m;j++){
-			pos[i][mat[i][j]=ni]=j;
+int cur[N],lnk[N];
+void dfs(int x){
+	for(;;cur[x]++){
+		int v=mat[x][cur[x]],u=lnk[v];
+		if(v&&(u==0||pos[u][v]<pos[x][v])){
+			lnk[v]=x;
+			if(u){
+				dfs(u);
+			}
+			return;
 		}
 	}
-	int qh=0,qt=0;
+}
+inline void Main(){
+	int n=ni(),m=ni();
 	for(int i=1;i<=n;i++){
-		que[qt++]=i;
+		for(int j=1;j<=m;j++){
+			pos[i][mat[i][j]=ni()]=j;
+		}
+	}
+	for(int i=1;i<=n;i++){
 		cur[i]=1;
 	}
 	memset(lnk+1,0,n<<2);
-	while(qh!=qt){
-		int x=que[qh++];
-		if(qh==N){
-			qh=0;
-		}
-		for(;;cur[x]++){
-			int v=mat[x][cur[x]],u=lnk[v];
-			if(v==0){
-				continue;
-			}
-			if(u==0){
-				lnk[v]=x;
-				break;
-			}else if(pos[u][v]<pos[x][v]){
-				que[qt++]=u;
-				if(qt==N){
-					qt=0;
-				}
-				lnk[v]=x;
-				break;
-			}
-		}
+	for(int i=1;i<=n;i++){
+		dfs(i);
 	}
 	for(int i=1;i<=n;i++){
-		dcd[lnk[i]]=i;
-	}
-	for(int i=1;i<=n;i++){
-		printf("%d ",dcd[i]);
+		printf("%d ",mat[i][cur[i]]);
 	}
 	putchar('\n');
 }
@@ -69,6 +58,6 @@ int main(){
 	freopen("matrix.in","r",stdin);
 	freopen("matrix.out","w",stdout);
 #endif
-	for(int tot=ni;tot--;Main());
+	for(int tot=ni();tot--;Main());
 	return 0;
 }
