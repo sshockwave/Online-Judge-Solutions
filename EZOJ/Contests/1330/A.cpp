@@ -3,8 +3,8 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <queue>
 #include <algorithm>
+#include <set>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -17,32 +17,46 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=100010;
+template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
+	if(a<b){
+		a=b;
+	}
+}
+const int N=100010,INF=0x7f7f7f7f;
 int gcd(int a,int b){
 	return b?gcd(b,a%b):a;
 }
-int pre[N],nxt[N];
-int L,d[N],v[N];
-struct icmp{
-	int x,y,a,b;
-	icmp(int _x){
-		y=nxt[x=_x];
-		if(v[x]<v[y]){
-			a=(d[x]-d[y]+L)%L;
-			b=v[y]-v[x];
-		}else{
-			a=(d[y]-d[x]+L)%L;
-			b=v[x]-v[y];
-		}
-		int g=gcd(a,b);
-		a/=g,b/=g;
+int d[N],v[N];
+struct deci{
+	int d,v;
+	deci(int _d,int _v){
+		int g=gcd(_d,_v);
+		d=_d/g,v=_v/g;
 	}
-	inline friend bool operator < (const icmp &a,const icmp &b){
-		return (lint)a.a*b.b>(lint)b.a*a.b;
+	inline friend bool operator < (const deci &a,const deci &b){
+		return (lint)a.d*b.v<(lint)b.d*a.v;
 	}
 };
-priority_queue<icmp>q;
+int stk[N];
+inline deci work(int lst[],int n){
+	set<deci>s;
+	set<deci>::iterator it;
+	int ss=0;
+	for(int i=0;i<n;i++){
+		int x=lst[i];
+		for(;ss&&stk[ss-1]<x;ss--,s.erase(deci(d[stk[ss]],v[stk[ss]])));
+		deci tmp(d[x],v[x]);
+		if(s.empty()||*(it=s.end(),--it)<tmp){
+			stk[ss++]=x;
+			s.insert(tmp);
+		}
+	}
+	it=s.end();
+	it--;
+	return s.empty()?deci(0,1):*(it=s.end(),--it);
+}
 int lst[N];
+int qa[N],qb[N];
 inline bool lcmp(int a,int b){
 	return d[a]<d[b];
 }
@@ -51,8 +65,7 @@ int main(){
 	freopen("race.in","r",stdin);
 	freopen("race.out","w",stdout);
 #endif
-	int n=ni;
-	L=ni;
+	int n=ni,L=ni;
 	if(n==1){
 		puts("0");
 		return 0;
@@ -62,30 +75,40 @@ int main(){
 	}
 	for(int i=1;i<=n;i++){
 		v[i]=ni;
-		lst[i-1]=i;
 	}
-	sort(lst,lst+n,lcmp);
-	for(int i=0;i<n;i++){
-		pre[nxt[lst[i]]=lst[(i+1)%n]]=lst[i];
+	for(int i=1;i<n;i++){
+		v[i]-=v[n];
+		d[i]=(d[i]-d[n]+L)%L;
+		lst[i]=i;
 	}
-	for(int i=1;i<=n;i++){
-		q.push(icmp(i));
-	}
-	for(int i=2;i<n;i++){
-		for(;nxt[q.top().x]!=q.top().y;q.pop());
-		int x=q.top().x,y=nxt[x];
-		q.pop();
-		if(x<y){
-			nxt[pre[y]=pre[x]]=y;
-			pre[x]=nxt[x]=0;
-			q.push(icmp(pre[y]));
-		}else{
-			pre[nxt[x]=nxt[y]]=x;
-			pre[y]=nxt[y]=0;
-			q.push(icmp(x));
+	n--;
+	sort(lst+1,lst+n+1,lcmp);
+	int la=0,lb=0;
+	for(int i=1,mx=0;i<=n;i++){
+		int x=lst[i];
+		if(v[x]>0){
+			apmax(mx,x);
+		}else if(x>mx){
+			qa[la++]=x;
+			mx=0;
 		}
 	}
-	for(;nxt[q.top().x]!=q.top().y;q.pop());
-	printf("%d/%d\n",q.top().a,q.top().b);
+	for(int i=n,mx=0;i>=1;i--){
+		int x=lst[i];
+		if(v[x]<0){
+			apmax(mx,x);
+		}else if(x>mx){
+			qb[lb++]=x;
+			mx=0;
+		}
+	}
+	for(int i=0;i<la;i++){
+		v[qa[i]]=-v[qa[i]];
+	}
+	for(int i=0;i<lb;i++){
+		d[qb[i]]=L-d[qb[i]];
+	}
+	deci ans=max(work(qa,la),work(qb,lb));
+	printf("%d/%d\n",ans.d,ans.v);
 	return 0;
 }
