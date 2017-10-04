@@ -26,7 +26,7 @@ struct Pt{
 	int x,y,t;
 }pt[N<<1];
 int n,m,ps=0;
-int ans[N];
+lint ans[N];
 inline bool xcmp(const Pt &a,const Pt &b){
 	return a.x!=b.x?a.x<b.x:a.y<b.y;
 }
@@ -177,7 +177,7 @@ int main(){
 	}
 	work(false);
 	for(int i=1;i<=tot2;i++){
-		printf("%d\n",ans[i]+1);
+		printf("%lld\n",ans[i]+1);
 	}
 	return 0;
 }
