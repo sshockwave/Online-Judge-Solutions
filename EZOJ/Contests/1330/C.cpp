@@ -16,52 +16,135 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=5010;
-int mat[N][N];
+template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
+	if(a<b){
+		a=b;
+	}
+}
+const int N=100010;
+struct Pt{
+	int x,y,t;
+}pt[N<<1];
+int n,m,ps=0;
 int ans[N];
-int cel[N],stk[N],cnt[N];
-inline void work(int n,int m){
-	memset(cel+1,0,m<<2);
-	for(int i=1;i<=n;i++){
-		int ss=0;
-		int sum=0;
-		for(int j=1;j<=m;j++){
-			cel[j]++;
+inline bool xcmp(const Pt &a,const Pt &b){
+	return a.x!=b.x?a.x<b.x:a.y<b.y;
+}
+inline bool ycmp(const Pt &a,const Pt &b){
+	return a.y!=b.y?a.y<b.y:a.x<b.x;
+}
+namespace seg{
+	struct Node;
+	typedef Node* node;
+	int tim=0;
+	struct Node{
+		int l,m,r;
+		node lson,rson;
+		int tag,mx;
+		lint sum,diff;
+		inline lint all(lint val){
+			return val*(r-l+1);
 		}
-		for(int j=1;j<=m;j++){
-			if(mat[i][j]==-1){
-				cel[j]=0;
+		inline void renew(){
+			if(tag!=tim){
+				mx=sum=diff=0,tag=tim;
 			}
-			int tmp=1;
-			for(;ss>=1&&cel[j]<=stk[ss-1];ss--,sum-=stk[ss]*cnt[ss],tmp+=cnt[ss]);
-			sum+=cel[j]*tmp;
-			stk[ss]=cel[j],cnt[ss]=tmp,ss++;
-			if(mat[i][j]>0){
-				ans[mat[i][j]]+=sum;
-			}
+		}
+		inline void up();
+	}*rt;
+	node build(int l,int r){
+		static node n=new Node[N<<1];
+		node x=n++;
+		x->l=l,x->m=(l+r)>>1,x->r=r;
+		x->tag=0;
+		if(l!=r){
+			x->lson=build(l,x->m);
+			x->rson=build(x->m+1,r);
+		}
+		return x;
+	}
+	lint ask(node x,lint val){
+		x->renew();
+		if(x->mx<=val){
+			return x->all(val);
+		}
+		if(x->l==x->r){
+			return x->mx;
+		}
+		if(val>=x->rson->mx){
+			return ask(x->lson,val)+x->rson->all(val);
+		}else{
+			return x->lson->sum+x->diff+ask(x->rson,val);
+		}
+	}
+	lint val;
+	lint ask(node x,int l,int r){
+		x->renew();
+		if(x->l==l&&x->r==r){
+			lint ans=ask(x,val);
+			apmax(val,x->mx);
+			return ans;
+		}
+		if(r<=x->m){
+			return ask(x->lson,l,r);
+		}
+		if(l>x->m){
+			return ask(x->rson,l,r);
+		}
+		lint ans=ask(x->rson,x->m+1,r);
+		ans+=ask(x->lson,l,x->m);
+		return ans;
+	}
+	inline void Node::up(){
+		lson->renew(),rson->renew();
+		mx=max(lson->mx,rson->mx);
+		sum=ask(lson,rson->mx);
+		diff=sum-lson->sum;
+		sum+=rson->sum;
+		tag=tim;
+	}
+	void set(node x,int p,int v){
+		if(x->l==x->r){
+			x->mx=v;
+			x->tag=tim;
+		}else{
+			set(p<=x->m?x->lson:x->rson,p,v);
+			x->up();
 		}
 	}
 }
-inline void work2(int n,int m){
-	for(int i=1;i<=n;i++){
-		int l=0;
-		for(int j=1;j<=m;j++){
-			if(mat[i][j]==-1){
-				l=j;
-			}else if(mat[i][j]){
-				ans[mat[i][j]]-=j-l;
-			}
+inline void work(bool flag){
+	seg::tim++;
+	sort(pt,pt+ps,ycmp);
+	for(int i=0;i<ps;i++){
+		if(pt[i].t==-1){
+			seg::set(seg::rt,pt[i].x,pt[i].y);
+		}else{
+			seg::val=0;
+			seg::val=0;
+			ans[pt[i].t]+=(lint)pt[i].x*pt[i].y-seg::ask(seg::rt,1,pt[i].x);
 		}
 	}
-}
-inline void work3(int n,int m){
-	for(int j=1;j<=m;j++){
-		int l=0;
-		for(int i=1;i<=n;i++){
-			if(mat[i][j]==-1){
-				l=i;
-			}else if(mat[i][j]){
-				ans[mat[i][j]]-=i-l;
+	if(flag){
+		for(int i=0,x,y=0;i<ps;i++){
+			if(pt[i].y!=y){
+				x=0,y=pt[i].y;
+			}
+			if(pt[i].t==-1){
+				x=pt[i].x;
+			}else{
+				ans[pt[i].t]-=pt[i].x-x;
+			}
+		}
+		sort(pt,pt+ps,xcmp);
+		for(int i=0,x=0,y;i<ps;i++){
+			if(pt[i].x!=x){
+				x=pt[i].x,y=0;
+			}
+			if(pt[i].t==-1){
+				y=pt[i].y;
+			}else{
+				ans[pt[i].t]-=pt[i].y-y;
 			}
 		}
 	}
@@ -71,36 +154,29 @@ int main(){
 	freopen("grid.in","r",stdin);
 	freopen("grid.out","w",stdout);
 #endif
-	memset(mat,0,sizeof(mat));
-	int n=ni,m=ni,tot1=ni,tot2=ni;
+	n=ni,m=ni;
+	int tot1=ni,tot2=ni;
 	while(tot1--){
-		int x=ni,y=ni;
-		mat[x][y]=-1;
+		pt[ps++]=(Pt){ni,ni,-1};
 	}
 	for(int i=1;i<=tot2;i++){
-		int x=ni,y=ni;
-		mat[x][y]=i;
+		pt[ps++]=(Pt){ni,ni,i};
 	}
-	work(n,m);
-	work2(n,m);
-	work3(n,m);
-	for(int i=1;i<=n;i++){
-		reverse(mat[i]+1,mat[i]+m+1);
+	seg::rt=seg::build(1,n);
+	work(true);
+	for(int i=0;i<ps;i++){
+		pt[i].y=m+1-pt[i].y;
 	}
-	work(n,m);
-	for(int j=1;j<=m;j++){
-		for(int i=1,t=n;i<t;i++,t--){
-			swap(mat[i][j],mat[t][j]);
-		}
+	work(false);
+	for(int i=0;i<ps;i++){
+		pt[i].x=n+1-pt[i].x;
 	}
-	work(n,m);
-	work2(n,m);
-	work3(n,m);
-	for(int i=1;i<=n;i++){
-		reverse(mat[i]+1,mat[i]+m+1);
+	work(true);
+	for(int i=0;i<ps;i++){
+		pt[i].y=m+1-pt[i].y;
 	}
-	work(n,m);
-	for(int i=1;i<=n;i++){
+	work(false);
+	for(int i=1;i<=tot2;i++){
 		printf("%d\n",ans[i]+1);
 	}
 	return 0;
