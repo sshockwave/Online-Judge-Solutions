@@ -22,8 +22,9 @@ struct Edge{
 	inline friend bool operator < (const Edge &a,const Edge &b){
 		return a.w<b.w;
 	}
-}e[N];
+}e[E];
 namespace lct{
+	const int N=100010+100010;
 	struct Node;
 	typedef Node* node;
 	struct Node{
@@ -49,12 +50,18 @@ namespace lct{
 		}
 		inline void up(){
 			mxe=e;
-			if(lson->e->w>mxe->w){
-				mxe=lson->e;
+			if(lson->mxe->w>mxe->w){
+				mxe=lson->mxe;
 			}
-			if(rson->e->w>mxe->w){
-				mxe=rson->e;
+			if(rson->mxe->w>mxe->w){
+				mxe=rson->mxe;
 			}
+		}
+		inline void draw(){
+			if(~side()){
+				fa->draw();
+			}
+			down();
 		}
 		inline void rot(){
 			fa->down(),down();
@@ -66,6 +73,7 @@ namespace lct{
 			son[d]->up(),up();
 		}
 		inline void splay(){
+			draw();
 			while(~side()){
 				if(fa->side()==-1){
 					rot();
@@ -90,10 +98,10 @@ namespace lct{
 		acc(x),x->splay(),x->rev();
 	}
 	inline void lnk(node u,node v){
-		acc(u),chr(v),u->splay(),u->rson=v,u->up();
+		chr(v),v->fa=u;
 	}
 	inline void cut(node u,node v){
-		chr(u),acc(u),v->fa=&null;
+		chr(u),acc(v),u->fa=v->lson=&null;
 	}
 	inline node rot(node x){
 		acc(x),x->splay();
@@ -116,7 +124,7 @@ namespace seg{
 		}
 	}*rt[N];
 	inline node renew(node x){
-		static node n=new Node[N*15];
+		static node n=new Node[N*30];
 		return x->tag==tim?x:(*n=*x,n->tag=tim,n++);
 	}
 	node build(int l,int r){
@@ -167,6 +175,7 @@ int main(){
 	for(int i=1;i<=es;i++){
 		e[i]=(Edge){ni,ni,ni};
 		lct::pool[i+n].e=e+i;
+		lct::pool[i+n].mxe=e+i;
 	}
 	sort(e+1,e+es+1);
 	tim=es+1;
