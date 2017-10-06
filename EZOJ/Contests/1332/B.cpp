@@ -3,11 +3,11 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <queue>
 using namespace std;
 typedef long long lint;
 #define cout cerr
 #define ni (next_num<int>())
-#define nl (next_num<lint>())
 template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
@@ -16,63 +16,59 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=1010;
-inline lint lb(lint x){
-	return x&-x;
+const int N=1010,A=1<<13;
+int hb[A+1];
+bool sing[A+1];
+queue<int>q[N];
+int pre[N][A+1];
+bool side[N][A+1],vis[N][A+1];
+inline void psh(int i,int ov,int nv,bool d){
+	q[i].push(nv);
+	pre[i][nv]=ov,side[i][nv]=d,vis[i][nv]=false;
 }
-inline lint hb(lint x){
-	for(;x!=lb(x);x^=lb(x));
-	return x;
-}
-lint a[N];
-bool d[N];
-bool dfs(int x,lint fl,lint fr){
-	if(x==0){
-		assert(fl==0&&fr==0);
-		return true;
+void putans(int x,int v){
+	if(x){
+		putans(x-1,pre[x][v]),putchar(side[x][v]?'r':'l');
 	}
-	if(a[x]<=lb(fl)){
-		d[x]=0;
-		if(fl==lb(fl)){
-			lint tmp=hb(fl-a[x]);
-			if(!(tmp&fr)){
-				lint nfr=fr^fl^tmp,nfl=hb(nfr)|(fl-a[x]);
-				if(dfs(x-1,nfl,nfr)){
-					return true;
-				}
-			}
-		}else if(dfs(x-1,fl-a[x],fr)){
-			return true;
-		}
-	}
-	if(fl!=fr&&a[x]<=lb(fr)){
-		d[x]=1;
-		if(fr==lb(fr)){
-			lint tmp=hb(fr-a[x]);
-			if(!(tmp&fl)){
-				lint nfl=fl^fr^tmp,nfr=hb(nfl)|(fr-a[x]);
-				if(dfs(x-1,nfl,nfr)){
-					return true;
-				}
-			}
-		}else if(dfs(x-1,fl,fr-a[x])){
-			return true;
-		}
-	}
-	return false;
 }
 inline void Main(){
-	int n=ni;
-	lint sum=0;
+	int n=ni,sum=0;
+	psh(0,0,0,0);
 	for(int i=1;i<=n;i++){
-		a[i]=nl;
-		sum+=a[i];
-	}
-	if(sum==lb(sum)&&dfs(n,sum,sum)){
-		for(int i=1;i<=n;i++){
-			putchar(d[i]?'r':'l');
+		int a=ni;
+		for(int j=i-1;!q[j].empty();q[j].pop()){
+			int l=q[j].front(),r=sum-l;
+			if(vis[j][l]){
+				continue;
+			}
+			vis[j][l]=true;
+			if(sing[l]&&a>l){
+				psh(i,l,a,0);
+			}
+			if(a<=(l&-l)){
+				psh(i,l,a+l,0);
+			}
+			assert((r&hb[l])==0);
+			int nl=r|hb[l],nr=l^hb[l];
+			if(sing[nl]&&a>nl){
+				assert(r==0);
+				psh(i,l,l|a,1);
+			}
+			if(a<=(nl&-nl)){
+				int nnl=nl+a;
+				psh(i,l,nr^hb[nnl],1);
+			}
 		}
-		putchar('\n');
+		sum+=a;
+	}
+	bool flag=false;
+	for(;!q[n].empty();q[n].pop()){
+		if(q[n].front()==sum){
+			flag=true;
+		}
+	}
+	if(sing[sum]&&flag){
+		putans(n,sum),putchar('\n');
 	}else{
 		puts("no");
 	}
@@ -82,6 +78,15 @@ int main(){
 	freopen("2048.in","r",stdin);
 	freopen("2048.out","w",stdout);
 #endif
+	memset(sing,0,sizeof(sing));
+	sing[0]=true;
+	for(int i=1;i<=A;i<<=1){
+		sing[i]=true;
+	}
+	hb[0]=0,hb[1]=1;
+	for(int i=2;i<=A;i++){
+		hb[i]=hb[i>>1]<<1;
+	}
 	for(int tot=ni;tot--;Main());
 	return 0;
 }
