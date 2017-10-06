@@ -85,7 +85,6 @@ namespace poly{
 	}
 }
 int f[K][poly::N],prod[poly::N],cnt0[poly::N],nttp[poly::N];
-int tmp;//debug
 inline int getv(int f[],int x){
 	int ans=0;
 	for(int i=0,w=1;i<poly::n;i++,apmul(w,x)){
@@ -107,16 +106,10 @@ inline void altf(int f[],int p,int ov,int nv){
 		}else{
 			cnt0[i]++;
 		}
-		nttp[i]=cnt0[i]?0:prod[i];
+		if(cnt0[i]==0){
+			apadd(nttp[i],prod[i]);
+		}
 	}
-}
-inline int work(){
-	poly::ntt(nttp,-1);
-	lint ans=0;
-	for(int i=0;i<poly::n;i++){
-		ans+=mul(fac[i],nttp[i]);
-	}
-	return ans%MOD;
 }
 char s[N];
 int main(){
@@ -156,13 +149,15 @@ int main(){
 		}
 		nttp[i]=cnt0[i]?0:prod[i];
 	}
-	lint ans=work();
 	while(tot--){
 		int u=ni,v=ni;
-		tmp=u;
 		altf(f[u],v,g[u][v],invfac[v]-g[u][v]);
 		g[u][v]=invfac[v]-g[u][v];
-		ans+=work();
+	}
+	poly::ntt(nttp,-1);
+	lint ans=0;
+	for(int i=1;i<poly::n;i++){
+		ans+=mul(fac[i],nttp[i]);
 	}
 	printf("%lld\n",ans%MOD);
 	return 0;
