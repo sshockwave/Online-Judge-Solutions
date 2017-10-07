@@ -17,7 +17,7 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=100010;
-const double EPS=1e-6;
+const double EPS=1e-7;
 inline bool iszero(double x){
 	return x>=-EPS&&x<=EPS;
 }
@@ -55,14 +55,17 @@ double x1,x2;
 inline double three2(double x1){
 	double y1=F1(x1),y2=F2(x1);
 	double l=x1,r=pt1[ls1].x;
-	while(r-l>EPS){
+	double v1,v2;
+	do{
 		double m1=(l*2+r)/3,m2=(l+r*2)/3;
-		if((m1-x1)*(min(y1,F1(m1))-max(y2,F2(m1)))<(m2-x1)*(min(y1,F1(m2)-max(y2,F2(m2))))){
+		v1=(m1-x1)*(min(y1,F1(m1))-max(y2,F2(m1)));
+		v2=(m2-x1)*(min(y1,F1(m2))-max(y2,F2(m2)));
+		if(v1<v2){
 			l=m1;
 		}else{
 			r=m2;
 		}
-	}
+	}while(r-l>1e-3||!iszero((v1-v2)/v1));
 	x2=l;
 	return (l-x1)*(min(y1,F1(l))-max(y2,F2(l)));
 }
@@ -77,7 +80,7 @@ inline void three1(){
 		}else{
 			r=m2;
 		}
-	}while(r-l>1e-3||!iszero(v1-v2));
+	}while(r-l>1e-3||!iszero((v1-v2)/v1));
 	x1=l,three2(x1);
 }
 int main(){
