@@ -40,7 +40,7 @@ int main(){
 	for(int i=1;i<=n;i++){
 		int d=i==1?0:ni;
 		for(int vis=0,tv=min(i,k+1);vis<tv;vis++){
-			for(int plug=0;plug<i;plug++){
+			for(int plug=0;plug<tv;plug++){
 				for(int mod=0;mod<m;mod++){
 					for(int st=0;st<=1;st++){
 						for(int ed=0;ed<=1;ed++){
