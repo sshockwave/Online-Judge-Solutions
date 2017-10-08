@@ -16,49 +16,103 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=12,M=10010;
-int n,m;
-int mat[N][M],tag[N][M];
-int tim=0;
-lint dis[N][M];
-struct state{
-	int x,y;
-	lint d;
-	inline friend bool operator < (const state &a,const state &b){
-		return a.d>b.d;
+template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
+	if(b<a){
+		a=b;
 	}
-};
-inline lint Main(){
-	int sx=ni,sy=ni,tx=ni,ty=ni;
-	tim++;
-	priority_queue<state>q;
-	q.push((state){sx,sy,mat[sx][sy]});
-	for(;!q.empty();q.pop()){
-		int x=q.top().x,y=q.top().y;
-		if(tag[x][y]==tim){
-			continue;
+}
+const int N=12,M=10010;
+const lint LINF=0x7f7f7f7f7f7f7f7f;
+int n,m;
+int mat[N][M];
+namespace G{
+	int tim=0;
+	int tag[N][M];
+	inline void init(){
+		memset(tag,0,sizeof(tag));
+	}
+	struct state{
+		int x,y;
+		lint d;
+		inline friend bool operator < (const state &a,const state &b){
+			return a.d>b.d;
 		}
-		dis[x][y]=q.top().d;
-		tag[x][y]=tim;
-		if(x==tx&&y==ty){
-			return dis[x][y];
-		}
-		static int dx[]={-1,0,1,0},dy[]={0,1,0,-1};
-		for(int i=0;i<4;i++){
-			int tx=x+dx[i],ty=y+dy[i];
-			if(tx>=1&&tx<=n&&ty>=1&&ty<=m&&tag[tx][ty]!=tim){
-				q.push((state){tx,ty,dis[x][y]+mat[tx][ty]});
+	};
+	int dx[]={-1,0,1,0},dy[]={0,1,0,-1};
+	inline void dij(lint *dis[N],int sx,int sy,int l,int r){
+		priority_queue<state>q;
+		tim++;
+		for(q.push((state){sx,sy,mat[sx][sy]});!q.empty();q.pop()){
+			int x=q.top().x,y=q.top().y;
+			if(tag[x][y]==tim){
+				continue;
+			}
+			tag[x][y]=tim;
+			dis[x][y]=q.top().d;
+			for(int d=0;d<4;d++){
+				int tx=x+dx[d],ty=y+dy[d];
+				if(1<=tx&&tx<=n&&l<=ty&&ty<=r){
+					q.push((state){tx,ty,d+mat[tx][ty]});
+				}
 			}
 		}
 	}
-	return -1;
+}
+namespace arr{
+	lint pol[N*M*15];
+	inline lint* New(int len){
+		static lint* n=pol;
+		lint* tmp=n;
+		n+=len;
+		return tmp;
+	}
+}
+namespace seg{
+	struct Node;
+	typedef Node* node;
+	struct Node{
+		int l,m,r;
+		node lson,rson;
+		lint *dis[N][N];
+	}*rt;
+	node build(int l,int r){
+		static node nn=new Node[M<<1];
+		if(l>r){
+			return NULL;
+		}
+		node x=nn++;
+		x->l=l,x->m=(l+r)>>1,x->r=r;
+		if(l!=r){
+			x->lson=build(l,x->m-1);
+			x->rson=build(x->m+1,r);
+		}
+		for(int i=1;i<=n;i++){
+			for(int j=1;j<=n;j++){
+				x->dis[i][j]=arr::New(r-l+1)-l;
+			}
+			G::dij(x->dis[i],i,x->m,l,r);
+		}
+		return x;
+	}
+	lint ask(node x,int sx,int sy,int tx,int ty){
+		lint ans=LINF;
+		for(int i=1;i<=n;i++){
+			apmin(ans,x->dis[i][sx][sy]+x->dis[i][tx][ty]-mat[i][x->m]);
+		}
+		if(ty<x->m){
+			apmin(ans,ask(x->lson,sx,sy,tx,ty));
+		}
+		if(sx>x->m){
+			apmin(ans,ask(x->rson,sx,sy,tx,ty));
+		}
+		return ans;
+	}
 }
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("route.in","r",stdin);
 	freopen("route.out","w",stdout);
 #endif
-	memset(tag,0,sizeof(tag));
 	n=ni,m=ni;
 	int tot=ni;
 	for(int j=1;j<=m;j++){
@@ -66,6 +120,13 @@ int main(){
 			mat[i][j]=ni;
 		}
 	}
-	for(;tot--;printf("%lld\n",Main()));
+	G::init(),seg::rt=seg::build(1,m);
+	while(tot--){
+		int sx=ni,sy=ni,tx=ni,ty=ni;
+		if(sy>ty){
+			swap(sx,tx),swap(sy,ty);
+		}
+		printf("%lld\n",seg::ask(seg::rt,sx,sy,tx,ty));
+	}
 	return 0;
 }
