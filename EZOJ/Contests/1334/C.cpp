@@ -52,14 +52,14 @@ namespace G{
 			for(int d=0;d<4;d++){
 				int tx=x+dx[d],ty=y+dy[d];
 				if(1<=tx&&tx<=n&&l<=ty&&ty<=r){
-					q.push((state){tx,ty,d+mat[tx][ty]});
+					q.push((state){tx,ty,dis[x][y]+mat[tx][ty]});
 				}
 			}
 		}
 	}
 }
 namespace arr{
-	lint pol[N*M*15];
+	lint pol[N*N*M*15];
 	inline lint* New(int len){
 		static lint* n=pol;
 		lint* tmp=n;
@@ -102,7 +102,7 @@ namespace seg{
 		if(ty<x->m){
 			apmin(ans,ask(x->lson,sx,sy,tx,ty));
 		}
-		if(sx>x->m){
+		if(sy>x->m){
 			apmin(ans,ask(x->rson,sx,sy,tx,ty));
 		}
 		return ans;
