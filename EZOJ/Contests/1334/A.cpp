@@ -24,11 +24,9 @@ const int N=200010;
 namespace G{
 	const int N=400010,E=400010;
 	int to[E],bro[E],head[N],e=0,n=0;
-	bool vis[N];
 	int dfn[N],low[N],tim=0;
 	inline void init(){
 		memset(head,-1,sizeof(head));
-		memset(vis,0,sizeof(vis));
 		memset(dfn,0,sizeof(dfn));
 	}
 	inline void ae(int u,int v){
@@ -40,28 +38,20 @@ namespace G{
 	inline int nn(){
 		return ++n;
 	}
-	int esize[N];
-	void dfs1(int x){//edge size
+	int esize[N],anc[N];
+	bool bridge[E];
+	void dfs(int x){
+		dfn[x]=low[x]=++tim;
 		esize[x]=0;
-		vis[x]=true;
 		for(int i=head[x],v;~i;i=bro[i]){
 			esize[x]++;
-			if(!vis[v=to[i]]){
-				dfs1(v);
-				esize[x]+=esize[v];
-			}
-		}
-	}
-	bool ok[E];
-	void dfs2(int x,int eall){
-		dfn[x]=low[x]=++tim;
-		for(int i=head[x],v;~i;i=bro[i]){
 			if(dfn[v=to[i]]){
 				apmin(low[x],low[v]);
 			}else{
-				dfs2(v,eall);
-				apmin(low[x],low[v]);
-				ok[i]=ok[i^1]=low[v]==dfn[x]&&(((esize[v]-1)>>1)&1)==0&&(((eall-esize[v]-1)>>1)&1)==0;
+				anc[v]=anc[x];
+				dfs(v);
+				esize[x]+=esize[v];
+				bridge[i]=bridge[i^1]=low[v]==dfn[x];
 			}
 		}
 	}
@@ -86,27 +76,26 @@ int main(){
 		}
 		G::add(nodex[x],nodey[y]);
 	}
-	int pt=0;
+	int cnt=-1;
 	for(int i=1;i<=G::n;i++){
-		if(!G::vis[i]){
-			G::dfs1(i);
+		if(G::dfn[i]==0){
+			G::anc[i]=i;
+			G::dfs(i);
 			if((G::esize[i]>>1)&1){
-				pt=pt?-1:i;
+				cnt++;
 			}
 		}
 	}
-	memset(G::ok,0,sizeof(G::ok));
-	if(pt==0){
-		for(int i=1;i<=G::n;i++){
-			if(G::dfn[i]==0){
-				G::dfs2(i,G::esize[i]);
-			}
+	if(cnt){
+		for(int i=0;i<G::e;i+=2){
+			puts("NG");
 		}
-	}else if(pt>0){
-		G::dfs2(pt,G::esize[pt]);
-	}
-	for(int i=0;i<G::e;i+=2){
-		puts(G::ok[i]?"OK":"NG");
+	}else{
+		for(int i=0;i<G::e;i+=2){
+			int all=G::esize[G::anc[G::to[i]]]>>1;
+			int part=(min(G::esize[G::to[i]],G::esize[G::to[i|1]])-1)>>1;
+			puts(G::bridge[i]&&(all&1)&&(part&1)==0?"OK":"NG");
+		}
 	}
 	return 0;
 }
