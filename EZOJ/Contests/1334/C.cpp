@@ -42,17 +42,16 @@ namespace G{
 	inline void dij(lint *dis[N],int sx,int sy,int l,int r){
 		priority_queue<state>q;
 		tim++;
-		for(q.push((state){sx,sy,mat[sx][sy]});!q.empty();q.pop()){
+		tag[sx][sy]=tim,dis[sx][sy]=mat[sx][sy],q.push((state){sx,sy,mat[sx][sy]});
+		for(;!q.empty();q.pop()){
 			int x=q.top().x,y=q.top().y;
-			if(tag[x][y]==tim){
+			if(q.top().d>dis[x][y]){
 				continue;
 			}
-			tag[x][y]=tim;
-			dis[x][y]=q.top().d;
 			for(int d=0;d<4;d++){
 				int tx=x+dx[d],ty=y+dy[d];
-				if(1<=tx&&tx<=n&&l<=ty&&ty<=r){
-					q.push((state){tx,ty,dis[x][y]+mat[tx][ty]});
+				if(1<=tx&&tx<=n&&l<=ty&&ty<=r&&(tag[tx][ty]!=tim||dis[tx][ty]>dis[x][y]+mat[tx][ty])){
+					tag[tx][ty]=tim,dis[tx][ty]=dis[x][y]+mat[tx][ty],q.push((state){tx,ty,dis[tx][ty]});
 				}
 			}
 		}
