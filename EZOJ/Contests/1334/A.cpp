@@ -40,18 +40,19 @@ namespace G{
 	}
 	int esize[N],anc[N];
 	bool bridge[E];
-	void dfs(int x){
+	void dfs(int x,int fa){
 		dfn[x]=low[x]=++tim;
 		esize[x]=0;
 		for(int i=head[x],v;~i;i=bro[i]){
 			esize[x]++;
-			if(dfn[v=to[i]]){
-				apmin(low[x],low[v]);
-			}else{
+			if(dfn[v=to[i]]==0){
 				anc[v]=anc[x];
-				dfs(v);
+				dfs(v,x);
+				apmin(low[x],low[v]);
 				esize[x]+=esize[v];
-				bridge[i]=bridge[i^1]=low[v]==dfn[x];
+				bridge[i]=bridge[i^1]=low[v]>dfn[x];
+			}else if(v!=fa){
+				apmin(low[x],low[v]);
 			}
 		}
 	}
@@ -59,14 +60,13 @@ namespace G{
 int nodex[N<<1],nodey[N<<1];
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("point.3.in","r",stdin);
+	freopen("point.in","r",stdin);
 	freopen("point.out","w",stdout);
 #endif
-	int n=2*ni+1;
 	G::init();
 	memset(nodex,0,sizeof(nodex));
 	memset(nodey,0,sizeof(nodey));
-	for(int i=1;i<=n;i++){
+	for(int tot=ni*2+1;tot--;){
 		int x=ni,y=ni;
 		if(nodex[x]==0){
 			nodex[x]=G::nn();
@@ -80,7 +80,7 @@ int main(){
 	for(int i=1;i<=G::n;i++){
 		if(G::dfn[i]==0){
 			G::anc[i]=i;
-			G::dfs(i);
+			G::dfs(i,0);
 			if((G::esize[i]>>1)&1){
 				cnt++;
 			}
@@ -94,7 +94,7 @@ int main(){
 		for(int i=0;i<G::e;i+=2){
 			int all=G::esize[G::anc[G::to[i]]]>>1;
 			int part=(min(G::esize[G::to[i]],G::esize[G::to[i|1]])-1)>>1;
-			puts(G::bridge[i]&&(all&1)&&(part&1)==0?"OK":"NG");
+			puts((all&1)&&(!G::bridge[i]||(part&1)==0)?"OK":"NG");
 		}
 	}
 	return 0;
