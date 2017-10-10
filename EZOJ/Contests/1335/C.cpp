@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <vector>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -16,74 +17,78 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=300010,D=26;
-namespace trie{
-	int size[N];
-	int son[N][D],n=0;
-	bool end[N];
-	int rt=++n;
+char s[N];
+int _sum[N][D];
+namespace sam{
+	struct Node;
+	typedef Node* node;
+	struct Node{
+		node lnk,go[D];
+		int len,end,son;
+	}pol[N<<1],*pool=pol,*ini=pool++,*tail=ini;
 	inline void init(){
-		memset(size,0,sizeof(size));
-		memset(son,0,sizeof(son));
-		memset(end,0,sizeof(end));
+		memset(pol,0,sizeof(pol));
 	}
-	void ins(int x,char *s){
-		if((*s)==0){
-			end[x]=true;
+	inline void ext(int i,int c){
+		node p=tail;
+		node np=tail=pool++;
+		np->len=p->len+1;
+		np->end=i;
+		for(;p&&p->go[c]==0;p=p->lnk){
+			p->go[c]=np;
+		}
+		if(p==0){
+			np->lnk=ini;
 			return;
 		}
-		if(son[x][(*s)-'a']==0){
-			son[x][(*s)-'a']=++n;
-		}
-		ins(son[x][(*s)-'a'],s+1);
-	}
-	void dfs(int x){
-		if(x==0){
+		node q=p->go[c];
+		if(q->len==p->len+1){
+			np->lnk=q;
 			return;
 		}
-		if(end[x]){
-			size[x]++;
-		}
-		for(int i=0;i<D;i++){
-			dfs(son[x][i]);
-			size[x]+=size[son[x][i]];
+		node nq=pool++;
+		*nq=*q;
+		np->end=i;
+		nq->len=p->len+1;
+		nq->lnk=q->lnk;
+		q->lnk=np->lnk=nq;
+		for(;p&&p->go[c]==q;p=p->lnk){
+			p->go[c]=nq;
 		}
 	}
-}
-char s[N],t[N];
-inline bool match(){
-	for(int i=0;s[i];i++){
-		bool flag=true;
-		for(int j=0;t[j];j++){
-			if(s[i+j]!=t[j]){
-				flag=false;
-				break;
+	inline lint work(){
+		for(node i=pol+1;i<pool;i++){
+			i->lnk->son|=1<<(s[i->end-i->lnk->len]-'a');
+		}
+		lint ans=0;
+		for(node i=pol;i<pool;i++){
+			for(int c=0;c<D;c++){
+				if(i->go[c]){
+					if((i->son>>c)&1){
+						ans++;
+					}
+					if(i!=ini){
+						ans+=_sum[i->end-i->lnk->len-1][c]-_sum[i->end-i->len][c];
+					}
+				}
 			}
 		}
-		if(flag){
-			return true;
-		}
+		return ans;
 	}
-	return false;
 }
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("loop.in","r",stdin);
 	freopen("loop.out","w",stdout);
 #endif
-	scanf("%s",s);
-	trie::init();
-	int n=strlen(s);
-	for(int i=0;i<n;i++){
-		for(int j=i;j<n;j++){
-			memcpy(t,s+i+1,j-i);
-			t[j-i]=s[i];
-			t[j-i+1]=0;
-			if(match()){
-				trie::ins(trie::rt,t);
-			}
-		}
+	scanf("%s",s+1);
+	sam::init();
+	memset(_sum[0],0,sizeof(_sum[0]));
+	for(int i=1;s[i];i++){
+		sam::ext(i,s[i]-'a');
+		memcpy(_sum[i],_sum[i-1],sizeof(_sum[i]));
+		_sum[i][s[i]-'a']++;
 	}
-	trie::dfs(trie::rt);
-	printf("%d\n",trie::size[trie::rt]);
+	printf("%lld\n",sam::work());
 	return 0;
 }
