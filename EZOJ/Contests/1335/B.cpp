@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <vector>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -15,68 +16,58 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=26,MOD=1000000007;
-inline int add(const int &a,const int &b){
-	return (a+b)%MOD;
-}
-inline int mul(const int &a,const int &b){
-	return (lint)a*b%MOD;
-}
-inline void apadd(int &a,const int &b){
-	a=add(a,b);
-}
-inline void apmul(int &a,const int &b){
-	a=mul(a,b);
-}
-char s[N+1];
-bool vis[N];
-int f[N][N][N*N];//f[i][used][sum]
-inline int fac(int n){
-	int ret=1;
-	for(;n;n--){
-		apmul(ret,n);
-	}
-	return ret;
-}
+const int N=5010,MOD=1000000007;
+char s[N];
+int lcp[N][N];
+int f[N][N];//f[i][j]:[i-j+1,i]
+bool scmp[N][N];
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("string.in","r",stdin);
-	freopen("string.out","w",stdout);
+	freopen("seq.in","r",stdin);
+	freopen("seq.out","w",stdout);
 #endif
-	int n=ni,k=ni;
-	scanf("%s",s);
-	int slen=strlen(s);
-	int ans=0;
-	int cnt2=s[0]-'a';
-	for(int i=1;s[i];i++){
-		if(s[i]<s[0]){
-			cnt2--;
-		}
-	}
-	for(int l=0,r=slen;r<=n;l++,r++){//[l,r)
-		int cnt=k-slen;
-		for(int i=1;s[i];i++){
-			if(s[i]<s[0]){
-				cnt-=n-(l+i);
-			}
-		}
-		memset(f,0,sizeof(f));
-		f[0][0][0]=1;
-		if(l>0){
-			f[0][1][n]=1;
-		}
-		for(int i=1;i<n;i++){
-			for(int j=0,tj=min(i+1,cnt2);j<=tj;j++){
-				for(int k=0,tk=min(((((n<<1)|1)-j)*j)>>1,cnt);k<=tk;k++){
-					f[i][j][k]=f[i-1][j][k];
-					if((i<l||i>=r)&&j&&k>=n-i){
-						apadd(f[i][j][k],f[i-1][j-1][k-(n-i)]);
-					}
+	int n=ni;
+	scanf("%s",s+1);
+	for(int i=n;i>=1;i--){
+		for(int j=n;j>=i;j--){
+			if(s[i]==s[j]){
+				if(i==n||j==n){
+					lcp[i][j]=1;
+					scmp[i][j]=i==n&&j!=n;
+				}else{
+					lcp[i][j]=lcp[i+1][j+1]+1;
+					scmp[i][j]=scmp[i+1][j+1];
 				}
+			}else{
+				lcp[i][j]=0;
+				scmp[i][j]=s[i]<s[j];
 			}
 		}
-		apadd(ans,f[n-1][cnt2][cnt]);
 	}
-	printf("%d\n",mul(ans,mul(fac(cnt2),fac(n-slen-cnt2))));
+	if(s[1]=='0'){
+		putchar('0'),putchar('\n');
+		return 0;
+	}
+	memset(f,0,sizeof(f));
+	f[0][0]=1;
+	for(int i=1;i<=n;i++){
+		int sum=0,tmp;
+		for(int j=1;j<=i;j++){
+			int m=i-j+1,l=max(m-j,1);
+			if(s[m]=='0'){
+				f[i][j]=sum;
+				continue;
+			}
+			if(m-l<j){
+				tmp=f[m-1][m-l];
+			}else if(lcp[l][m]<j&&scmp[l][m]){
+				tmp=f[m-1][j];
+			}else{
+				tmp=f[m-1][j-1];
+			}
+			f[i][j]=sum=(sum+tmp)%MOD;
+		}
+	}
+	printf("%d\n",f[n][n]);
 	return 0;
 }
