@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cctype>
 #include <set>
+#include <stack>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -60,9 +61,10 @@ namespace T{//splay
 			}
 		}
 	}null=(Node){&null,&null,&null,0,0,0};
+	node bin[N*20],*bs=bin;
 	inline node nn(node x=&null){
-		static node n=new Node[N*40];
-		return (*n=*x,n++);
+		static node n=new Node[N*20];
+		return &(bs==bin?(*(n++)=*x):(**--bs=*x));
 	}
 	node upbound(node x,int nxt){//find first nxt > nxt sometimes can't find the right answer!!!
 		for(;x->nxt<=nxt&&x->rson!=&null;x=x->rson);
@@ -72,7 +74,7 @@ namespace T{//splay
 		node y=upbound(x->lson,nxt);
 		return y->nxt>nxt?y:x;
 	}
-	void ins(node x,node n){//remember to splay afterwards
+	void _ins(node x,node n){
 		assert(x!=&null);
 		assert(x->nxt!=n->nxt);
 		bool d=n->nxt>x->nxt;
@@ -82,29 +84,37 @@ namespace T{//splay
 			n->lson=n->rson=&null;
 			n->up();
 		}else{
-			ins(x->son[d],n);
+			_ins(x->son[d],n);
 		}
 		x->up();
+	}
+	inline node ins(node x,node n){
+		if(x!=&null){
+			x->splay();
+			_ins(x,n);
+			n->splay();
+		}
+		return n;
 	}
 	inline node get(node x,int nxt){//get node nxt
 		for(;x!=&null&&x->nxt!=nxt;x=nxt<x->nxt?x->lson:x->rson);
 		return x;
 	}
-	node delNode;
 	inline node del(node x,int nxt){
 		node tmp=x;
 		x->splay(),x=get(x,nxt);
 		if(x==&null){
-			delNode=&null;
 			return tmp;
 		}
 		x->splay();
-		delNode=x;
+		*(bs++)=x;
 		if(x->rson==&null){
+			cout<<"yes!"<<endl;
 			x->lson->fa=&null;
 			return x->lson;
 		}
-		node y=upbound(x->rson,nxt);
+		node y=x->rson;
+		for(;y->lson!=&null;y=y->lson);
 		x->rson->fa=&null;
 		y->splay();
 		assert(y->lson==&null);
@@ -138,6 +148,14 @@ namespace T{//splay
 		}
 		putall(x->rson,to,nxt);
 	}
+	void print(node x){
+		if(x==&null){
+			return;
+		}
+		print(x->lson);
+		cout<<"("<<x->val<<","<<x->nxt<<")";
+		print(x->rson);
+	}
 }
 int a[N],w[N];
 int pre[N<<1],nxt[N];
@@ -146,7 +164,12 @@ namespace seg{
 	typedef Node* node;
 	struct Node{
 		int l,m,r;
-		node lson,rson;
+		union{
+			struct{
+				node lson,rson;
+			};
+			node son[2];
+		};
 		T::node rt;
 		inline void up(){
 			lson->rt->splay();
@@ -167,8 +190,7 @@ namespace seg{
 		if(l==r){
 			x->rt=T::nn();
 			x->rt->nxt=nxt[l];
-			x->rt->val=w[a[l]];
-			x->rt->up();
+			x->rt->sum=x->rt->val=w[a[l]];
 		}else{
 			x->lson=build(l,x->m);
 			x->rson=build(x->m+1,r);
@@ -176,28 +198,15 @@ namespace seg{
 		}
 		return x;
 	}
-	void alt(node x,int p,int na,int nnxt){
-		x->rt->splay();
-		x->rt=T::del(x->rt,nxt[p]);
-		if(nnxt>x->r){
-			if(x->rt==&T::null){
-				x->rt=T::delNode==&T::null?T::nn():T::delNode;
-				x->rt->val=w[na];
-				x->rt->nxt=nnxt;
-				x->rt->up();
-			}else{
-				T::node tmp=T::delNode==&T::null?T::nn():T::delNode;
-				tmp->val=w[na];
-				tmp->nxt=nnxt;
-				x->rt->splay();
-				T::ins(x->rt,tmp);
-			}
-		}
-		if(x->l==x->r){
-			a[p]=na,nxt[p]=nnxt;
-		}else{
-			alt(p<=x->m?x->lson:x->rson,p,na,nnxt);
-		}
+	inline void delnxt(int p){
+		for(node x=rt;(nxt[p]>x->r?(x->rt=T::del(x->rt,nxt[p])):0),x->l!=x->r;x=x->son[p>x->m]);
+	}
+	inline void addnxt(int p){
+		T::node n=T::nn();
+		n->nxt=nxt[p];
+		n->sum=n->val=w[a[p]];
+		for(node x=rt;(nxt[p]>x->r?(x->rt=T::ins(x->rt,T::nn(n))):0),x->l!=x->r;x=x->son[p>x->m]);
+		*(T::bs++)=n;
 	}
 	lint ask(node x,int l,int r){
 		if(l<=x->l&&x->r<=r){
@@ -244,25 +253,33 @@ int main(){
 	}
 	seg::rt=seg::build(1,n);
 	for(lint ans=0;tot--;){
+		cout<<"new query"<<endl;
 		if(ni==1){
-			lint p=nl^ans,c=nl^ans;
+//			lint p=nl^ans,c=nl^ans;
+			lint p=nl,c=nl;
 			if(a[p]==c){
 				continue;
 			}
 			s[a[p]].erase(p);
+			if(pre[p]){
+				seg::delnxt(pre[p]);
+				nxt[pre[p]]=nxt[p];
+				seg::addnxt(pre[p]);
+			}
 			pre[nxt[p]]=pre[p];
-			if(pre[p]){
-				seg::alt(seg::rt,pre[p],a[p],nxt[p]);
-			}
-			int tmp=*s[c].upper_bound(p);
-			pre[p]=pre[tmp],pre[tmp]=p;
-			if(pre[p]){
-				seg::alt(seg::rt,pre[p],c,p);
-			}
-			seg::alt(seg::rt,p,c,tmp);
+			seg::delnxt(p);
+			nxt[p]=*s[c].upper_bound(p);
 			s[c].insert(p);
+			pre[p]=pre[nxt[p]];
+			if(pre[p]){
+				seg::delnxt(pre[p]);
+				nxt[pre[p]]=p;
+				seg::addnxt(pre[p]);
+			}
+			seg::addnxt(p);
 		}else{
-			lint l=nl^ans,r=nl^ans;
+//			lint l=nl^ans,r=nl^ans;
+			lint l=nl,r=nl;
 			printf("%lld\n",ans=seg::ask(seg::rt,l,r));
 		}
 	}
