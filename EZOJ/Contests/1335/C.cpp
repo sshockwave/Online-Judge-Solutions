@@ -19,7 +19,7 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 const int N=100010;
-namespace T{//splay
+namespace T{
 	struct Node;
 	typedef Node* node;
 	struct Node{
@@ -38,15 +38,7 @@ namespace T{//splay
 		inline void up(){
 			sum=lson->sum+val+rson->sum;
 		}
-		inline void rot(){
-			bool d=!side();
-			fa->son[!d]=son[d],son[d]->fa=fa,son[d]=fa;
-			if(~fa->side()){
-				fa->fa->son[fa->side()]=this;
-			}
-			fa=fa->fa,son[d]->fa=this;
-			son[d]->up(),up();
-		}
+		inline void rot();
 		inline void splay(){
 			for(int d,fd;d=side(),~d;){
 				fd=fa->side();
@@ -62,11 +54,24 @@ namespace T{//splay
 		}
 	}null=(Node){&null,&null,&null,0,0,0};
 	node bin[N*20],*bs=bin;
+	inline void Node::rot(){
+		bool d=!side();
+		if(son[d]!=&null){
+			son[d]->fa=fa;
+		}
+		fa->son[!d]=son[d],son[d]=fa;
+		if(~fa->side()){
+			fa->fa->son[fa->side()]=this;
+		}
+		fa=fa->fa,son[d]->fa=this;
+		son[d]->up(),up();
+	}
 	inline node nn(node x=&null){
 		static node n=new Node[N*20];
 		return &(bs==bin?(*(n++)=*x):(**--bs=*x));
+		return (*n=*x,n++);
 	}
-	node upbound(node x,int nxt){//find first nxt > nxt sometimes can't find the right answer!!!
+	node upbound(node x,int nxt){
 		for(;x->nxt<=nxt&&x->rson!=&null;x=x->rson);
 		if(x->lson==&null){
 			return x;
@@ -109,7 +114,6 @@ namespace T{//splay
 		x->splay();
 		*(bs++)=x;
 		if(x->rson==&null){
-			cout<<"yes!"<<endl;
 			x->lson->fa=&null;
 			return x->lson;
 		}
@@ -132,6 +136,12 @@ namespace T{//splay
 		node y=nn(x);
 		y->lson=clone(x->lson);
 		y->rson=clone(x->rson);
+		if(y->lson!=&null){
+			y->lson->fa=y;
+		}
+		if(y->rson!=&null){
+			y->rson->fa=y;
+		}
 		return y;
 	}
 	void putall(node x,node to,int nxt){//put all > nxt
@@ -139,22 +149,11 @@ namespace T{//splay
 			return;
 		}
 		assert(x->nxt>nxt);
-		node tmp=nn(x);
-		to->splay();
-		ins(to,tmp);
-		tmp->splay();
+		to=ins(to,nn(x));
 		if(x->lson->nxt>nxt){
 			putall(x->lson,to,nxt);
 		}
 		putall(x->rson,to,nxt);
-	}
-	void print(node x){
-		if(x==&null){
-			return;
-		}
-		print(x->lson);
-		cout<<"("<<x->val<<","<<x->nxt<<")";
-		print(x->rson);
 	}
 }
 int a[N],w[N];
@@ -253,33 +252,32 @@ int main(){
 	}
 	seg::rt=seg::build(1,n);
 	for(lint ans=0;tot--;){
-		cout<<"new query"<<endl;
 		if(ni==1){
-//			lint p=nl^ans,c=nl^ans;
-			lint p=nl,c=nl;
+			lint p=nl^ans,c=nl^ans;
 			if(a[p]==c){
 				continue;
 			}
 			s[a[p]].erase(p);
+			seg::delnxt(p);
 			if(pre[p]){
 				seg::delnxt(pre[p]);
 				nxt[pre[p]]=nxt[p];
 				seg::addnxt(pre[p]);
 			}
 			pre[nxt[p]]=pre[p];
-			seg::delnxt(p);
 			nxt[p]=*s[c].upper_bound(p);
 			s[c].insert(p);
 			pre[p]=pre[nxt[p]];
+			pre[nxt[p]]=p;
 			if(pre[p]){
 				seg::delnxt(pre[p]);
 				nxt[pre[p]]=p;
 				seg::addnxt(pre[p]);
 			}
+			a[p]=c;
 			seg::addnxt(p);
 		}else{
-//			lint l=nl^ans,r=nl^ans;
-			lint l=nl,r=nl;
+			lint l=nl^ans,r=nl^ans;
 			printf("%lld\n",ans=seg::ask(seg::rt,l,r));
 		}
 	}
