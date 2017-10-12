@@ -51,8 +51,8 @@ namespace seg{
 		}
 		int m=(l+r)>>1;
 		if(x->delta){
-			x->lson=add(x->lson,x->delta,l,m,l,m);
-			x->rson=add(x->rson,x->delta,m+1,r,m+1,r);
+			x->lson=renew(x->lson),x->lson->sum+=x->delta*(m-l+1),x->lson->delta+=x->delta;
+			x->rson=renew(x->rson),x->rson->sum+=x->delta*(r-m),x->rson->delta+=x->delta;
 			x->delta=0;
 		}
 		if(b<=m){
@@ -186,15 +186,16 @@ namespace sam{
 		if(q->len==p->len+1){
 			np->fa=np->lnk=q;
 			acc(np);
+			return;
 		}
 		q->splay();
 		node nq=nn(q);
 		if(q->lson!=Node::null){
 			q->lson->fa=nq;
-			rt[tim]=seg::add(rt[tim],-1,q->pos-q->lnk->len+1,q->pos-q->fa->len);
+			q->lson=Node::null;
 		}
 		nq->len=p->len+1;
-		q->lson=nq->rson=Node::null;
+		nq->rson=Node::null;
 		q->fa=q->lnk=np->fa=np->lnk=nq;
 		acc(np);
 		for(;p&&p->go[c]==q;p=p->lnk){
