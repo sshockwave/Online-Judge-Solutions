@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -16,107 +15,66 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=100010,E=200010,logN=18,INF=0x7f7f7f7f;
-template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
-	if(a<b){
-		a=b;
-	}
-}
-namespace T{
-	int to[E],bro[E],val[E],head[N],e=0;
-	int fa[N][logN],mx[N][logN],lgdep[N],dep[N];
-	inline void init(){
-		memset(head,-1,sizeof(head));
-		memset(fa,0,sizeof(fa));
-	}
-	inline void ae(int u,int v,int w){
-		to[e]=v,bro[e]=head[u],val[e]=w,head[u]=e++;
-	}
-	inline void add(int u,int v,int w){
-		ae(u,v,w),ae(v,u,w);
-	}
-	void dfs(int x){
-		for(int &j=lgdep[x]=0;(fa[x][j+1]=fa[fa[x][j]][j]);j++){
-			mx[x][j+1]=max(mx[x][j],mx[fa[x][j]][j]);
-		}
-		for(int i=head[x],v;~i;i=bro[i]){
-			if((v=to[i])!=fa[x][0]){
-				fa[v][0]=x;
-				mx[v][0]=val[i];
-				dep[v]=dep[x]+1;
-				dfs(v);
-			}
-		}
-	}
-	inline int ask(int u,int v){
-		int ans=-INF;
-		if(dep[u]<dep[v]){
-			swap(u,v);
-		}
-		for(int j=lgdep[u];dep[u]!=dep[v];j--){
-			if(dep[fa[u][j]]>=dep[v]){
-				apmax(ans,mx[u][j]);
-				u=fa[u][j];
-			}
-		}
-		if(u==v){
-			return ans;
-		}
-		for(int j=lgdep[u];j>=0;j--){
-			if(fa[u][j]!=fa[v][j]){
-				apmax(ans,max(mx[u][j],mx[v][j]));
-				u=fa[u][j],v=fa[v][j];
-			}
-		}
-		assert(fa[u][0]==fa[v][0]);
-		apmax(ans,max(mx[u][0],mx[v][0]));
-		return ans;
-	}
-}
-struct Edge{
-	int u,v,w;
-}e[E];
-bool vis[E];
-int lst[E];
-inline bool lcmp(int a,int b){
-	return e[a].w<e[b].w;
-}
-int fa[N];
-int root(int x){
-	return fa[x]?(fa[x]=root(fa[x])):x;
-}
+const int N=55,L=20;
+char str[N][L];
+lint dfi[1<<L];
+int dficnt[1<<L];
+double f[1<<L];
+int cnt[128],tag[128],tim=0;
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("pipe.in","r",stdin);
-	freopen("pipe.out","w",stdout);
+	freopen("memory.in","r",stdin);
+	freopen("memory.out","w",stdout);
 #endif
-	int n=ni,tot=ni;
-	for(int i=1;i<=tot;i++){
-		e[i]=(Edge){ni,ni,ni};
-		lst[i]=i;
+	int n=ni,l;
+	for(int i=0;i<n;i++){
+		scanf("%s",str[i]);
 	}
-	T::init();
-	memset(vis,0,sizeof(vis));
-	memset(fa,0,sizeof(fa));
-	lint sum=0;
-	sort(lst+1,lst+tot+1,lcmp);
-	for(int i=1;i<=tot;i++){
-		int u=e[lst[i]].u,v=e[lst[i]].v;
-		if(root(u)!=root(v)){
-			vis[lst[i]]=true;
-			sum+=e[lst[i]].w;
-			fa[root(u)]=root(v);
-			T::add(u,v,e[lst[i]].w);
+	l=strlen(str[0]);
+	dfi[0]=0;
+	dficnt[0]=0;
+	memset(tag,0,sizeof(tag));
+	for(int s=1,ts=1<<l;s<ts;s++){
+		int x=s&-s,sh=0;
+		lint last=dfi[s^x];
+		for(;(1<<sh)<x;sh++);
+		tim++;
+		for(int i=0;i<n;i++){
+			if(((last>>i)&1)==0){
+				if(tag[str[i][sh]]<tim){
+					tag[str[i][sh]]=tim;
+					cnt[str[i][sh]]=0;
+				}
+				cnt[str[i][sh]]++;
+			}
+		}
+		dfi[s]=last;
+		dficnt[s]=dficnt[s^x];
+		for(int i=0;i<n;i++){
+			if(((last>>i)&1)==0){
+				if(cnt[str[i][sh]]==1){
+					dfi[s]|=1ll<<i;
+					dficnt[s]++;
+				}
+			}
 		}
 	}
-	T::dep[1]=1;
-	T::dfs(1);
-	for(int i=1;i<=tot;i++){
-		if(vis[i]){
-			printf("%lld\n",sum);
-		}else{
-			printf("%lld\n",sum-T::ask(e[i].u,e[i].v)+e[i].w);
+	for(int s=(1<<l)-1;s>=0;s--){
+		f[s]=0;
+		if(dficnt[s]!=n){
+			int totunvis=0;
+			for(int i=0;i<l;i++){
+				if(((s>>i)&1)==0){
+					totunvis++;
+					int toS=s|(1<<i);
+					if(dficnt[toS]<n){
+						f[s]+=(double)(n-dficnt[toS])/(n-dficnt[s])*f[toS];
+					}
+				}
+			}
+			f[s]=f[s]/totunvis+1;
 		}
 	}
+	printf("%.10lf\n",f[0]);
 	return 0;
 }
