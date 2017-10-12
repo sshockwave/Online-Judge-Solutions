@@ -88,49 +88,141 @@ namespace sam{
 	struct Node;
 	typedef Node* node;
 	struct Node{
-		node lnk,go[D];
-		int len,pos;
-	}pol[N*2],*pool=pol,*ini=pool++,*tail=ini;
+		node fa,go[D];
+		static node null;
+		union{
+			struct{
+				node lson,rson;
+			};
+			node son[2];
+		};
+		int len,pos,mx;
+		bool tag;
+		inline int side(){
+			return fa->lson==this?0:fa->rson==this?1:-1;
+		}
+		inline void up(){
+			assert(!tag);
+			mx=max(len,max(lson->mx,rson->mx));
+		}
+		inline void down(){
+			if(tag){
+				if(lson!=null){
+					lson->pos=pos;
+					lson->tag=true;
+				}
+				if(rson!=null){
+					rson->pos=pos;
+					rson->tag=true;
+				}
+				tag=false;
+			}
+		}
+		inline void rot(){
+			bool d=!side();
+			if(son[d]!=null){
+				son[d]->fa=fa;
+			}
+			fa->son[!d]=son[d],son[d]=fa;
+			if(~fa->side()){
+				fa->fa->son[fa->side()]=this;
+			}
+			fa=fa->fa,son[d]->fa=this;
+			son[d]->up(),up();
+		}
+		inline void splay();
+	}pool[N*2];
+	node Node::null;
+	node ini,tail;
+	inline node nn(node x=Node::null){
+		static node n=pool;
+		return (*n=*x,n++);
+	}
 	inline void init(){
-		memset(pol,0,sizeof(pol));
+		Node::null=pool;
+		memset(Node::null,0,sizeof(Node));
+		Node::null=nn();
+		Node::null->fa=Node::null->lson=Node::null->rson=Node::null;
+		ini=tail=nn();
+	}
+	void draw(node x){
+		if(x!=Node::null){
+			draw(x->fa),x->down();
+		}
+	}
+	inline void Node::splay(){
+		draw(this);
+		for(int d,fd;d=side(),~d;){
+			fd=fa->side();
+			if(fd==-1){
+				rot();
+				break;
+			}else if(fd==d){
+				fa->rot(),rot();
+			}else{
+				rot(),rot();
+			}
+		}
+	}
+	node putgoc(node x,int c,node oto,node nto){//find first !=oto
+		if(x==Node::null){
+			return x;
+		}
+		node y=putgoc(x->rson,c,oto,nto);
+		if(x->go[c]==oto){
+			x->go[c]=nto;
+			return putgoc(x->lson,c,oto,nto);
+		}
+		return y==Node::null?x:y;
+	}
+	inline void acc(node x){//assert x is root
+		for(node s=x;x=x->fa,x!=Node::null;s=x){
+			x->splay();
+			x->rson=Node::null;
+			x->up();
+			rt[tim]=seg::add(rt[tim],-1,x->pos-x->mx+1,x->pos-x->fa->len);
+			x->pos=tim,x->tag=true;
+			x->down();
+			x->rson=s;
+			x->up();
+		}
 	}
 	inline void ext(int c){
 		node p=tail;
-		node np=tail=pool++;
-		np->len=p->len+1;
+		node np=tail=nn();
+		np->mx=np->len=p->len+1;
 		np->pos=++tim;
-		rt[tim]=rt[tim-1];
-		rt[tim]=seg::add(rt[tim],1,tim-np->len+1,tim);
-		for(;p&&p->go[c]==0;p=p->lnk){
-			p->go[c]=np;
-		}
-		if(p==0){
-			np->lnk=ini;
+		rt[tim]=seg::add(rt[tim-1],1,1,tim);
+		//assert p access complete
+		p->splay(),p=putgoc(p,c,0,np);
+		if(p==Node::null){
+			np->fa=ini;
+			ini->splay();
+			ini->rson=np;
+			ini->up();
 			return;
 		}
 		node q=p->go[c];
 		if(q->len==p->len+1){
-			np->lnk=q;
-			for(;q!=ini;q=q->lnk){
-				rt[tim]=seg::add(rt[tim],-1,q->pos-q->len+1,q->pos-q->lnk->len);
-				q->pos=tim;
-			}
+			np->fa=q;
+			acc(np);
 			return;
-			//todo::link cut tree
 		}
-		node nq=pool++;
-		*nq=*q;
-		nq->len=p->len+1;
-		nq->pos=tim;
-		q->lnk=np->lnk=nq;
-		for(;p&&p->go[c]==q;p=p->lnk){
-			p->go[c]=nq;
+		q->splay();
+		node nq=nn(q);
+		p->splay(),p->rson=Node::null,p->up(),putgoc(p,c,q,nq);
+		nq->mx=nq->len=p->len+1;
+		if(q->lson!=Node::null){
+			q->lson->fa=nq;
+			rt[tim]=seg::add(rt[tim],-1,q->lson->pos-q->lson->mx+1,q->lson->pos-q->fa->len);
+			q->lson->pos=tim,q->lson->tag=true;
 		}
-		rt[tim]=seg::add(rt[tim],-1,q->pos-nq->len+1,q->pos-nq->lnk->len);
-		for(q=nq->lnk;q!=ini;q=q->lnk){
-			rt[tim]=seg::add(rt[tim],-1,q->pos-q->len+1,q->pos-q->lnk->len);
-			q->pos=tim;
-		}
+		assert(q->side()==-1);
+		np->fa=q->fa;
+		q->lson=Node::null,q->fa=nq,q->up();
+		nq->rson=Node::null,nq->fa=np,nq->up();
+		np->lson=nq,np->up();
+		acc(np);
 	}
 }
 struct Query{
@@ -158,6 +250,7 @@ int main(){
 		}
 	}
 	rt[0]=&seg::null;
+	sam::init();
 	for(int i=0;s[i];i++){
 		sam::ext(s[i]-'a');
 	}
