@@ -36,7 +36,7 @@ namespace seg{
 		}
 	}null=(Node){&null,&null,0,0,-1};
 	inline node renew(node x=&null){
-		static node n=new Node[N*20];
+		static node n=new Node[N*60];
 		return x->tag==tim?x:(*n=*x,n->tag=tim,n++);
 	}
 	node add(node x,int v,int a,int b,int l=1,int r=totlen){
@@ -74,18 +74,13 @@ namespace seg{
 			return x->sum;
 		}
 		int m=(l+r)>>1;
-		if(x->delta){
-			x->lson=add(x->lson,x->delta,l,m,l,m);
-			x->rson=add(x->rson,x->delta,m+1,r,m+1,r);
-			x->delta=0;
-		}
 		if(b<=m){
-			return ask(x->lson,a,b,l,m);
+			return ask(x->lson,a,b,l,m)+(b-a+1)*x->delta;
 		}
 		if(a>m){
-			return ask(x->rson,a,b,m+1,r);
+			return ask(x->rson,a,b,m+1,r)+(b-a+1)*x->delta;
 		}
-		return ask(x->lson,a,m,l,m)+ask(x->rson,m+1,b,m+1,r);
+		return ask(x->lson,a,m,l,m)+ask(x->rson,m+1,b,m+1,r)+(b-a+1)*x->delta;
 	}
 }
 seg::node rt[N];
