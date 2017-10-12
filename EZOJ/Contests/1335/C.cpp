@@ -88,7 +88,7 @@ namespace sam{
 	struct Node;
 	typedef Node* node;
 	struct Node{
-		node fa,go[D];
+		node lnk,fa,go[D];
 		static node null;
 		union{
 			struct{
@@ -96,14 +96,10 @@ namespace sam{
 			};
 			node son[2];
 		};
-		int len,pos,mx;
+		int len,pos;
 		bool tag;
 		inline int side(){
 			return fa->lson==this?0:fa->rson==this?1:-1;
-		}
-		inline void up(){
-			assert(!tag);
-			mx=max(len,max(lson->mx,rson->mx));
 		}
 		inline void down(){
 			if(tag){
@@ -128,7 +124,6 @@ namespace sam{
 				fa->fa->son[fa->side()]=this;
 			}
 			fa=fa->fa,son[d]->fa=this;
-			son[d]->up(),up();
 		}
 		inline void splay();
 	}pool[N*2];
@@ -164,65 +159,47 @@ namespace sam{
 			}
 		}
 	}
-	node putgoc(node x,int c,node oto,node nto){//find first !=oto
-		if(x==Node::null){
-			return x;
-		}
-		node y=putgoc(x->rson,c,oto,nto);
-		if(x->go[c]==oto){
-			x->go[c]=nto;
-			return putgoc(x->lson,c,oto,nto);
-		}
-		return y==Node::null?x:y;
-	}
-	inline void acc(node x){//assert x is root
+	inline void acc(node x){
 		for(node s=x;x=x->fa,x!=Node::null;s=x){
 			x->splay();
-			x->rson=Node::null;
-			x->up();
-			rt[tim]=seg::add(rt[tim],-1,x->pos-x->mx+1,x->pos-x->fa->len);
-			x->pos=tim,x->tag=true;
-			x->down();
 			x->rson=s;
-			x->up();
+			if(x->pos!=tim){
+				rt[tim]=seg::add(rt[tim],-1,x->pos-x->len+1,x->pos-x->fa->len);
+				x->pos=tim,x->tag=true;
+			}
 		}
 	}
 	inline void ext(int c){
 		node p=tail;
 		node np=tail=nn();
-		np->mx=np->len=p->len+1;
+		np->len=p->len+1;
 		np->pos=++tim;
 		rt[tim]=seg::add(rt[tim-1],1,1,tim);
-		//assert p access complete
-		p->splay(),p=putgoc(p,c,0,np);
-		if(p==Node::null){
-			np->fa=ini;
-			ini->splay();
-			ini->rson=np;
-			ini->up();
+		for(;p&&p->go[c]==0;p=p->lnk){
+			p->go[c]=np;
+		}
+		if(p==0){
+			np->fa=np->lnk=ini;
 			return;
 		}
 		node q=p->go[c];
 		if(q->len==p->len+1){
-			np->fa=q;
+			np->fa=np->lnk=q;
 			acc(np);
-			return;
 		}
 		q->splay();
 		node nq=nn(q);
-		p->splay(),p->rson=Node::null,p->up(),putgoc(p,c,q,nq);
-		nq->mx=nq->len=p->len+1;
 		if(q->lson!=Node::null){
 			q->lson->fa=nq;
-			rt[tim]=seg::add(rt[tim],-1,q->lson->pos-q->lson->mx+1,q->lson->pos-q->fa->len);
-			q->lson->pos=tim,q->lson->tag=true;
+			rt[tim]=seg::add(rt[tim],-1,q->pos-q->lnk->len+1,q->pos-q->fa->len);
 		}
-		assert(q->side()==-1);
-		np->fa=q->fa;
-		q->lson=Node::null,q->fa=nq,q->up();
-		nq->rson=Node::null,nq->fa=np,nq->up();
-		np->lson=nq,np->up();
+		nq->len=p->len+1;
+		q->lson=nq->rson=Node::null;
+		q->fa=q->lnk=np->fa=np->lnk=nq;
 		acc(np);
+		for(;p&&p->go[c]==q;p=p->lnk){
+			p->go[c]=nq;
+		}
 	}
 }
 struct Query{
