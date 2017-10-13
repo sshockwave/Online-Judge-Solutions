@@ -15,62 +15,75 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=55,L=20;
-char str[N][L+1];
-lint dfi[1<<L];
-int dficnt[1<<L];
-double f[1<<L];
-int bcnt[1<<L];
-inline int bitcnt(lint x){
-	static const int A=(1<<L)-1,L2=L<<1;
-	return bcnt[x&A]+bcnt[(x>>L)&A]+bcnt[(x>>L2)&A];
+template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
+	if(a<b){
+		a=b;
+	}
+}
+const int N=510;
+int a[N],nxt[N],cur[N],n;
+int to[N][N];
+bool vis[N];
+inline int work(int f0,int f1){
+	vis[f0]=true,vis[f1]=true;
+	int ans=2;
+	while(to[f0][f1]){
+		for(int &x=cur[to[f0][f1]];x<=n&&vis[x];x=nxt[x]);
+		if(cur[to[f0][f1]]<=n){
+			ans++;
+			int t=to[f0][f1];
+			f0=f1,f1=cur[t];
+			vis[f1]=true;
+		}else{
+			break;
+		}
+	}
+	return ans;
 }
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("memory.in","r",stdin);
-	freopen("memory.out","w",stdout);
+	freopen("fibonacci.in","r",stdin);
+	freopen("fibonacci.out","w",stdout);
 #endif
-	int n=ni;
-	for(int i=0;i<n;i++){
-		scanf("%s",str[i]);
+	n=ni;
+	if(n<=2){
+		printf("%d\n",n);
+		return 0;
 	}
-	int m=strlen(str[0]),shm=1<<m;
-	memset(dfi,0,sizeof(dfi));
-	for(int i=0;i<n;i++){
-		for(int j=0;j<n;j++){
-			if(i==j){
-				continue;
+	for(int i=1;i<=n;i++){
+		a[i]=ni;
+	}
+	for(int i=n;i>=1;i--){
+		nxt[i]=n+1;
+		for(int j=i+1;j<=n;j++){
+			if(a[i]==a[j]){
+				nxt[i]=j;
+				break;
 			}
-			int tmp=0;
-			for(int k=0;k<m;k++){
-				tmp|=(str[i][k]==str[j][k])<<k;
-			}
-			dfi[tmp]|=1ll<<i;
 		}
 	}
-	bcnt[0]=0;
-	for(int s=1,ts=1<<L;s<ts;s++){
-		bcnt[s]=bcnt[s^(s&-s)]+1;
-	}
-	for(int s=shm-1;s>=0;s--){
-		for(int t=s;t;t^=t&-t){
-			dfi[s^(t&-t)]|=dfi[s];
-		}
-		dfi[s]^=(1ll<<n)-1;
-		dficnt[s]=bitcnt(dfi[s]);
-	}
-	for(int s=shm-1;s>=0;s--){
-		f[s]=0;
-		if(dficnt[s]<n){
-			for(int t=s,x;t<shm;t|=x){
-				x=(t+1)&-(t+1);
-				if(dficnt[s|x]<n){
-					f[s]+=(double)(n-dficnt[s|x])/(n-dficnt[s])*f[s|x];
+	memset(to,0,sizeof(to));
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			for(int k=1;k<=n;k++){
+				if(a[i]+a[j]==a[k]){
+					to[i][j]=k;
+					break;
 				}
 			}
-			f[s]=f[s]/bcnt[s^(shm-1)]+1;
 		}
 	}
-	printf("%.10lf\n",f[0]);
+	int ans=0;
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			if(i!=j){
+				for(int k=1;k<=n;k++){
+					vis[k]=false,cur[k]=k;
+				}
+				apmax(ans,work(i,j));
+			}
+		}
+	}
+	printf("%d\n",ans);
 	return 0;
 }
