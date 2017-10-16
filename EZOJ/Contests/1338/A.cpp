@@ -56,7 +56,10 @@ namespace G{
 			if(dfn[v=to[i]]==0){
 				f+=dfs(v,i>>1);
 			}else{
-				f+=(dfn[v]<dfn[x]?1ll:-1ll)<<(col[v]==col[x]?32:0);
+				f+=(dfn[v]<dfn[x]?1ll:-1ll)<<(col[v]==col[x]?0:32);
+				if(errcnt==1&&col[v]==col[x]){
+					okay[i>>1]=true;
+				}
 			}
 		}
 		okay[e]=f==errcnt;
