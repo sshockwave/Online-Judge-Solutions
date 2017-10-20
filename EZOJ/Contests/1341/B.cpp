@@ -38,7 +38,7 @@ int main(){
 			vs++;
 		}else if(a[i]==-2){
 			if(vs==0){
-				puts("NO");
+				puts("No");
 				return 0;
 			}
 			vs--;
@@ -47,15 +47,15 @@ int main(){
 		}else if(a[i]==0){
 			p[i]=i;
 		}else{
-			puts("NO");
+			puts("No");
 			return 0;
 		}
 	}
 	if(vs){
-		puts("NO");
+		puts("No");
 		return 0;
 	}
-	puts("YES");
+	puts("Yes");
 	for(int i=1;i<=n;i++){
 		printf("%d ",p[i]);
 	}
