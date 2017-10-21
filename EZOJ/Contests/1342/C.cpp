@@ -25,8 +25,8 @@ int ans=0;
 namespace T{
 	const int E=N<<2;
 	int to[E],bro[E],mhead[N],dhead[N],e=0;
-	int fa[N],son[N],size[N],dep[N],top[N];
-	int dfn[N],idx[N],tim=0;
+	int fa[N],dep[N],dfn[N],dfe[N],tim=0;
+	bool col[N];
 	inline void init(){
 		memset(mhead,-1,sizeof(mhead));
 		memset(dhead,-1,sizeof(dhead));
@@ -38,58 +38,39 @@ namespace T{
 		ae(u,v,head),ae(v,u,head);
 	}
 	void dfs1(int x){
-		size[x]=1;
+		dfn[x]=++tim;
 		for(int i=mhead[x],v;~i;i=bro[i]){
 			if((v=to[i])!=fa[x]){
 				fa[v]=x;
 				dep[v]=dep[x]+1;
 				dfs1(v);
-				if(size[v]>size[son[x]]){
-					son[x]=v;
-				}
 			}
 		}
+		dfe[x]=tim;
 	}
-	void dfs2(int x){
-		idx[dfn[x]=++tim]=x;
-		top[x]=son[fa[x]]==x?top[fa[x]]:x;
-		if(son[x]){
-			dfs2(son[x]);
-			for(int i=mhead[x],v;~i;i=bro[i]){
-				if((v=to[i])!=fa[x]&&v!=son[x]){
-					dfs2(v);
-				}
-			}
+	inline bool cont(int u,int v){
+		return dfn[u]<=dfn[v]&&dfe[u]>=dfe[v];
+	}
+	inline bool gcol(int u,int v){
+		if(cont(u,v)){
+			return dep[v]-dep[u]>2;
 		}
+		if(cont(v,u)){
+			return dep[u]-dep[v]>2;
+		}
+		return fa[u]!=fa[v];
 	}
-	inline int lca(int u,int v){
-		for(;top[u]!=top[v];dep[top[u]]>dep[top[v]]?(u=fa[top[u]]):(v=fa[top[v]]));
-		return dep[u]<dep[v]?u:v;
-	}
-	inline int dis(int u,int v){
-		return dep[u]+dep[v]-(dep[lca(u,v)]<<1);
-	}
-	inline int fly(int x,int n){
-		int d=dep[x]-n;
-		for(;dep[top[x]]>d;x=fa[top[x]]);
-		return idx[dfn[x]-(dep[x]-d)];
-	}
-	inline int chase(int u,int v){
-		return u==v?u:lca(u,v)==u?fly(v,dep[v]-dep[u]-1):fa[u];
-	}
-	int rel[N];
-	void dfs3(int x,int fa,int dep){
-		apmax(ans,dep+dis(x,rel[x]));
-		if(rel[x]==x){
+	void dfs2(int x,int fa,int stp){
+		if(dep[x]<=stp){
 			return;
 		}
-		for(int i=dhead[x],v;~i;i=bro[i]){
-			if((v=to[i])!=fa){
-				if(dis(v,x)>2){
-					throw -1;
-				}
-				rel[v]=chase(rel[x],v);
-				dfs3(v,x,dep+1);
+		if(col[x]){
+			throw -1;
+		}
+		apmax(ans,dep[x]);
+		for(int i=dhead[x];~i;i=bro[i]){
+			if(to[i]!=fa){
+				dfs2(to[i],x,stp+1);
 			}
 		}
 	}
@@ -99,14 +80,19 @@ int main(){
 	freopen("deer.in","r",stdin);
 	freopen("deer.out","w",stdout);
 #endif
-	int n=ni,rt=ni;
-	T::rel[rt]=ni;
+	int n=ni,drt=ni,rt=ni;
 	T::init();
 	for(int i=1;i<n;T::add(ni,ni,T::dhead),i++);
 	for(int i=1;i<n;T::add(ni,ni,T::mhead),i++);
-	T::dfs1(1),T::dfs2(1);
+	T::dfs1(rt);
+	for(int i=0,ti=T::e>>1;i<ti;i+=2){
+		int u=T::to[i],v=T::to[i^1];
+		if(T::gcol(u,v)){
+			T::col[u]=T::col[v]=true;
+		}
+	}
 	try{
-		T::dfs3(rt,0,0);
+		T::dfs2(drt,0,0);
 		printf("%d\n",ans<<1);
 	}catch(int ans){
 		printf("%d\n",ans);
