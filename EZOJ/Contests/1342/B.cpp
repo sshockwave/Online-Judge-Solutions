@@ -16,8 +16,7 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=2010;
-int f[N][N];
+const int N=100010;
 int a[N];
 int main(){
 #ifndef ONLINE_JUDGE
@@ -29,17 +28,16 @@ int main(){
 		a[i]=ni;
 	}
 	sort(a+1,a+n+1);
-	memset(f,-1,sizeof(f));
-	for(int i=a[n],k=n;i>=0;i--){
-		for(;k&&a[k]>i;k--);
-		f[i][n-k]=true;
-		for(int j=n-k-1;j>=0;j--){
-			f[i][j]=!f[i][j+1];
-			if(~f[i+1][j]){
-				f[i][j]|=!f[i+1][j];
-			}
+	bool win=true;
+	a[0]=a[1];
+	for(int i=1,j=0,k=0;i<=n;i++){
+		if(k>=a[j]-1){
+			j++;
+			win=!win||((a[j]-a[j-1])&1);
+		}else{
+			win=((a[j]-++k)&1)==0;
 		}
 	}
-	puts(f[0][0]?"First":"Second");
+	puts(win?"First":"Second");
 	return 0;
 }
