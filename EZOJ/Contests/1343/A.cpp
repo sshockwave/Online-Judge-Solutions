@@ -8,6 +8,7 @@ using namespace std;
 typedef long long lint;
 #define cout cerr
 #define ni (next_num<int>())
+#define nl (next_num<lint>())
 template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
@@ -28,9 +29,9 @@ int main(){
 	freopen("toy.out","w",stdout);
 #endif
 	int n=ni;
-	lint da=ni,db=ni;
+	lint da=nl,db=nl;
 	for(int i=1;i<=n;i++){
-		a[i]=ni;
+		a[i]=nl;
 	}
 	a[0]=-LINF,a[n+1]=LINF;
 	sort(a+1,a+n+1);
