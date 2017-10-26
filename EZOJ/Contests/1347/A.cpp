@@ -104,7 +104,7 @@ int main(){
 		using namespace T;
 		int u=ni,v=ni,w=lca(u,v);
 		if(u==v){
-			printf("%.7lf\n",(double)hsum[u]/h[u]);
+			printf("%.7Lf\n",((long double)hsum[u]/h[u]));
 			continue;
 		}
 		int dis=dep[u]+dep[v]-(dep[w]<<1);
@@ -114,9 +114,9 @@ int main(){
 		if(u==w){
 			int s=fly(v,dep[v]-dep[u]-1);
 			assert(fa[s]==u);
-			printf("%.7lf\n",dis-1+(double)g[s]/(n-size[s])+(double)f[v]/size[v]);
+			printf("%.7Lf\n",(dis-1+(long double)g[s]/(n-size[s])+(long double)f[v]/size[v]));
 		}else{
-			printf("%.7lf\n",dis-1+(double)f[u]/size[u]+(double)f[v]/size[v]);
+			printf("%.7Lf\n",(dis-1+(long double)f[u]/size[u]+(long double)f[v]/size[v]));
 		}
 	}
 	return 0;
