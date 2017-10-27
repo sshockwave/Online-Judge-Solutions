@@ -42,8 +42,8 @@ struct xorsum{
 	inline friend int operator * (const xorsum &a,const xorsum &b){
 		lint ans=0;
 		for(int i=0;i<D;i++){
-			ans+=((a.a[i]*(b.n-b.a[i])%O)<<i)%O;
-			ans+=((b.a[i]*(a.n-a.a[i])%O)<<i)%O;
+			ans+=(((lint)a.a[i]*(b.n-b.a[i])%O)<<i)%O;
+			ans+=(((lint)b.a[i]*(a.n-a.a[i])%O)<<i)%O;
 		}
 		return ans%O;
 	}
@@ -139,6 +139,10 @@ int main(){
 			m-=cnt;
 			(ans+=sum)%=O;
 			continue;
+		}
+		if(vec[0].l->dep<0){
+			(ans+=m*(a[vec[0].l->l]^a[vec[0].r->r]))%=O;
+			break;
 		}
 		for(;!q.empty();q.pop());
 		for(int i=0,n=vec.size();i<n;i++){
