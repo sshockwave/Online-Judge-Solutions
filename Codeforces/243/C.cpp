@@ -16,7 +16,7 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=2010,INF=-0x7f7f7f7f;
+const int N=2010,INF=0x7f7f7f7f;
 bool mat[N][N];
 bool vis[N][N];
 struct intv{
@@ -33,12 +33,12 @@ int dx[]={-1,0,1,0},dy[]={0,1,0,-1};
 inline int getd(){
 	char c;
 	while(!isalpha(c=getchar()));
-	return c=='U'?0:c=='R'?1:c=='U'?2:c=='D'?3:-1;
+	return c=='U'?0:c=='R'?1:c=='D'?2:c=='L'?3:-1;
 }
 inline int binfind(intv lst[],int l,int r,int x){
 	while(l<r){
 		int m=(l+r)>>1;
-		if(lst[m].l>x){
+		if(lst[m].r<x){
 			l=m+1;
 		}else{
 			r=m;
@@ -50,7 +50,7 @@ void dfs(int x,int y){
 	vis[x][y]=true;
 	for(int d=0;d<4;d++){
 		int tx=x+dx[d],ty=y+dy[d];
-		if(tx>=0&&tx<xs&&ty>=0&&ty<ys&&!vis[x][y]&&!mat[x][y]){
+		if(tx>=0&&tx<xs&&ty>=0&&ty<ys&&!vis[tx][ty]&&!mat[tx][ty]){
 			dfs(tx,ty);
 		}
 	}
@@ -104,6 +104,6 @@ int main(){
 			}
 		}
 	}
-	printf("%lld\n",ans);
+	printf("%I64d\n",ans);
 	return 0;
 }
