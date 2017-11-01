@@ -17,7 +17,8 @@ template<class T>inline T next_num(){
 	return flag?-i:i;
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
-const int N=1001,N2=N*N;
+template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+const int N=1001,N2=N*N,INF=0x7f7f7f7f;
 
 struct Pt{
 	int x,y;
@@ -25,8 +26,12 @@ struct Pt{
 	inline friend Pt operator - (const Pt &a,const Pt &b){return (Pt){a.x-b.x,a.y-b.y};}
 	inline friend int dot(const Pt &a,const Pt &b){return a.x*b.x+a.y*b.y;}
 	inline friend int crs(const Pt &a,const Pt &b){return a.x*b.y-a.y*b.x;}
-}pt[N2+(N<<1)],vec;
-int plst[N],ps=0;
+}pt[N2],vec;
+int plst[N2],ps=0;
+inline ostream & operator << (ostream & out,const Pt &b){
+	out<<"("<<b.x<<","<<b.y<<")";
+	return out;
+}
 inline bool pcmp(int a,int b){
 	return crs(pt[a]-pt[b],vec)>0;
 }
@@ -70,13 +75,14 @@ namespace seg{
 			return x->h;
 		}
 		x->down();
-		if(!pcmp(x->m,li.p2)){
-			return ask(x->lson,li);
+		int ans=INF;
+		if(pcmp(li.p1,plst[x->m])){
+			apmin(ans,ask(x->lson,li));
 		}
-		if(pcmp(x->m,li.p1)){
-			return ask(x->rson,li);
+		if(pcmp(plst[x->m],li.p2)){
+			apmin(ans,ask(x->rson,li));
 		}
-		return min(ask(x->lson,li),ask(x->rson,li));
+		return ans;
 	}
 	void ins(node x,const Li &li){
 		if(!pcmp(plst[x->l-1],li.p1)&&!pcmp(li.p2,plst[x->r])){
@@ -84,12 +90,10 @@ namespace seg{
 			return;
 		}
 		x->down();
-		if(!pcmp(x->m,li.p2)){
+		if(pcmp(li.p1,plst[x->m])){
 			ins(x->lson,li);
-		}else if(pcmp(x->m,li.p1)){
-			ins(x->rson,li);
-		}else{
-			ins(x->lson,li);
+		}
+		if(pcmp(plst[x->m],li.p2)){
 			ins(x->rson,li);
 		}
 		x->up();
@@ -112,10 +116,14 @@ int main(){
 	for(int i=1;i<=n;i++){
 		for(int j=1;j<=n;j++){
 			int h=ni;
-			li[ls++]=(Li){i,j,h,i*(n+1)+(j-1),i*(n+1)+j};
-			li[ls++]=(Li){i,j,h,i*(n+1)+j,(i-1)*(n+1)+j};
-			li[ls++]=(Li){i,j,h,(i-1)*(n+1)+j,(i-1)*(n+1)+(j-1)};
-			li[ls++]=(Li){i,j,h,(i-1)*(n+1)+(j-1),i*(n+1)+(j-1)};
+			int p1=(i-1)*(n+1)+(j-1);
+			int p2=i*(n+1)+(j-1);
+			int p3=(i-1)*(n+1)+j;
+			int p4=i*(n+1)+j;
+			li[ls++]=(Li){i,j,h,p1,p2};
+			li[ls++]=(Li){i,j,h,p2,p4};
+			li[ls++]=(Li){i,j,h,p4,p3};
+			li[ls++]=(Li){i,j,h,p3,p1};
 		}
 	}
 	sort(li,li+ls,lcmp);
@@ -130,6 +138,9 @@ int main(){
 		if(!pcmp(li[i].p1,li[i].p2)){
 			swap(li[i].p1,li[i].p2);
 		}
+		if(!pcmp(li[i].p1,li[i].p2)){
+			continue;
+		}
 		apmax(see[li[i].x][li[i].y],li[i].h-seg::ask(seg::rt,li[i]));
 		seg::ins(seg::rt,li[i]);
 	}
@@ -139,10 +150,6 @@ int main(){
 			ans+=see[i][j];
 		}
 	}
-#ifdef ONLINE_JUDGE
 	printf("%I64d\n",ans);
-#else
-	printf("%lld\n",ans);
-#endif
 	return 0;
 }
