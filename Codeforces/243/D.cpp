@@ -19,31 +19,10 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=1001,N2=N*N,INF=0x7f7f7f7f;
-
-struct Pt{
-	int x,y;
-	inline friend Pt operator + (const Pt &a,const Pt &b){return (Pt){a.x+b.x,a.y+b.y};}
-	inline friend Pt operator - (const Pt &a,const Pt &b){return (Pt){a.x-b.x,a.y-b.y};}
-	inline friend int dot(const Pt &a,const Pt &b){return a.x*b.x+a.y*b.y;}
-	inline friend int crs(const Pt &a,const Pt &b){return a.x*b.y-a.y*b.x;}
-}pt[N2],vec;
-int plst[N2],ps=0;
-inline ostream & operator << (ostream & out,const Pt &b){
-	out<<"("<<b.x<<","<<b.y<<")";
-	return out;
-}
-inline bool pcmp(int a,int b){
-	return crs(pt[a]-pt[b],vec)>0;
-}
-
-struct Li{
-	int x,y,h,p1,p2;
-}li[N2<<2];
-int ls=0;
-inline bool lcmp(const Li &a,const Li &b){
-	return dot((pt[b.p1]+pt[b.p2])-(pt[a.p1]+pt[a.p2]),vec)>0;
-}
-
+int vx,vy;
+inline int crs(int x,int y){return x*vy-y*vx;}
+inline int dot(int x,int y){return x*vx+y*vy;}
+int pt[N2],ps=0;
 namespace seg{
 	struct Node;
 	typedef Node* node;
@@ -70,85 +49,58 @@ namespace seg{
 		}
 		return x;
 	}
-	int ask(node x,const Li &li){
-		if(!pcmp(plst[x->l-1],li.p1)&&!pcmp(li.p2,plst[x->r])){
-			return x->h;
+	int l,r,h;
+	int ins(node x){
+		if(l<pt[x->l]&&r>=pt[x->r]){
+			int tmp=x->h;
+			apmax(x->h,h);
+			return tmp;
 		}
 		x->down();
 		int ans=INF;
-		if(pcmp(li.p1,plst[x->m])){
-			apmin(ans,ask(x->lson,li));
-		}
-		if(pcmp(plst[x->m],li.p2)){
-			apmin(ans,ask(x->rson,li));
-		}
+		if(l<pt[x->m])apmin(ans,ins(x->lson));
+		if(r>pt[x->m])apmin(ans,ins(x->rson));
+		x->up();
 		return ans;
 	}
-	void ins(node x,const Li &li){
-		if(!pcmp(plst[x->l-1],li.p1)&&!pcmp(li.p2,plst[x->r])){
-			apmax(x->h,li.h);
-			return;
-		}
-		x->down();
-		if(pcmp(li.p1,plst[x->m])){
-			ins(x->lson,li);
-		}
-		if(pcmp(plst[x->m],li.p2)){
-			ins(x->rson,li);
-		}
-		x->up();
-	}
 }
-int see[N][N];
+int lst[N2],qh[N2],ql[N2],qr[N2],qd[N2],ls=0;
+inline bool lcmp(const int &a,const int &b){
+	return qd[a]<qd[b];
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("cube.in","r",stdin);
 	freopen("cube.out","w",stdout);
 #endif
 	int n=ni;
-	vec=(Pt){ni,ni};
+	vx=ni,vy=ni;
 	for(int i=0;i<=n;i++){
 		for(int j=0;j<=n;j++){
-			pt[i*(n+1)+j]=(Pt){i,j};
-			plst[i*(n+1)+j]=i*(n+1)+j;
+			pt[i*(n+1)+j]=crs(i,j);
 		}
 	}
-	for(int i=1;i<=n;i++){
-		for(int j=1;j<=n;j++){
-			int h=ni;
-			int p1=(i-1)*(n+1)+(j-1);
-			int p2=i*(n+1)+(j-1);
-			int p3=(i-1)*(n+1)+j;
-			int p4=i*(n+1)+j;
-			li[ls++]=(Li){i,j,h,p1,p2};
-			li[ls++]=(Li){i,j,h,p2,p4};
-			li[ls++]=(Li){i,j,h,p4,p3};
-			li[ls++]=(Li){i,j,h,p3,p1};
-		}
-	}
-	sort(li,li+ls,lcmp);
-	sort(plst,plst+(n+1)*(n+1),pcmp);
+	sort(pt,pt+(n+1)*(n+1));
 	for(int i=0,ti=(n+1)*(n+1);i<ti;ps++){
-		plst[ps]=plst[i];
-		for(;i<ti&&!pcmp(plst[ps],plst[i]);i++);
+		pt[ps]=pt[i];
+		for(;i<ti&&pt[ps]==pt[i];i++);
 	}
 	seg::rt=seg::build(1,ps-1);
-	memset(see,0,sizeof(see));
-	for(int i=0;i<ls;i++){
-		if(!pcmp(li[i].p1,li[i].p2)){
-			swap(li[i].p1,li[i].p2);
-		}
-		if(!pcmp(li[i].p1,li[i].p2)){
-			continue;
-		}
-		apmax(see[li[i].x][li[i].y],li[i].h-seg::ask(seg::rt,li[i]));
-		seg::ins(seg::rt,li[i]);
-	}
-	lint ans=0;
 	for(int i=1;i<=n;i++){
 		for(int j=1;j<=n;j++){
-			ans+=see[i][j];
+			qh[ls]=ni;
+			ql[ls]=min(min(crs(i-1,j),crs(i,j-1)),min(crs(i-1,j-1),crs(i,j)));
+			qr[ls]=max(max(crs(i-1,j),crs(i,j-1)),max(crs(i-1,j-1),crs(i,j)));
+			qd[ls]=min(min(dot(i-1,j),dot(i,j-1)),min(dot(i-1,j-1),dot(i,j)));
+			lst[ls]=ls;
+			ls++;
 		}
+	}
+	sort(lst,lst+ls,lcmp);
+	lint ans=0;
+	for(int i=0,j;j=lst[i],i<ls;i++){
+		seg::h=qh[j],seg::l=ql[j],seg::r=qr[j];
+		ans+=max(qh[j]-seg::ins(seg::rt),0);
 	}
 	printf("%I64d\n",ans);
 	return 0;
