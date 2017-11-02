@@ -30,11 +30,11 @@ inline int inv(int x){
 }
 namespace poly{
 	const int SH=18,N=1<<SH;
-	int n,sh,invn;
+	int n,sh;
 	int o[SH][N>>1],io[SH][N>>1];
 	inline void init(int _n){
 		for(sh=0;(1<<sh)<_n;sh++);
-		invn=inv(n=1<<sh);
+		n=1<<sh;
 		for(int i=0;i<sh;i++){
 			int half=1<<i,full=half<<1;
 			int w=1,iw=1,wn=fpow(3,(O-1)/full),iwn=inv(wn);
@@ -47,12 +47,12 @@ namespace poly{
 	inline void ntt(int a[],int s=sh,int d=1){
 		int n=1<<s;
 		for(int i=0;i<n;i++){
-			rev[i]=(rev[i>>1]>>1)|((i&1)<<(sh-1));
+			rev[i]=(rev[i>>1]>>1)|((i&1)<<(s-1));
 			if(rev[i]<i){
 				swap(a[i],a[rev[i]]);
 			}
 		}
-		for(int i=0;i<sh;i++){
+		for(int i=0;i<s;i++){
 			int half=1<<i,full=half<<1;
 			for(int j=0;j<half;j++){
 				int w=(d==1?o:io)[i][j];
@@ -64,6 +64,7 @@ namespace poly{
 			}
 		}
 		if(d==-1){
+			int invn=inv(n);
 			for(int i=0;i<n;i++){
 				a[i]=(lint)a[i]*invn%O;
 			}
@@ -79,10 +80,10 @@ namespace poly{
 			return;
 		}
 		int n=1<<s;
-		inv(a,s>>1);
+		inv(a,s-1);
 		memcpy(b,tmp,n<<2);
 		ntt(a,s+1),ntt(b,s+1);
-		for(int i=0;i<n;i++){
+		for(int i=0;i<(n<<1);i++){
 			a[i]=(((lint)a[i]<<1)%O+O-(lint)b[i]*a[i]%O*a[i]%O)%O;
 		}
 		ntt(a,s+1,-1);
@@ -100,7 +101,7 @@ inline void gmath(int n){
 		fac[i]=(lint)fac[i-1]*i%O;
 	}
 	invfac[n]=inv(fac[n]);
-	for(int i=1;i<=n;i++){
+	for(int i=n;i>=1;i--){
 		invfac[i-1]=(lint)invfac[i]*i%O;
 		assert((lint)invfac[i]*fac[i]%O==1);
 	}
@@ -127,7 +128,7 @@ int main(){
 		}
 		return 0;
 	}
-	gmath(ldep);
+	gmath(max(ldep,n));
 	poly::init((n<<1)-1);
 	memset(a,0,sizeof(a));
 	getfrac(a,ldep);
