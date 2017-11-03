@@ -21,7 +21,7 @@ const int N=510;
 char mat[N][N],*s;
 int perm[N],ps=0;
 namespace T{
-	const int N=510<<3;
+	const int N=510<<4;
 	vector<int>son[N];
 	int tp[N],rt,n;//0:any 1:sort
 	inline int nn(){
@@ -49,7 +49,7 @@ namespace T{
 				cnt[stat[v]]++;
 			}
 		}
-		stat[x]=cnt[0]==vec.size()?0:cnt[2]==vec.size()?2:1;
+		stat[x]=cnt[0]==son[x].size()?0:cnt[2]==son[x].size()?2:1;
 		return son[x].size()==1?son[x][0]:x;
 	}
 	inline bool valid(vector<int>&vec){
@@ -82,7 +82,13 @@ namespace T{
 			tp[node[0]]=tp[node[2]]=0;
 			son[x].clear();
 			if(side==2||side==3){
-				son[q].push_back(node[0]);
+				if(tp[q]==0){
+					for(int i=0,n=son[node[0]].size();i<n;i++){
+						son[q].push_back(son[node[0]][i]);
+					}
+				}else{
+					son[q].push_back(node[0]);
+				}
 			}
 			if(x==q){
 				assert(side==3);
@@ -103,6 +109,7 @@ namespace T{
 				throw 1;
 			}
 			if(side==1){
+				assert(tp[q]==1);
 				son[q].push_back(node[0]);
 			}
 		}else{
@@ -114,7 +121,9 @@ namespace T{
 						throw 1;
 					}
 				}
-				if(side==2){
+				if(side==1){
+					phase=1;
+				}else if(side==2){
 					reverse(son[x].begin(),son[x].end());
 				}
 			}
@@ -143,6 +152,9 @@ namespace T{
 						throw 1;
 					}
 				}
+			}
+			if(side==2&&phase!=1){
+				throw 1;
 			}
 		}
 	}
