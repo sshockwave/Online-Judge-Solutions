@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <vector>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -34,6 +33,7 @@ namespace T{
 	inline void add(int u,int v,int w){
 		ae(u,v,w),ae(v,u,w);
 	}
+	int tmp[E][N][N][N];
 	int F(int e,int in,int out){
 		if(~f[e][in][out]){
 			return f[e][in][out];
@@ -43,12 +43,9 @@ namespace T{
 			return ans=out?F(e^1,out,0)+val[e]:0;
 		}
 		assert(in);
-		vector<int>g;
-		g.resize(in+1);
+		int *g=tmp[e][in][out];
 		g[0]=INF;
-		for(int i=1;i<=in;i++){
-			g[i]=0;
-		}
+		memset(g+1,0,in<<2);
 		for(int i=head[to[e]];~i;i=bro[i]){
 			if(i^e^1){
 				for(int j=in;j>=1;j--){
