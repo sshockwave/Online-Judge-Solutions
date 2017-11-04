@@ -39,10 +39,11 @@ int main(){
 #endif
 	int n=ni;
 	memset(f,0,sizeof(f));
+	ld ans=0;
 	for(int i=1;i<=n;i++){
 		f[i][a[i]=posi[i]=ni]=1;
+		ans+=f[i][0];
 	}
-	ld ans=0;
 	for(int tot=ni;tot--;){
 		int u=ni,v=ni,k=ni;
 		ans-=f[u][0];
