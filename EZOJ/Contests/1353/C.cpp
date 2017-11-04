@@ -28,12 +28,17 @@ inline uint fpow(uint x,int n){
 inline int Main(){
 	uint a=ni;
 	int n=ni,ans=0;
-	uint sed=(1u<<n)-1,l=1;
-	for(uint b=1;b<=sed+1;b++){
-		l*=a;
-		ans+=(l&sed)==(fpow(b,a)&sed);
+	if(a&1){
+		return 1;
 	}
-	return ans;
+	uint sed=1u<<n,sed1=sed-1,l=1;
+	uint tb=min((uint)n,sed);
+	for(uint b=1;b<=tb;b++){
+		l*=a;
+		ans+=(l&sed1)==(fpow(b,a)&sed1);
+	}
+	int tmp=1<<(n/a+(n%a!=0));
+	return ans+sed/tmp-tb/tmp;
 }
 int main(){
 #ifndef ONLINE_JUDGE
