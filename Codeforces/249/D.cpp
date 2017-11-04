@@ -24,8 +24,8 @@ inline int gcd(int a,int b){
 }
 namespace B{
 	int c[N],n;
-	inline void init(int _n){
-		memset(c+1,0,(n=_n)<<2);
+	inline void init(){
+		memset(c+1,0,n<<2);
 	}
 	inline void set(int x,int v){
 		for(;x;apmax(c[x],v),x^=x&-x);
@@ -43,6 +43,10 @@ struct Pt{
 	}
 }pt[N];
 int f[N];
+lint *xlst[N];
+inline bool xcmp(lint* a,lint* b){
+	return *a<*b;
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("donkey.in","r",stdin);
@@ -55,20 +59,26 @@ int main(){
 		a/=g,b/=g;
 		g=gcd(c,d);
 		c/=g,d/=g;
-	}
-	{
-		int mx=0;
-		for(int i=1;i<=n;i++){
-			int x=ni,y=ni;
-			pt[i]=(Pt){(b*c+a*d)*x-b*d*y,-a*c*x+b*c*y};
-			if(pt[i].x<=0||pt[i].y<=0){
-				n--,i--;
-			}else{
-				apmax(mx,pt[i].x);
-			}
+		if(b*c==a*d){
+			puts("0");
+			return 0;
 		}
-		B::init(mx);
 	}
+	for(int i=1;i<=n;i++){
+		int x=ni,y=ni;
+		pt[i]=(Pt){c*x-d*y,-a*x+b*y};
+		if(pt[i].x<=0||pt[i].y<=0){
+			n--,i--;
+		}else{
+			xlst[i]=&pt[i].x;
+		}
+	}
+	sort(xlst+1,xlst+n+1,xcmp);
+	B::n=0;
+	for(int i=1,last=0;i<=n;i++){
+		*xlst[i]=*xlst[i]==last?B::n:(last=*xlst[i],++B::n);
+	}
+	B::init();
 	sort(pt+1,pt+n+1);
 	for(int i=1;i<=n;i++){
 		B::set(pt[i].x,f[i]=B::ask(pt[i].x+1)+1);
