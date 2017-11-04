@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <vector>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -15,9 +16,10 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=35,P=12,O=1000000007;
-int prime[N],mu[N],ps;
+const int N=510,O=1000000007;
+int prime[N],mu[N],bfac[N],sp[N],ps;
 bool np[N];
+vector<int>vec[N];
 inline void sieve(int n){
 	memset(np,0,sizeof(np));
 	ps=0;
@@ -26,9 +28,14 @@ inline void sieve(int n){
 		if(!np[i]){
 			prime[ps++]=i;
 			mu[i]=-1;
+			bfac[i]=i;
+		}
+		if(mu[i]){
+			vec[bfac[i]].push_back(i);
 		}
 		for(int j=0,cur=2;j<ps&&i*cur<=n;cur=prime[++j]){
 			np[i*cur]=true;
+			bfac[i*cur]=bfac[i];
 			if(i%cur==0){
 				mu[i*cur]=0;
 				break;
@@ -36,34 +43,48 @@ inline void sieve(int n){
 			mu[i*cur]=-mu[i];
 		}
 	}
+	memset(sp,0,sizeof(sp));
+	for(int i=1;i<=n;i++){
+		for(int j=0;j<8;j++){
+			if(i%prime[j]==0){
+				sp[i]|=1<<j;
+			}
+		}
+	}
 }
-int f[N][1<<P];
+const int SP=1<<8;
+int f[N][SP];
 inline int Main(){
 	int n=ni,k=ni;
-	memset(f,0,sizeof(f));
+	memset(f,0,sizeof(f[0])*(k+1));
 	f[0][0]=1;
-	sieve(n);
 	for(int i=1;i<=n;i++){
-		if(mu[i]){
-			int sp=0;
-			for(int j=0,cur=2;j<ps&&cur<=i;cur=prime[++j]){
-				if(i%cur==0){
-					sp|=1<<j;
+		if(mu[i]&&bfac[i]<22){
+			for(int j=k-1;j>=0;j--){
+				for(int s=0;s<SP;s++){
+					if((s&sp[i])==0){
+						(f[j+1][s|sp[i]]+=f[j][s])%=O;
+					}
 				}
 			}
-			for(int j=min(k-1,i);j>=0;j--){
-				for(int s=0,ts=1<<ps;s<ts;s++){
-					if((s&sp)==0){
-						(f[j+1][s|sp]+=f[j][s])%=O;
+		}
+	}
+	for(int i=8;prime[i]<=n;i++){
+		vector<int>&cur=vec[prime[i]];
+		for(int j=k-1;j>=0;j--){
+			for(int s=0;s<SP;s++){
+				for(vector<int>::iterator it=cur.begin();it!=cur.end()&&*it<=n;it++){
+					if((s&sp[*it])==0){
+						(f[j+1][s|sp[*it]]+=f[j][s])%=O;
 					}
 				}
 			}
 		}
 	}
 	lint ans=0;
-	for(int j=1;j<=k;j++){
-		for(int s=0,ts=1<<ps;s<ts;s++){
-			ans+=f[j][s];
+	for(int i=1;i<=k;i++){
+		for(int s=0;s<SP;s++){
+			ans+=f[i][s];
 		}
 	}
 	return ans%O;
@@ -73,6 +94,7 @@ int main(){
 	freopen("mul.in","r",stdin);
 	freopen("mul.out","w",stdout);
 #endif
+	sieve(N-1);
 	for(int tot=ni;tot--;printf("%d\n",Main()));
 	return 0;
 }
