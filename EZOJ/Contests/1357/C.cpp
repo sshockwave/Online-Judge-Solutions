@@ -3,6 +3,8 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <vector>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -15,71 +17,73 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-const int N=20,INF=0x7f7f7f7f;
-int n;
-namespace G{
-	const int E=N*N;
-	int to[E],bro[E],val[E],head[N],e=0;
-	bool mark[E];
-	bool vis[N];
-	inline void init(){
-		memset(head,-1,sizeof(head));
-		memset(mark,0,sizeof(mark));
-		memset(vis,0,sizeof(vis));
-	}
-	inline void ae(int u,int v,int w){
-		to[e]=v,bro[e]=head[u],val[e]=w,head[u]=e++;
-	}
-	inline void add(int u,int v,int w){
-		ae(u,v,w),ae(v,u,w);
-	}
-	int cnt;
-	void dfs(int x){
-		if(x==n){
-			cnt++;
-			return;
-		}
-		vis[x]=true;
-		for(int i=head[x],v;~i;i=bro[i]){
-			if(!mark[i]&&!vis[v=to[i]]){
-				dfs(v);
-				if(cnt>1){
-					vis[x]=false;
-					return;
-				}
-			}
-		}
-		vis[x]=false;
-	}
-}
-int ans=INF;
-void dfs(int x,int cur){
-	if(cur>=ans){
-		return;
-	}
-	if(x>G::e){
-		G::cnt=0;
-		G::dfs(1);
-		if(G::cnt==1){
-			ans=cur;
-		}
-		return;
-	}
-	G::mark[x]=G::mark[x^1]=false;
-	dfs(x+2,cur);
-	G::mark[x]=G::mark[x^1]=true;
-	dfs(x+2,cur+G::val[x]);
-	G::mark[x]=G::mark[x^1]=false;
-}
+template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
+template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+const int N=16,INF=0x7f7f7f7f,MINF=-2139062144;
+int dis[N][N];
+int ans=0;
+int inter[1<<N];
+int f[N][1<<N],lnode[N][1<<N],g[1<<N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("stable.in","r",stdin);
 	freopen("stable.out","w",stdout);
 #endif
-	n=ni;
-	G::init();
-	for(int tot=ni,u,v;tot--;u=ni,v=ni,G::add(u,v,ni));
-	dfs(0,0);
-	printf("%d\n",ans);
+	int n=ni,sum=0,ts=1<<n;
+	memset(dis,0,sizeof(dis));
+	for(int tot=ni,u,v;tot--;u=ni,v=ni,sum+=dis[u][v]=dis[v][u]=ni);
+	for(int s=0;s<ts;s++){
+		inter[s]=0;
+		for(int i=0;i<n;i++){
+			if((s>>i)&1){
+				for(int j=0;j<i;j++){
+					if((s>>j)&1){
+						inter[s]+=dis[i+1][j+1];
+					}
+				}
+			}
+		}
+	}
+	memset(f,128,sizeof(f));
+	assert(f[1][1]==MINF);
+	f[1][1]=0;
+	int ans=0;
+	for(int s=0;s<ts;s++){
+		for(int i=1;i<=n;i++){
+			if((s>>(i-1))&1){
+				for(int j=1;j<=n;j++){
+					if(((s>>(j-1))&1)&&dis[i][j]&&f[j][s^(1<<(i-1))]>MINF&&f[j][s^(1<<(i-1))]+dis[i][j]>f[i][s]){
+						f[i][s]=f[j][s^(1<<(i-1))]+dis[i][j];
+						lnode[i][s]=j;
+					}
+				}
+			}
+		}
+		if(f[n][s]>MINF){
+			vector<int>vec;
+			int curs=s;
+			for(int x=n;x!=1;curs^=1<<(x-1),x=lnode[x][curs^(1<<(x-1))]){
+				vec.push_back(x);
+			}
+			vec.push_back(1);
+			reverse(vec.begin(),vec.end());
+			memset(g,128,sizeof(g));
+			g[0]=0;
+			for(int i=0,ti=vec.size();i<ti;i++){//dp
+				for(int trans=(ts-1)^s,s2=trans;s2;s2=trans&(s2-1)){
+					for(int s3=s2;s3;s3=s2&(s3-1)){
+						if(g[s3]>MINF){
+							apmax(g[s2],g[s3]+inter[(s2^s3)|(1<<(vec[i]-1))]);
+						}
+					}
+					if(g[0]>MINF){
+						apmax(g[s2],g[0]+inter[s2|(1<<(vec[i]-1))]);
+					}
+				}
+			}
+			apmax(ans,g[(ts-1)^s]+f[n][s]);
+		}
+	}
+	printf("%d\n",sum-ans);
 	return 0;
 }
