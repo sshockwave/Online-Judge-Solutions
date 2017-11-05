@@ -37,7 +37,7 @@ inline lint work(int x,int y){
 	if(x==0||y==0){
 		return 0;
 	}
-	lint w=min(x,y),ans=_n1(mul(w,w));
+	lint w=min(x,y),ans=w&1?mul(w*w%O,((w*w+1)>>1)%O):mul(((w*w)>>1)%O,(w*w+1)%O);
 	if(w<=x){
 		(ans+=mul((_n2(x-1)-_n2(w-1)+O)%O,y)+mul(_n1(y),x-w))%=O;
 	}
@@ -50,9 +50,9 @@ inline void Main(){
 	int x1=ni,y1=ni,x2=ni,y2=ni;
 	swap(x1,y1),swap(x2,y2);
 	O=10000000000ll;
-	lint ans1=(work(x2,y2)-work(x1-1,y2)-work(x2,y1-1)+work(x1-1,y1-1)+O)%O;
+	lint ans1=((work(x2,y2)-work(x1-1,y2)-work(x2,y1-1)+work(x1-1,y1-1))%O+O)%O;
 	O=10298157053ll;
-	lint ans2=(work(x2,y2)-work(x1-1,y2)-work(x2,y1-1)+work(x1-1,y1-1)+O)%O;
+	lint ans2=((work(x2,y2)-work(x1-1,y2)-work(x2,y1-1)+work(x1-1,y1-1))%O+O)%O;
 	printf(ans1==ans2?"%I64d\n":"...%010I64d\n",ans1);
 }
 int main(){
