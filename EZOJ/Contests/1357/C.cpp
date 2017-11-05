@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <vector>
 #include <algorithm>
 using namespace std;
 typedef long long lint;
@@ -24,6 +23,7 @@ int dis[N][N];
 int ans=0;
 int inter[1<<N];
 int f[N][1<<N],lnode[N][1<<N],g[1<<N];
+int vec[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("stable.in","r",stdin);
@@ -52,32 +52,38 @@ int main(){
 		for(int i=1;i<=n;i++){
 			if((s>>(i-1))&1){
 				for(int j=1;j<=n;j++){
-					if(((s>>(j-1))&1)&&dis[i][j]&&f[j][s^(1<<(i-1))]>MINF&&f[j][s^(1<<(i-1))]+dis[i][j]>f[i][s]){
-						f[i][s]=f[j][s^(1<<(i-1))]+dis[i][j];
-						lnode[i][s]=j;
+					if(((s>>(j-1))&1)&&dis[i][j]&&f[j][s^(1<<(i-1))]>MINF){
+						int tmp=f[j][s^(1<<(i-1))]+dis[i][j];
+						if(tmp>f[i][s]){
+							f[i][s]=tmp;
+							lnode[i][s]=j;
+						}
 					}
 				}
 			}
 		}
 		if(f[n][s]>MINF){
-			vector<int>vec;
+			int vs=0;
 			int curs=s;
 			for(int x=n;x!=1;curs^=1<<(x-1),x=lnode[x][curs^(1<<(x-1))]){
-				vec.push_back(x);
+				vec[vs++]=x;
 			}
-			vec.push_back(1);
-			reverse(vec.begin(),vec.end());
-			memset(g,128,sizeof(g));
+			vec[vs++]=1;
+			reverse(vec,vec+vs);
+			for(int trans=(ts-1)^s,s2=trans;s2;s2=trans&(s2-1)){
+				g[s2]=MINF;
+			}
 			g[0]=0;
-			for(int i=0,ti=vec.size();i<ti;i++){//dp
+			for(int i=0;i<vs;i++){//dp
 				for(int trans=(ts-1)^s,s2=trans;s2;s2=trans&(s2-1)){
+					int tmp=s2|(1<<(vec[i]-1));
 					for(int s3=s2;s3;s3=s2&(s3-1)){
 						if(g[s3]>MINF){
-							apmax(g[s2],g[s3]+inter[(s2^s3)|(1<<(vec[i]-1))]);
+							apmax(g[s2],g[s3]+inter[tmp^s3]);
 						}
 					}
 					if(g[0]>MINF){
-						apmax(g[s2],g[0]+inter[s2|(1<<(vec[i]-1))]);
+						apmax(g[s2],g[0]+inter[tmp]);
 					}
 				}
 			}
