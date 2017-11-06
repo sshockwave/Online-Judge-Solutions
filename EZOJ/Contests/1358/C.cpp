@@ -19,6 +19,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline T cabs(T x){return x>=0?x:-x;}
 const int N=2000010,INF=0x7f7f7f7f;
+const lint LINF=0x7f7f7f7f7f7f7f7f;
 int a[N];
 int buc[N<<1];
 int main(){
@@ -27,7 +28,7 @@ int main(){
 	freopen("cycle.out","w",stdout);
 #endif
 	int n=ni;
-	int ans=INF,cur=0,del=0;
+	lint ans=LINF,cur=0,del=0;
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
 		if(i<=a[i]){
@@ -48,6 +49,6 @@ int main(){
 		buc[i+n-a[i]]+=2;
 		del+=buc[i];
 	}
-	printf("%d\n",ans);
+	printf("%lld\n",ans);
 	return 0;
 }

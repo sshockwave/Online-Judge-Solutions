@@ -65,7 +65,7 @@ int main(){
 	G::tarjan(1,0);
 	int cnt=0;
 	for(int i=1;i<=n;i++){
-		if(!G::istan[i]&&m-G::deg[i]==n-1){
+		if(!G::istan[i]&&m-G::deg[i]==n-2){
 			cnt++;
 		}
 	}
