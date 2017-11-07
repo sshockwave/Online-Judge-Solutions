@@ -24,6 +24,7 @@ const lint LINF=0x7f7f7f7f7f7f7f7fll;
 struct Query{
 	int x;
 	lint ans;
+	bool emp;
 }q[N];
 struct Line{
 	int a,b;
@@ -66,6 +67,9 @@ namespace seg{
 	}
 	int stk[N];
 	void dfs(node x){
+		if(qpos[x->l-1]==qpos[x->r]){
+			return;
+		}
 		if(x->l==x->r){
 			for(int i=qpos[x->l-1]+1;i<=qpos[x->l];i++){
 				x->query.push_back(i);
@@ -96,12 +100,14 @@ namespace seg{
 			}
 		}
 		for(int i=0,j=0,tj=x->query.size();j<tj;j++){
-			for(int a,b;a=stk[i],b=stk[i+1],i<ss-1&&line[a].b-line[b].b<=(lint)x->query[j]*(line[b].a-line[a].a);i++);
-			apmax(q[x->query[j]].ans,(lint)line[i].a*q[x->query[j]].x+line[i].b);
+			for(int a,b;a=stk[i],b=stk[i+1],i<ss-1&&line[a].b-line[b].b<=(lint)q[x->query[j]].x*(line[b].a-line[a].a);i++);
+			if(i<ss){
+				apmax(q[x->query[j]].ans,(lint)line[stk[i]].a*q[x->query[j]].x+line[stk[i]].b);
+			}
 		}
 	}
 }
-int lst[N];
+int lst[N],lsts=0;
 inline bool lcmp(int a,int b){
 	return line[a].a<line[b].a;
 }
@@ -110,28 +116,36 @@ int main(){
 	freopen("max.in","r",stdin);
 	freopen("max.out","w",stdout);
 #endif
-	for(int i=1,tot=ni;i<=tot;i++){
+	for(int i=1,tot=ni,cnt=0;i<=tot;i++){
 		int tp=ni;
 		if(tp==1){
+			cnt++;
 			qpos[ls]=qs;
 			lpos[i]=++ls;
-			line[ls]=(Line){ni,ni,ls};
-			lst[ls]=ls;
+			line[ls]=(Line){ni,ni,ls,-1};
+			lst[lsts++]=ls;
 		}else if(tp==2){
-			line[lpos[ni]].dfe=ls;
+			cnt--;
+			qpos[ls]=qs;
+			line[lpos[ni]].dfe=ls++;
 		}else{
-			q[++qs]=(Query){ni,-LINF};
+			q[++qs]=(Query){ni,-LINF,cnt==0};
 		}
 	}
 	qpos[ls]=qs;
-	sort(lst+1,lst+ls+1,lcmp);
-	seg::rt=seg::build(1,ls);
-	for(int i=1;i<=ls;i++){
-		seg::cover(seg::rt,lst[i]);
+	sort(lst,lst+lsts,lcmp);
+	if(ls){
+		seg::rt=seg::build(1,ls);
+		for(int i=0;i<lsts;i++){
+			if(line[lst[i]].dfe==-1){
+				line[lst[i]].dfe=ls;
+			}
+			seg::cover(seg::rt,lst[i]);
+		}
+		seg::dfs(seg::rt);
 	}
-	seg::dfs(seg::rt);
 	for(int i=1;i<=qs;i++){
-		if(i<=qpos[0]){
+		if(q[i].emp){
 			puts("EMPTY SET");
 		}else{
 			printf("%lld\n",q[i].ans);
