@@ -62,9 +62,10 @@ inline int Main(){
 		}
 	}
 	for(int i=1;i<=n;i++){
-		f[0]=1,f[1]=(i==3)+1;
+		bool flag=(i&1)&&i!=1;
+		f[0]=1,f[1]=flag+1;
 		for(int j=2;j<=ring[i];j++){
-			f[j]=((lint)f[j-2]*(j-1)%O*i%O+(f[j-1]<<(i==3)))%O;
+			f[j]=((lint)f[j-2]*(j-1)%O*i%O+(f[j-1]<<flag))%O;
 		}
 		(ans*=f[ring[i]])%=O;
 	}
