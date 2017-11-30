@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cctype>
 #include <algorithm>
-#include <set>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -19,7 +18,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=110,M=10000010;
+const int N=210,M=10000010;
 int prime[M],ps=0;
 bool isp[M];
 inline void gmath(int n){
@@ -35,40 +34,31 @@ inline void gmath(int n){
 		}
 	}
 }
-set<int>s;
-typedef set<int>::iterator iter;
-inline void flip(int x){
-	iter it=s.find(x);
-	if(it==s.end()){
-		s.insert(x);
-	}else{
-		s.erase(x);
-	}
-}
+int x[N];
+bool vis[N];
 int main(){
-	int n=ni,mx=0;
+	int n=ni,xs=0,cnt=0;
 	for(int i=1;i<=n;i++){
 		int cur=ni;
-		apmax(mx,cur);
-		flip(cur),flip(cur+1);
-	}
-	gmath(mx);
-	int ans=s.size(),cnt=0;
-	for(iter i=s.begin(),j;i!=s.end();){
-		for(j=i;++j!=s.end()&&!isp[*j-*i];);
-		if(j==s.end()){
-			i++;
+		if(cur==x[xs]){
+			x[xs]++;
 		}else{
-			cnt++;
-			iter nxt=i;
-			nxt++;
-			if(nxt==j){
-				nxt++;
-			}
-			s.erase(i),s.erase(j);
-			i=nxt;
+			x[++xs]=cur,x[++xs]=cur+1;
 		}
 	}
-	printf("%d\n",ans+(cnt&1)-cnt);
+	gmath(x[xs]);
+	memset(vis,0,sizeof(vis));
+	for(int i=1,j;i<=xs;i++){
+		if(!vis[i]){
+			for(j=i+1;j<=xs;j++){
+				if(!vis[j]&&isp[x[j]-x[i]])break;
+			}
+			if(j<=xs){
+				vis[i]=vis[j]=true;
+				cnt++;
+			}
+		}
+	}
+	printf("%d\n",xs+(cnt&1)-cnt);
 	return 0;
 }
