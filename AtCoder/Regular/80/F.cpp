@@ -18,6 +18,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
 const int N=210,M=10000010;
 int prime[M],ps=0;
 bool isp[M];
@@ -34,31 +35,46 @@ inline void gmath(int n){
 		}
 	}
 }
-int x[N];
+int pos[N];
+int x[N],y[N];
+int lcnt=0,rcnt=0;
 bool vis[N];
+int lnk[N];
+bool dfs(int x){
+	for(int v=1;v<=rcnt;v++){
+		if(!vis[v]&&isp[cabs(::x[x]-y[v])]){
+			vis[v]=true;
+			if(lnk[v]==-1||dfs(lnk[v])){
+				lnk[v]=x;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 int main(){
 	int n=ni,xs=0,cnt=0;
 	for(int i=1;i<=n;i++){
 		int cur=ni;
-		if(cur==x[xs]){
-			x[xs]++;
+		if(cur==pos[xs]){
+			pos[xs]++;
 		}else{
-			x[++xs]=cur,x[++xs]=cur+1;
+			pos[++xs]=cur,pos[++xs]=cur+1;
 		}
 	}
-	gmath(x[xs]);
-	memset(vis,0,sizeof(vis));
-	for(int i=1,j;i<=xs;i++){
-		if(!vis[i]){
-			for(j=i+1;j<=xs;j++){
-				if(!vis[j]&&isp[x[j]-x[i]])break;
-			}
-			if(j<=xs){
-				vis[i]=vis[j]=true;
-				cnt++;
-			}
+	gmath(pos[xs]);
+	for(int i=1;i<=xs;i++){
+		if(pos[i]&1){
+			x[++lcnt]=pos[i];
+		}else{
+			y[++rcnt]=pos[i];
 		}
 	}
-	printf("%d\n",xs+(cnt&1)-cnt);
+	memset(lnk,-1,sizeof(lnk));
+	for(int i=1;i<=lcnt;i++){
+		memset(vis+1,0,rcnt);
+		cnt+=dfs(i);
+	}
+	printf("%d\n",xs+((lcnt^cnt)&1)-cnt);
 	return 0;
 }
