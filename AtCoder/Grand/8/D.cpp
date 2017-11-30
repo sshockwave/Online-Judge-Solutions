@@ -32,10 +32,11 @@ inline bool Main(){
 	int p=1,pl=1,pr=1;
 	for(int i,t=1;i=lst[t],t<=n;t++){
 		for(;p<x[i]&&pr<=n;cnt[lst[pr]]?--cnt[seq[p++]=lst[pr]]:++pr);
-		for(;p<x[i]&&pl<i;cnt[lst[pl]]?--cnt[seq[p++]=lst[pl]]:++pl);
-		if(p<x[i])return false;
+		for(;p<x[i]&&pl<t;cnt[lst[pl]]?--cnt[seq[p++]=lst[pl]]:++pl);
+		if(p<x[i]||cnt[i])return false;
 		seq[p++]=i;
-		apmax(pr,i+1);
+		assert(pr>=t);
+		apmax(pr,t+1);
 		cnt[i]=n-i;
 	}
 	assert(pr>n);
