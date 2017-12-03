@@ -23,86 +23,54 @@ const int N=410;
 struct Tile{
 	const static int D=4;
 	int a[D];
-	inline bool cmp(int x,int y){
-		for(int i=0;i<D;(++x)%=D,(++y)%=D,i++){
-			if(a[x]!=a[y])return a[x]<a[y];
-		}
-		return false;
-	}
-	inline bool equal(int x,int y){
-		for(int i=0;i<D;(++x)%=D,(++y)%=D,i++){
-			if(a[x]!=a[y])return false;
-		}
-		return true;
-	}
-	inline void sani(){
-		int j=0;
-		for(int i=1;i<D;i++){
-			if(cmp(i,j)){
-				j=i;
-			}
-		}
-		int b[D];
-		memcpy(b,a,D<<2);
-		for(int i=0;i<D;i++,(++j)%=D){
-			a[i]=b[j];
-		}
-	}
-	inline int getloop(){
-		int cnt=0;
-		for(int i=0;i<D;i++){
-			cnt+=equal(0,i);
-		}
-		return cnt;
+	inline Tile nxt(){
+		return (Tile){a[1],a[2],a[3],a[0]};
 	}
 	inline friend bool operator < (const Tile &a,const Tile &b){
-		for(int i=0;i<D;i++){
+		for(int i=0;i<4;i++){
 			if(a.a[i]!=b.a[i])return a.a[i]<b.a[i];
 		}
 		return false;
 	}
-	inline friend bool operator == (const Tile &a,const Tile &b){
-		for(int i=0;i<D;i++){
-			if(a.a[i]!=b.a[i])return false;
-		}
-		return true;
+	inline friend ostream & operator <<(ostream & out,const Tile &b){
+		out<<b.a[0]<<" "<<b.a[1]<<" "<<b.a[2]<<" "<<b.a[3]<<" ";
+		return out;
 	}
 }tile[N];
 map<Tile,int>m;
+inline void add(Tile x,int v){
+	for(int i=0;i<Tile::D;i++,x=x.nxt()){
+		m[x]+=v;
+	}
+}
 int main(){
 	int n=ni;
 	for(int i=1;i<=n;i++){
 		tile[i]=(Tile){ni,ni,ni,ni};
-		tile[i].sani();
-		m[tile[i]]++;
+		add(tile[i],1);
 	}
 	lint ans=0;
 	for(int i=1;i<=n;i++){
-		m[tile[i]]--;
+		add(tile[i],-1);
 		int *a=tile[i].a;
 		for(int j=i+1;j<=n;j++){
 			int *b=tile[j].a;
-			m[tile[j]]--;
+			add(tile[j],-1);
 			for(int d=0;d<4;d++){
-				Tile t[4];
-				for(int e=0;e<4;e++){
-					t[e]=(Tile){a[e+1],a[e],b[(d+4-e)&3],b[(d+3-e)&3]};
-					t[e].sani();
-				}
-				sort(t,t+4);
+				tile[j]=tile[j].nxt();
+				Tile f1=(Tile){a[1],a[0],b[0],b[3]};
+				Tile f2=(Tile){a[2],a[1],b[3],b[2]};
+				Tile f3=(Tile){a[3],a[2],b[2],b[1]};
+				Tile f4=(Tile){a[0],a[3],b[1],b[0]};
 				lint tmp=1;
-				int cnt[4];
-				for(int e=0;e<4;e++){
-					if(e&&t[e]==t[e-1]){
-						cnt[e]=cnt[e-1]-1;
-					}else{
-						cnt[e]=m[t[e]];
-					}
-					tmp*=cnt[e]*t[e].getloop();
-				}
+				tmp*=m[f1],add(f1,-1);
+				tmp*=m[f2],add(f2,-1);
+				tmp*=m[f3],add(f3,-1);
+				tmp*=m[f4];
+				add(f1,1),add(f2,1),add(f3,1);
 				ans+=tmp;
 			}
-			m[tile[j]]++;
+			add(tile[j],1);
 		}
 	}
 	printf("%lld\n",ans);
