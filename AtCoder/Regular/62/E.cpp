@@ -32,16 +32,15 @@ struct Tile{
 		}
 		return false;
 	}
-	inline friend ostream & operator <<(ostream & out,const Tile &b){
-		out<<b.a[0]<<" "<<b.a[1]<<" "<<b.a[2]<<" "<<b.a[3]<<" ";
-		return out;
-	}
 }tile[N];
 map<Tile,int>m;
 inline void add(Tile x,int v){
 	for(int i=0;i<Tile::D;i++,x=x.nxt()){
 		m[x]+=v;
 	}
+}
+inline bool vis(Tile x){
+	return m.find(x)!=m.end();
 }
 int main(){
 	int n=ni;
@@ -62,6 +61,7 @@ int main(){
 				Tile f2=(Tile){a[2],a[1],b[3],b[2]};
 				Tile f3=(Tile){a[3],a[2],b[2],b[1]};
 				Tile f4=(Tile){a[0],a[3],b[1],b[0]};
+				if(!(vis(f1)&&vis(f2)&&vis(f3)&&vis(f4)))continue;
 				lint tmp=1;
 				tmp*=m[f1],add(f1,-1);
 				tmp*=m[f2],add(f2,-1);
