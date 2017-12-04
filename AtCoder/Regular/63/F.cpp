@@ -56,6 +56,10 @@ inline void work2(){
 					bef--;
 					if(bef->r+bef->x>=it->r+it->x){
 						s.erase(it);
+						continue;
+					}
+					if(bef->r==it->r){
+						s.erase(bef);
 					}
 				}
 				for(iter it2;it2=it,it2++,it2!=s.end()&&it2->r+it2->x<=it->r+it->x;s.erase(it2));
