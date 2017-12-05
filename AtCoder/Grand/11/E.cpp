@@ -19,30 +19,31 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=500010;
 char s[N];
-int num[N],fa[N];
-inline void subone(int x){
-	num[fa[x]]--;
-	if(fa[x]<x){
-		int f=fa[x]++;
-		num[fa[x]]=num[f]+10,fa[fa[x]]=fa[x];
-		x=f;
-	}
-	assert(fa[x]==x);
-	if(x&&num[x]==num[fa[x-1]]){
-		fa[x]=fa[x-1];
-	}
-}
+int num[N];
 int main(){
 	scanf("%s",s);
 	int n=strlen(s);
-	num[0]=s[0]-'0',fa[0]=0;
-	for(int i=1;s[i];i++){
-		num[i]=s[i]-'0',fa[i]=i;
-		for(;num[fa[i-1]]>num[i];subone(i-1),num[i]+=10);
-		if(num[fa[i-1]]==num[i]){
-			fa[i]=fa[i-1];
+	int r=0,cur=0;
+	memset(num,0,sizeof(num));
+	for(int i=0;i<n;i++){
+		num[i]=(s[n-i-1]-'0')*9+r;
+		r=num[i]/10;
+		cur+=num[i]%=10;
+	}
+	for(;r;n++){
+		cur+=num[n]=r%10;
+		r/=10;
+	}
+	int ans=0;
+	for(;cur>ans*9;ans++){
+		num[0]+=9,cur+=9;
+		for(int i=0,r=0;num[i]>9||r;i++){
+			cur-=num[i];
+			num[i]+=r;
+			r=num[i]/10;
+			cur+=num[i]%=10;
 		}
 	}
-	printf("%d\n",num[fa[n-1]]/9+(num[fa[n-1]]%9!=0));
+	printf("%d\n",ans);
 	return 0;
 }
