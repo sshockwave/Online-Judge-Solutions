@@ -17,9 +17,11 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-lint f[12][2][2];//[left need one][right has one]
-int num[10],del,ns;
+const int N=25;
+lint f[N][2][2];//[left need one][right has one]
+int num[N],del,ns;
 inline lint work(int d){
+	if(d==1)return 0;
 	memset(f,0,sizeof(f));
 	f[0][0][0]=1;
 	int l=0,r=d-1,t=0;
@@ -31,16 +33,19 @@ inline lint work(int d){
 				for(int lnum=0;lnum<=9;lnum++){
 					for(int rnum=l==0;rnum<=9;rnum++){
 						int tmpl=lnum+num[l]+b;
-						int tmpr=rnum+num[r];
-						if((tmpr>9)!=a)continue;
-						int na,nb=tmpl/10;
-						tmpl%=10,tmpr%=10;
+						int tmpr=rnum+num[r]-a*10;
+						int na=0,nb=tmpl/10;
+						if(tmpr<0){
+							tmpr+=na=1;
+						}
+						if(tmpr<0||tmpr>9)continue;
+						tmpl%=10;
 						if(rnum!=tmpl)continue;
-						if(lnum==tmpr+1){
+						if(lnum!=tmpr){
+							tmpr+=1-na;
 							na=1;
-						}else if(lnum==tmpr){
-							na=0;
-						}else continue;
+						}
+						if(lnum!=tmpr)continue;
 						f[t+1][na][nb]+=F;
 					}
 				}
@@ -48,13 +53,13 @@ inline lint work(int d){
 		}
 	}
 	if(l>r)return f[t][0][0]+f[t][1][1];
-	return (9-num[l])*f[t][0][0]+(8-num[l])*f[t][0][1]+num[l]*f[t][1][0]+(num[l]+1)*f[t][1][1];
+	return (num[l]==0)*10*f[t][0][0]+(num[l]==9)*10*f[t][1][1];
 }
 inline lint Main(){
 	del=ni;
 	for(int &i=ns=0,t=del;t;num[i]=t%10,t/=10,i++);
 	lint ans=0;
-	for(int i=ns;i<=9;i++){
+	for(int i=ns;i<=20;i++){
 		ans+=work(i);
 	}
 	return ans;
