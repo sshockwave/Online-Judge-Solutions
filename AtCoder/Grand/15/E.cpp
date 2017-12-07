@@ -30,7 +30,7 @@ inline bool vcmp(int *a,int *b){
 struct intv{
 	int l,r;
 	inline friend bool operator < (const intv &a,const intv &b){
-		return a.r<b.r;
+		return a.r!=b.r?a.r<b.r:a.l<b.l;
 	}
 }ints[N];
 namespace B{
