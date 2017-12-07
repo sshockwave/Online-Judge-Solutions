@@ -37,8 +37,7 @@ int main(){
 	int n=ni,v=ni;
 	int qh=0,qt=0;
 	for(int i=1;i<=n;i++){
-		int tmp=ni;
-		water a=(water){(double)tmp,ni};
+		water a=(water){(double)ni,ni};
 		for(;cur.v+a.v>v&&cur.v+a.v-que[qh].v>=v;cur-=que[qh++]);
 		if(cur.v+a.v>v){
 			que[qh].v-=cur.v+a.v-v;
@@ -46,7 +45,7 @@ int main(){
 		}
 		cur+=a;
 		printf("%.10lf\n",cur.t);
-		for(;qh<qt&&que[qt-1].t>tmp;a+=que[--qt]);
+		for(;qh<qt&&que[qt-1].t>a.t;a+=que[--qt]);
 		que[qt++]=a;
 	}
 	return 0;
