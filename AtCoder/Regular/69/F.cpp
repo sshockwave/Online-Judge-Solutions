@@ -115,12 +115,6 @@ inline bool judge(int d){
 			seg::ae(seg::rt,lst[i],j,i-1);
 		}
 	}
-	for(int i=cup-1,j=i;i>=1;i--){
-		for(;x[lst[j]]-x[lst[i]]>=d;j--);
-		if(i<j){
-			seg::ae(seg::rt,lst[i],i+1,j);
-		}
-	}
 	for(int i=1;i<=G::n;i++){
 		if(G::dfn[i]==0){
 			G::tarjan(i);
@@ -129,7 +123,7 @@ inline bool judge(int d){
 	for(int i=1;i<cup;i++){
 		if(G::bln[i]==G::bln[cup-i])return false;
 	}
-	for(int i=cup;i<=G::n;i++){
+	for(int i=cup;i<=G::n;i+=2){
 		if(G::bln[i]==G::bln[i+1])return false;
 	}
 	return true;
