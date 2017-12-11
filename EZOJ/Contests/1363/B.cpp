@@ -19,7 +19,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=2010,INF=0x7f7f7f7f;
 namespace G{
-	const int N=2010*4,E=(N+N*2)<<1;
+	const int N=2010*2,E=N<<3;
 	int to[E],bro[E],cap[E],val[E],head[N],e=0,n=0,s,t;
 	inline int nn(){
 		return ++n;
@@ -63,7 +63,7 @@ namespace G{
 		}
 	}
 	int flow=0,cost=0;
-	inline void mimf(){
+	inline void mcmf(){
 		while(spfa(),dis[t]<INF){
 			int dt=INF;
 			for(int i=pre[t];~i;i=pre[to[i^1]]){
@@ -79,8 +79,16 @@ namespace G{
 inline int rot(int x){
 	return (x>>1)|((x&1)<<3);
 }
-int a[N][N],node[N][N],cost[N][N][4];
+int a[N][N],node[N][N][4],cost[N][N][4];
 int bitcnt[1<<4];
+inline void putedge(int i,int j,int x,int c,int w){
+	using namespace G;
+	if((i+j)&1){
+		add(x,t,c,w);
+	}else{
+		add(s,x,c,w);
+	}
+}
 inline int Main(){
 	int n=ni,m=ni;
 	memset(node,0,sizeof(node));
@@ -90,18 +98,20 @@ inline int Main(){
 	for(int i=1;i<16;i++){
 		bitcnt[i]=bitcnt[i^(i&-i)]+1;
 	}
-	int sum[2];
+	int sum[2]={0,0};
 	for(int i=1;i<=n;i++){
 		for(int j=1;j<=m;j++){
 			int cur=ni;
 			if(cur){
-				node[i][j]=G::nn();
 				int * const C=cost[i][j];
+				int * const N=node[i][j];
 				sum[(i+j)&1]+=bitcnt[cur];
-				if((i+j)&1){
-					G::add(node[i][j],G::t,bitcnt[cur],0);
+				bool flag=bitcnt[cur]==2&&rot(rot(cur))!=cur;
+				if(flag){
+					putedge(i,j,N[0]=N[2]=G::nn(),1,0);
+					putedge(i,j,N[1]=N[3]=G::nn(),1,0);
 				}else{
-					G::add(G::s,node[i][j],bitcnt[cur],0);
+					putedge(i,j,N[0]=N[1]=N[2]=N[3]=G::nn(),bitcnt[cur],0);
 				}
 				if(rot(rot(cur))==cur){
 					for(int d=0;d<4;d++){
@@ -129,12 +139,12 @@ inline int Main(){
 				const static int dx[]={-1,0,1,0},dy[]={0,1,0,-1};
 				int x=i+dx[d],y=j+dy[d];
 				if(cost[i][j][d]<INF&&cost[x][y][(d+2)&3]<INF){
-					G::add(node[i][j],node[x][y],1,cost[i][j][d]+cost[x][y][(d+2)&3]);
+					G::add(node[i][j][d],node[x][y][(d+2)&3],1,cost[i][j][d]+cost[x][y][(d+2)&3]);
 				}
 			}
 		}
 	}
-	G::mimf();
+	G::mcmf();
 	if(G::flow!=sum[0])return -1;
 	return G::cost/3;
 }
