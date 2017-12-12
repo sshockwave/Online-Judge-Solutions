@@ -18,7 +18,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=50010,B=33;
+const int N=50010,B=20;
 inline int grt(lint x){
 	int ans=sqrt(x);
 	for(;(lint)ans*ans<x;ans++);
@@ -39,6 +39,7 @@ struct BIT{
 		for(;x<=n;c[x]+=v,x+=x&-x);
 	}
 	inline lint sum(int x){
+		assert(x<=n);
 		lint ans=0;
 		for(;x;ans+=c[x],x^=x&-x);
 		return ans;
@@ -76,7 +77,7 @@ namespace T{
 	}
 	int stk[N],ss=0;
 	void dfs1(int x){
-		for(int i=1;i<=ss;i++){
+		for(int i=1,ti=min(rt,ss);i<=ti;i++){
 			ufa[x][i]=stk[ss-i];
 		}
 		stk[ss++]=x;
