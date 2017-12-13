@@ -89,6 +89,7 @@ void dfs(pti s){
 	}
 }
 lint ask[T];
+int a[S],b[S];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("slave.in","r",stdin);
@@ -128,18 +129,21 @@ int main(){
 		pw[sh]=pw[sh-1]*pw[sh-1];
 	}
 	for(int i=1;i<=tot;i++){
-		bool flag=true;
+		memset(a,0,(scnt+1)<<2);
+		a[1]=1;
 		for(int sh=0;ask[i];ask[i]>>=1,sh++){
 			if(ask[i]&1){
-				if(flag){
-					res=pw[sh];
-					flag=false;
-				}else{
-					res=res*pw[sh];
+				for(int j=0;j<=scnt;j++){
+					lint tmp=0;
+					for(int k=0;k<=scnt;k++){
+						tmp+=(lint)pw[sh].a[j][k]*a[k]%O;
+					}
+					b[j]=tmp%O;
 				}
+				memcpy(a,b,(scnt+1)<<2);
 			}
 		}
-		printf("%d\n",flag?0:res.a[0][1]);
+		printf("%d\n",a[0]);
 	}
 	return 0;
 }
