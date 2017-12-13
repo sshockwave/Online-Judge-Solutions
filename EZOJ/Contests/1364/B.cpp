@@ -53,14 +53,17 @@ namespace T{
 	int f[N];
 	bool g[N];//require to be on top
 	void dfs1(int x,int fa){
-		int d=deg[x]-(fa!=0);
 		f[x]=INF;
 		g[x]=false;
-		int lson=0,rson=0;
 		for(int i=head[x],v;~i;i=bro[i]){
 			if((v=to[i])!=fa){
 				dfs1(v,x);
 				apmin(f[x],f[v]);
+			}
+		}
+		int lson=0,rson=0;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if((v=to[i])!=fa){
 				if(lson==0){
 					lson=v;
 				}else{
@@ -69,6 +72,7 @@ namespace T{
 				}
 			}
 		}
+		int d=deg[x]-(fa!=0);
 		if(d==2){
 			g[x]=x<f[x];
 		}else{
