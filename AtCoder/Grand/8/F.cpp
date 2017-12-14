@@ -82,6 +82,9 @@ inline lint Main(){
 		T::add(ni,ni);
 	}
 	scanf("%s",s+1);
+	for(int i=1;i<=n;i++){
+		onecnt+=s[i]=='1';
+	}
 	T::dfs1(1,-1),T::dfs2(1,0);
 	return ans;
 }
