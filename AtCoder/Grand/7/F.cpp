@@ -32,7 +32,7 @@ inline int Main(){
 		for(;j>=1&&(i<j||b[i]!=a[j]);j--);
 		if(j<1)return -1;
 		if(last==j){
-			for(;q.back()+delta>=i;q.pop_back());
+			for(;!q.empty()&&q.back()+delta>=i;q.pop_back());
 			q.push_back(i-delta);
 		}else{
 			delta--;
