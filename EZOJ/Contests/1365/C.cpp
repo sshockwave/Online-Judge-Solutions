@@ -47,6 +47,41 @@ inline int bfind(int n){//find first p^2>n
 }
 inline void Main(){
 	int n=ni;
+	if(n<=130){
+		for(int i=1;i<n;i++){
+			for(int j=1;j<n;j++){
+				for(int k=1;k<n;k++){
+					int a[10],as=0;
+					int cur=i*j*k;
+					for(int l=n-1;l>1;){
+						if(cur%l==0){
+							cur/=l;
+							a[as++]=l;
+							apmin(l,cur);
+						}else l--;
+					}
+					assert(cur==1);
+					if(as<3)continue;
+					bool flag=as>3;
+					if(!flag){
+						int b[3]={k,j,i};
+						for(int t=2;t>=0;t--){
+							if(a[t]!=b[t]){
+								flag=a[t]>b[t];
+								break;
+							}
+						}
+					}
+					if(flag){
+						printf("3 %d %d %d\n",i,j,k);
+						return;
+					}
+				}
+			}
+		}
+		puts("-1");
+		return;
+	}
 	int b=prime[bfind(n-1)];
 	int a=prime[bfind(b)];
 	if((lint)a*a*a>=n)return puts("-1"),void();
