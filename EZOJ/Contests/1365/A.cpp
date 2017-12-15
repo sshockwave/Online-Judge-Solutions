@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <vector>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -17,28 +18,44 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=100010,M=1000010;
+const int N=100010,M=1000010,INF=0x7f7f7f7f;
 int mx;
-int f[N];
-int longv=0,longcnt=0;
-inline void ins(int x){//ins at front
-	f[x]=0;
-	for(int i=x<<1;i<=mx;i+=x){
-		apmax(f[x],f[i]);
-	}
-	f[x]++;
-	if(f[x]>longv){
-		longv=f[x],longcnt=0;
-	}
-	if(f[x]==longv){
-		longcnt++;
+int pos[M];
+int f[M],cnt[M][22];
+vector<int>fact[M];
+void addv(int x,int fv,int v){
+	int oldv=f[x];
+	apmax(f[x],fv);
+	cnt[x][fv]+=v;
+	for(;cnt[x][f[x]]==0;f[x]--);
+	if(x&&oldv!=f[x]){
+		addv(0,f[x],1),addv(0,oldv,-1);
 	}
 }
 int que[N*3],qh=N,qt=N;
-inline void bd(){
-	longv=longcnt=0;
-	for(int i=qt-1;i>=qh;i--){
-		ins(que[i]);
+inline void ins_l(int x,int p){
+	pos[x]=p;
+	addv(x,1,1),addv(x,0,-1);
+	for(int i=x<<1;i<=mx;i+=x){
+		if(f[i]){
+			addv(x,f[i]+1,1);
+		}
+	}
+}
+inline void reset(int x){
+	memset(cnt[x],0,sizeof(cnt[x]));
+	cnt[x][f[x]=0]=1;
+	pos[x]=INF;
+}
+void alt(int x,int fr,int to){
+	int oldf=f[x];
+	addv(x,fr,-1),addv(x,to,1);
+	if(f[x]!=oldf){
+		for(int i=0,ti=fact[x].size();i<ti;i++){
+			if(pos[fact[x][i]]<pos[x]){
+				alt(fact[x][i],oldf+1,f[x]+1);
+			}
+		}
 	}
 }
 int main(){
@@ -49,28 +66,39 @@ int main(){
 	int n=ni;
 	mx=ni;
 	int tot=ni;
-	memset(f,0,sizeof(f));
+	memset(pos,127,sizeof(pos));
 	for(int i=1;i<=n;i++){
 		que[qt++]=ni;
 	}
-	bd();
-	while(printf("%d %d\n",longv,longcnt),tot--){
-		int op=ni;
-		if(op==0){
-			que[--qh]=ni;
-			ins(que[qh]);
-		}else{
-			for(int i=qh;i<qt;i++){
-				f[que[i]]=0;
-			}
-			if(op==1){
-				que[qt++]=ni;
-			}else if(op==2){
-				qh++;
-			}else if(op==3){
-				qt--;
-			}else assert(false);
-			bd();
+	memset(cnt,0,sizeof(cnt));
+	f[0]=0;
+	for(int i=1;i<=mx;i++){
+		reset(i);
+		for(int j=i<<1;j<=mx;j+=i){
+			fact[j].push_back(i);
+		}
+	}
+	for(int i=qt-1;i>=qh;i--){
+		ins_l(que[i],i);
+	}
+	while(printf("%d %d\n",f[0],cnt[0][f[0]]),tot--){
+		switch(ni){
+			case 0:
+				que[--qh]=ni;
+				ins_l(que[qh],qh);
+				break;
+			case 1:
+				pos[que[qt]=ni]=qt;
+				alt(que[qt++],0,1);
+				break;
+			case 2:
+				addv(0,f[que[qh]],-1);
+				reset(que[qh++]);
+				break;
+			case 3:
+				alt(que[--qt],1,0);
+				reset(que[qt]);
+				break;
 		}
 	}
 	return 0;
