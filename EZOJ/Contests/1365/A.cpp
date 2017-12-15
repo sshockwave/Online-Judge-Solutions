@@ -47,13 +47,13 @@ inline void reset(int x){
 	cnt[x][f[x]=0]=1;
 	pos[x]=INF;
 }
-void alt(int x,int fr,int to){
+void alt(int x,int fr,int to,int av,int bv){
 	int oldf=f[x];
-	addv(x,fr,-1),addv(x,to,1);
+	addv(x,fr,av),addv(x,to,bv);
 	if(f[x]!=oldf){
 		for(int i=0,ti=fact[x].size();i<ti;i++){
 			if(pos[fact[x][i]]<pos[x]){
-				alt(fact[x][i],oldf+1,f[x]+1);
+				alt(fact[x][i],oldf+1,f[x]+1,oldf?-1:0,f[x]?1:0);
 			}
 		}
 	}
@@ -89,14 +89,14 @@ int main(){
 				break;
 			case 1:
 				pos[que[qt]=ni]=qt;
-				alt(que[qt++],0,1);
+				alt(que[qt++],0,1,-1,1);
 				break;
 			case 2:
 				addv(0,f[que[qh]],-1);
 				reset(que[qh++]);
 				break;
 			case 3:
-				alt(que[--qt],1,0);
+				alt(que[--qt],1,0,-1,1);
 				reset(que[qt]);
 				break;
 		}
