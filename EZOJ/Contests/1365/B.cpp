@@ -3,7 +3,8 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <utility>
+#include <map>
+#include <string>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -18,7 +19,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=23000010,O=998244353;
+const int N=23000010,O=998244353,INF=0x7f7f7f7f;
 inline int fpow(int x,int n){
 	int a=1;
 	for(;n;n>>=1,x=(lint)x*x%O){
@@ -45,101 +46,126 @@ inline void gmath(int n){
 		invfac[i-1]=(lint)invfac[i]*i%O;
 	}
 }
-struct state{
-	const static int D=5;
-	int a[D];
-	inline state hash(int x){
-		for(int i=0;i<D;i++,x>>=2){
-			a[i]=x&3;
-		}
-		return *this;
+map<string,int>f;
+int dfs(string s){
+	if(f.find(s)!=f.end())return f[s];
+	int fl=INF,fr=INF;
+	int i=0,j;
+	for(;s[i]!='_';i++);
+	for(j=i;j>=0&&i-j<=2&&s[j]!='L';j--);
+	if(j>=0&&i-j<=2){
+		swap(s[i],s[j]);
+		fl=dfs(s);
+		swap(s[i],s[j]);
 	}
-	inline int hash(){
-		int ans=0;
-		for(int i=0;i<D;i++){
-			ans|=a[i]<<(i<<1);
-		}
-		return ans;
+	for(j=i;j<5&&j-i<=2&&s[j]!='R';j++);
+	if(j<5&&j-i<=2){
+		swap(s[i],s[j]);
+		fr=dfs(s);
+		swap(s[i],s[j]);
 	}
-};
-int f[1<<(state::D<<1)];//10: 0:L wins 1:R wins
-inline bool valid(int x){
-	return x>=0&&x<5;
+	int ans;
+	if(fl==INF&&fr==INF){
+		ans=0;
+	}else if(fl==INF){
+		ans=fr>0?0:-2;
+	}else if(fr==INF){
+		ans=fl<0?0:+2;
+	}else{
+		ans=(fl+fr)/2;
+	}
+	return f[s]=ans;
 }
-int dfs(int x){
-	if(~f[x])return f[x];
-	state cur;
-	cur.hash(x);
-	int *a=cur.a;
-	bool win[2]={0,0};
-	for(int i=0;i<5;i++){
-		if(a[i]<2&&!win[a[i]]){
-			int p=a[i],d=p==0?1:-1;
-			if(valid(i+d)&&a[i+d]==2){
-				a[i+d]=p,a[i]=2;
-				win[p]|=((dfs(cur.hash())>>(1-p))&1)==0;
-				a[i+d]=2,a[i]=p;
-				if(win[p])continue;
-			}
-			if(valid(i+d)&&a[i+d]!=p&&valid(i+(d<<1))&&a[i+(d<<1)]==2){
-				d<<=1;
-				a[i+d]=p,a[i]=2;
-				win[p]|=((dfs(cur.hash())>>(1-p))&1)==0;
-				a[i+d]=2,a[i]=p;
-			}
-		}
-	}
-	return f[x]=(((int)win[1])<<1)|win[0];
-}
-inline int lescnt(int a,int b){//a>b
-	lint ans=0;
-	int sum=0;
-	for(int i=0;i<=a;i++){
-		ans+=(lint)C(a,i)*sum%O;
+int res[5];
+inline void gpseudo(int a,int b){//1 -1
+	res[1]=b?(lint)fac[a+b]*invfac[a+1]%O*invfac[b-1]%O:0;
+	res[2]=(lint)fac[a+b]*invfac[a]%O*invfac[b]%O;
+	res[3]=a?(lint)fac[a+b]*invfac[a-1]%O*invfac[b+1]%O:0;
+	lint tmp=0;
+	for(int i=0,j=0;i<=a;i++){
+		tmp+=(lint)j*C(a,i)%O;
 		if(i<=b){
-			(sum+=C(b,i))%=O;
+			(j+=C(b,i))%=O;
 		}
 	}
-	return ans%O;
+	res[4]=tmp%O;
+	res[0]=((lint)fpow(2,a+b)+O-res[4]+O-res[2])%O;
+	(res[0]+=O-res[1])%=O;
+	(res[4]+=O-res[3])%=O;
+}
+inline void greal(int a,int b,int c,int d){//-2 -1 0 1 2
+	static int *f=new int[N<<1]+N;//diff of b,c
+	f[-b-1]=0;
+	for(int i=-b;i<=c;i++){
+		f[i]=(C(b+c,b+i)+f[i-1])%O;
+	}
+	lint neg=0,pos=0;
+	for(int i=-a;i<=d;i++){//2(a+d)==2i
+		lint tmp=C(a+d,a+i);
+		//+2i<0 => <-2i
+		if(-2*i-1>=-b){
+			neg+=tmp*f[min(-2*i-1,c)]%O;
+		}
+		//+2i>0 => >-2i
+		if(-2*i<=c){
+			pos+=tmp*(f[c]-f[max(-2*i,-b-1)]+O)%O;
+		}
+	}
+	res[0]=neg%O;
+	res[2]=pos%O;
+	res[1]=((lint)fpow(2,a+b+c+d)+O-res[0]+O-res[2])%O;
 }
 inline void Main(){
-	int cnt[4]={0,0,0,0};
+	int cnt[8],tmp;
+	memset(cnt,0,sizeof(cnt));
 	for(int tot=ni;tot--;){
 		static char s[10];
-		static state stat;
 		scanf("%s",s);
-		for(int i=0;i<state::D;i++){
-			stat.a[i]=s[i]=='L'?0:s[i]=='R'?1:2;
-		}
-		cnt[f[stat.hash()]]+=ni;
+		cnt[f[s]+2]+=ni;
 	}
-	int same=(lint)fac[cnt[1]+cnt[2]]*invfac[cnt[1]]%O*invfac[cnt[2]]%O;
-	int all=fpow(2,cnt[1]+cnt[2]);
-	int awin=lescnt(cnt[1],cnt[2]);
-	int bwin=((all-awin-same)%O+O)%O;
-	int tmp=fpow(2,cnt[0]+cnt[3]);
-	awin=(lint)awin*tmp%O;
-	bwin=(lint)bwin*tmp%O;
-	//0:previous wins 3:next wins
-	int fir0,fir1;
-	if(cnt[3]){
-		fir0=fir1=fpow(2,cnt[3]-1);
+	lint ans[4]={0,0,0,0};
+	greal(cnt[0],cnt[1],cnt[3],cnt[4]);
+	//sum!=0:
+	tmp=fpow(2,cnt[2]+cnt[5]+cnt[6]+cnt[7]);
+	ans[0]=(lint)res[2]*tmp%O;
+	ans[1]=(lint)res[0]*tmp%O;
+	//sum=0:
+	lint same=(lint)res[1]*fpow(2,cnt[2])%O;
+	gpseudo(cnt[6],cnt[7]);
+	int c0,c1;
+	if(cnt[5]){
+		c0=c1=fpow(2,cnt[5]-1);
 	}else{
-		fir0=1,fir1=0;
+		c0=1,c1=0;
 	}
-	tmp=(lint)fpow(2,cnt[0])*same%O;
-	int fwin=(lint)fir1*tmp%O,swin=(lint)fir0*tmp%O;
-	printf("%d %d %d %d\n",awin,bwin,fwin,swin);
+	//*==0:|up-down|==0
+	tmp=same*c0%O;
+	ans[0]+=(lint)((res[3]+res[4])%O)*tmp%O;
+	ans[1]+=(lint)((res[0]+res[1])%O)*tmp%O;
+	ans[3]=(lint)res[2]*tmp%O;
+	//*!=0:|up-down|<=1;
+	tmp=same*c1%O;
+	ans[0]+=(lint)res[4]*tmp%O;
+	ans[1]+=(lint)res[0]*tmp%O;
+	ans[2]=((lint)res[1]+res[2]+res[3])%O*tmp%O;
+	for(int i=0;i<4;i++){
+		printf("%lld ",ans[i]%O);
+	}
+	putchar('\n');
 }
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("frogs.in","r",stdin);
 	freopen("frogs.out","w",stdout);
 #endif
-	memset(f,-1,sizeof(f));
-	dfs(((state){0,0,2,1,1}).hash());
-	ni;
+	dfs("LL_RR");
+	f["LL_RR"]=3;
+	f["L_LRR"]=4;
+	f["LLR_R"]=5;
+	f["LRL_R"]=3;
+	f["L_RLR"]=3;
 	gmath(N-1);
+	ni;
 	for(int tot=ni;tot--;Main());
 	return 0;
 }
