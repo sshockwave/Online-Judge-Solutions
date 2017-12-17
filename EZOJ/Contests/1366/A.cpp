@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <cmath>
@@ -45,16 +46,15 @@ struct Pt{
 			tmp=crs(a,b);
 			return tmp?tmp>0:a.d2()<b.d2();
 		}
-		tmp=crs(a,b);
-		if(tmp)return tmp>0;
-		assert(a.y==0&&b.y==0);
-		assert(a.x&&b.x);
-		if(a.x>0)return b.x>a.x||b.x<0;
-		return b.x<a.x;
-	}
-	inline friend ostream & operator << (ostream & out,const Pt &b){
-		out<<"("<<b.x<<","<<b.y<<")";
-		return out;
+		if(a.y==0){
+			assert(a.x);
+			if(a.x>0)return b.y||b.x>a.x||b.x<0;
+			else return b.y<0||(b.y==0&&b.x<a.x);
+		}else{
+			assert(b.y==0&&b.x);
+			if(b.x>0)return a.y==0&&a.x>0&&a.x<b.x;
+			else return a.y>0||(a.y==0&&a.x>b.x);
+		}
 	}
 }pt[N],base;
 int n;
