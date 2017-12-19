@@ -77,35 +77,37 @@ namespace seg{
 		return gcd(ask(x->lson,l,x->m),ask(x->rson,x->m+1,r));
 	}
 }
-map<lint,int>f,g;
+namespace trie{
+	const int N=10000*20;
+	int son[N],val[N];
+	inline int New(int sz){
+		static int n=1;
+		return n+=sz,n-sz;
+	}
+	inline void init(){
+		memset(val,0,sizeof(val));
+	}
+}
+map<lint,int>g;
 int rst[N];
-int dfs2(int x,int mu,lint p){
-	if(x==ls)return (lint)mu*fpow(sigma,p%(O-1))%O;
-	lint ans=0;
-	for(int i=0;i<=rst[x];i++,p/=lst[x]){
-		ans+=dfs2(x+1,i==0?mu:i==1?O-mu:0,p);
-	}
-	return ans%O;
-}
-int faccnt=0;
-void dfs1(int x,lint p){
-	if(x==ls)return faccnt++,f[p]=dfs2(0,1,p),void();
-	for(int &i=rst[x]=0;i<=cnt[x];i++,p*=lst[x]){
-		dfs1(x+1,p);
+lint fval,gval;
+void dfs2(int x,int node,int mu,lint p){
+	if(x==ls){
+		fval+=(lint)mu*fpow(sigma,p%(O-1))%O;
+		gval+=(lint)(len/p)*trie::val[node]%O;
+	}else for(int i=rst[x],s=trie::son[node];i>=0;i--,s++,p*=lst[x]){
+		dfs2(x+1,s,i==0?mu:i==1?O-mu:0,p);
 	}
 }
-int dfs4(int x,lint p){
-	if(x==ls)return (lint)(len/p)*f[p]%O;
-	lint ans=0;
-	for(int i=0;i<=rst[x];i++,p*=lst[x]){
-		ans+=dfs4(x+1,p);
-	}
-	return ans%O;
-}
-void dfs3(int x,lint b){
-	if(x==ls)return g[b]=dfs4(0,1),void();
-	for(int &i=rst[x]=0;i<=cnt[x];i++,b*=lst[x]){
-		dfs3(x+1,b);
+void dfs1(int x,int node,lint p){
+	if(x==ls){
+		fval=gval=0,dfs2(0,0,1,1);
+		trie::val[node]=fval%=O,g[p]=(gval+fval*(len/p))%O;
+	}else{
+		int s=trie::son[node]=trie::New(cnt[x]+1);
+		for(int &i=rst[x]=0;i<=cnt[x];i++,p*=lst[x]){
+			dfs1(x+1,s+i,p);
+		}
 	}
 }
 int main(){
@@ -118,7 +120,8 @@ int main(){
 	int tot=ni;
 	seg::rt=seg::build(1,n);
 	factor(lcm);
-	dfs1(0,1),dfs3(0,1);
+	trie::init();
+	dfs1(0,0,1);
 	while(tot--){
 		int l=ni,r=ni;
 		printf("%d\n",g[seg::ask(seg::rt,l,r)]);
