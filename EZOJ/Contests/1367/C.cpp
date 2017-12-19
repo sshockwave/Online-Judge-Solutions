@@ -33,7 +33,12 @@ inline int inv(int x){
 }
 int statcnt[4]={0,2,4,9},scnt,m,k;
 struct Mat{
-	int a[90][90];
+	int *a[90];
+	inline void init(){
+		for(int i=0;i<scnt;i++){
+			a[i]=new int[scnt];
+		}
+	}
 	inline void clr(){
 		for(int i=0;i<scnt;i++){
 			memset(a[i],0,scnt<<2);
@@ -44,18 +49,16 @@ struct Mat{
 			memcpy(a[i],b.a[i],scnt<<2);
 		}
 	}
-	inline friend Mat operator * (const Mat &a,const Mat &b){
-		Mat c;
+	inline void getmul(const Mat &x,const Mat &y){
 		for(int i=0;i<scnt;i++){
 			for(int j=0;j<scnt;j++){
 				lint tmp=0;
 				for(int k=0;k<scnt;k++){
-					tmp+=(lint)a.a[i][k]*b.a[k][j]%O;
+					tmp+=(lint)x.a[i][k]*y.a[k][j]%O;
 				}
-				c.a[i][j]=tmp%O;
+				a[i][j]=tmp%O;
 			}
 		}
-		return c;
 	}
 	inline int eval(){
 		lint ans=0;
@@ -64,7 +67,7 @@ struct Mat{
 		}
 		return ans%O;
 	}
-}trans;
+}trans,tmpmat;
 int str[9][9];
 inline void gtrans(Mat &trans,int prob[]){
 	static int statprob[9];
@@ -152,13 +155,14 @@ namespace seg{
 		node lson,rson;
 		Mat mat;
 		inline void up(){
-			mat=rson->mat*lson->mat;
+			mat.getmul(rson->mat,lson->mat);
 		}
 	}*rt;
 	node build(int l,int r){
 		static node n=new Node[N<<1];
 		node x=n++;
 		x->l=l,x->m=(l+r)>>1,x->r=r;
+		x->mat.init();
 		if(l==r){
 			x->mat=trans;
 		}else{
@@ -177,11 +181,6 @@ namespace seg{
 		}
 	}
 }
-inline void space(){
-	ifstream fin("/proc/self/status");
-	typedef istreambuf_iterator<char>iter;
-	cout<<string(iter(fin),iter())<<endl;
-}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("kami.in","r",stdin);
@@ -192,6 +191,7 @@ int main(){
 	int tot=ni;
 	gstr();
 	scnt=statcnt[m]*k;
+	trans.init();
 	{
 		int p=ni%O;
 		p=(lint)p*inv(ni%O)%O;
@@ -204,8 +204,10 @@ int main(){
 	}
 	if(tot==0){
 		assert((n^(n&-n))==0);
+		tmpmat.init();
 		for(;n>1;n>>=1){
-			trans=trans*trans;
+			tmpmat.getmul(trans,trans);
+			trans=tmpmat;
 		}
 		printf("%d\n",trans.eval());
 		return 0;
