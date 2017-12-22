@@ -5,225 +5,172 @@
 #include <cctype>
 using namespace std;
 typedef long long lint;
+#define cout cerr
 #define ni (next_num<int>())
-#define nl (next_num<lint>())
 template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
 	bool flag=c=='-';
-	flag?(c=getchar()):0;
+	flag?c=getchar():0;
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
-	if(a<b){a=b;}
-}
-template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){
-	if(a>b){a=b;}
-}
-const int SHIFT=16,N=1<<SHIFT,MOD=104857601;
-inline int add(const int &a,const int &b){
-	return (a+b)%MOD;
-}
-inline int sub(const int &a,const int &b){
-	return add(a,MOD-b);
-}
-inline int mul(const int &a,const int &b){
-	return (lint)a*b%MOD;
-}
-inline void apadd(int &a,const int &b){
-	a=add(a,b);
-}
-inline void apsub(int &a,const int &b){
-	a=sub(a,b);
-}
-inline void apmul(int &a,const int &b){
-	a=mul(a,b);
-}
+template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
+template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+const int N=30010,O=104857601;
 inline int fpow(int x,int n){
-	int ret=1;
-	for(;n;n>>=1,apmul(x,x)){
+	int a=1;
+	for(;n;n>>=1,x=(lint)x*x%O){
 		if(n&1){
-			apmul(ret,x);
+			a=(lint)a*x%O;
 		}
 	}
-	return ret;
+	return a;
 }
-inline int shifter(int n){
-	int cnt=0;
-	for(;(1<<cnt)<n;cnt++);
-	return cnt;
+inline int inv(int x){
+	return fpow(x,O-2);
 }
-inline void ntt(int a[],int shift,int d){
-	int n=1<<shift;
-	assert(n<=N);
-	static int *rev=new int[N];
-	rev[0]=0;
-	for(int i=1,s=1<<(shift-1);i<n;i++){
-		rev[i]=rev[i>>1]>>1;
-		if(i&1){
-			rev[i]|=s;
-		}
-		if(rev[i]<i){
-			swap(a[rev[i]],a[i]);
-		}
-	}
-	for(int i=1;i<=shift;i++){
-		int full=1<<i,half=full>>1;
-		for(int j=0;j<half;j++){
-			int w=fpow(3,(MOD-1+(MOD-1)/full*j*d)%(MOD-1));
-			assert(fpow(w,full)==1);
-			for(int k=j;k<n;k+=full){
-				int p=a[k],q=mul(a[k+half],w);
-				a[k]=add(p,q),a[k+half]=sub(p,q);
-			}
-		}
-	}
-	if(d==-1){
-		int rev=fpow(n,MOD-2);
+namespace poly{
+	const int SH=16,N=1<<SH;
+	int sh,mxn=0,n,invn,m;
+	int o[SH][N>>1],io[SH][N>>1];
+	int *mod,tmod[N];
+	inline ostream & operator << (ostream & out,int a[]){
 		for(int i=0;i<n;i++){
-			apmul(a[i],rev);
-		}
-	}
-}
-struct Poly{
-	int *a,n,shift;
-	bool flag;
-	Poly(int _a[]):a(_a),flag(false){}
-	inline int& operator [] (int i){
-		return a[i];
-	}
-	inline void set(int s){
-		shift=s,n=1<<s;
-	}
-	inline void clr(int n){
-		memset(a+n,0,(this->n-n)<<2);
-	}
-	inline void dft(){
-		ntt(a,shift,flag?-1:1);
-		flag=!flag;
-	}
-	inline friend ostream & operator << (ostream & out,const Poly &p){
-		for(int i=0;i<p.n;i++){
-			out<<p.a[i]<<" ";
+			out<<a[i]<<" ";
 		}
 		return out;
 	}
-	void rev(int arr[],int n){//store in a
-		if(n==1){
-			//for this problem
-			assert(arr[0]==1);
-			a[0]=1;
+	inline void mem(int a[],int x=0){
+		memset(a+x,0,(n-x)<<2);
+	}
+	inline void init(int _n){
+		for(sh=0;(1<<sh)<_n;sh++);
+		n=1<<sh,invn=inv(n);
+		if(n<=mxn)return;
+		mxn=n;
+		for(int i=0;i<sh;i++){
+			int half=1<<i,full=half<<1;
+			int w=1,iw=1,wn=fpow(3,(O-1)/full),iwn=inv(wn);
+			for(int j=0;j<half;j++,w=(lint)w*wn%O,iw=(lint)iw*iwn%O){
+				o[i][j]=w,io[i][j]=iw;
+			}
+		}
+	}
+	int rev[N]={0};
+	inline void ntt(int a[],int d=1){
+		for(int i=1;i<n;i++){
+			rev[i]=(rev[i>>1]>>1)|((i&1)<<(sh-1));
+			if(rev[i]<i){
+				swap(a[i],a[rev[i]]);
+			}
+		}
+		for(int i=0;i<sh;i++){
+			int half=1<<i,full=half<<1;
+			for(int j=0;j<half;j++){
+				lint w=(d==1?o:io)[i][j];
+				for(int k=j;k<n;k+=full){
+					int p=a[k],q=w*a[k+half]%O;
+					a[k]=(p+q)%O;
+					a[k+half]=(p+O-q)%O;
+				}
+			}
+		}
+		if(d==-1){
+			for(int i=0;i<n;i++){
+				a[i]=(lint)a[i]*invn%O;
+			}
+		}
+	}
+	inline void inv(int a[],int b[],int n){
+		if(n==1)return b[0]=::inv(a[0]),void();
+		inv(a,b,n>>1);
+		init(n<<1);
+		mem(b,n>>1);
+		static int *c=new int[N];
+		memcpy(c,a,n<<2);
+		mem(c,n);
+		ntt(b),ntt(c);
+		for(int i=0;i<poly::n;i++){
+			b[i]=((b[i]<<1)%O+O-(int)((lint)c[i]*b[i]%O*b[i]%O))%O;
+		}
+		ntt(b,-1);
+	}
+	int tmp[N];
+	inline void init(int polym[],int len){
+		mod=polym,m=len;
+		init(m*2-1);
+		for(int i=0;i<=m;i++){
+			tmp[i]=mod[m-i];
+		}
+		mem(tmp,m);
+		inv(tmp,tmod,n>>1);
+		init(m*2-1);
+		mem(tmod,m),ntt(tmod);
+		mem(mod,m+1),ntt(mod);
+	}
+	inline void gpow(int a[],lint exp){
+		if(exp<m){
+			init(m*2-1);
+			mem(a,0);
+			a[exp]=1;
 			return;
 		}
-		int na=(n>>1)+(n&1),nb=n;
-		rev(arr,na);
-		static Poly b(new int[N]);
+		gpow(a,exp>>1);
+		ntt(a);
 		for(int i=0;i<n;i++){
-			b[i]=arr[i];
+			a[i]=(lint)a[i]*a[i]%O;
 		}
-		while(a[--na]==0);
-		while(b[--nb]==0);
-		set(shifter(na+nb+1));
-		b.set(shift);
-		clr(na+1),b.clr(nb+1);
-		dft(),b.dft();
-		assert(flag&&b.flag);
-		for(int i=0;i<this->n;i++){
-			a[i]=sub(mul(a[i],2),mul(b[i],mul(a[i],a[i])));
+		ntt(a,-1);
+		if(exp&1){
+			for(int i=(m-1)*2;i>=0;i--){
+				a[i+1]=a[i];
+			}
+			a[0]=0;
 		}
-		dft();
-	}
-	inline void mod(int);
-}M(new int[N]),P(new int[N]),C(new int[N]);
-inline void Poly::mod(int n){//a-R(R(a)*P)*M
-	static Poly q(new int[N]);
-	for(int i=0,j=(n<<1)-2;i<n-1;i++,j--){
-		q[i]=a[j];
-	}
-	q.set(P.shift),q.clr(n-1),q.dft();
-	assert(q.flag&&P.flag);
-	for(int i=0;i<q.n;i++){
-		apmul(q[i],P[i]);
-	}
-	q.dft();
-	for(int i=0,j=n-2;i<j;i++,j--){
-		swap(q[i],q[j]);
-	}
-	q.set(M.shift),q.clr(n-1),q.dft();
-	assert(q.flag&&M.flag);
-	for(int i=0;i<q.n;i++){
-		apmul(q[i],M[i]);
-	}
-	q.dft();
-	for(int i=0;i<n;i++){
-		apsub(a[i],q[i]);
-	}
-	for(int i=n;i<this->n;i++){
-		assert(a[i]==q[i]);
-	}
-	clr(n);
-}
-int n;
-inline void fpow(Poly x,lint t){
-	if(t==0){
-		memset(x.a,0,n<<2);
-		x[0]=1;
-		return;
-	}
-	fpow(x,t>>1);
-	x.set(shifter((n<<1)-1));
-	x.dft();
-	assert(x.flag);
-	for(int i=0;i<x.n;i++){
-		apmul(x[i],x[i]);
-	}
-	x.dft();
-	x.mod(n);
-	if(t&1){
-		for(int i=n;i>=1;i--){
-			x[i]=x[i-1];
+		for(int i=0,tt=2*m-1;i<m;i++){
+			tmp[i]=a[tt-i];
 		}
-		x[0]=0;
-		C.set(2);
+		mem(tmp,m),ntt(tmp);
 		for(int i=0;i<n;i++){
-			apsub(x[i],mul(x[n],C[i]));
+			tmp[i]=(lint)tmp[i]*tmod[i]%O;
 		}
-		x[n]=0;
+		ntt(tmp,-1);
+		for(int i=0,j=m-1;i<j;i++,j--){
+			swap(tmp[i],tmp[j]);
+		}
+		mem(tmp,m),ntt(tmp);
+		for(int i=0;i<n;i++){
+			tmp[i]=(lint)tmp[i]*mod[i]%O;
+		}
+		ntt(tmp,-1);
+		for(int i=0;i<m;i++){
+			a[i]=(a[i]+O-tmp[i])%O;
+		}
+		mem(a,m);
 	}
 }
-int a[N];
+int a[poly::N],b[poly::N],c[poly::N];
 int main(){
-	n=ni;
-	lint t=nl-1;
+#ifndef ONLINE_JUDGE
+	freopen("rng.in","r",stdin);
+	freopen("rng.out","w",stdout);
+#endif
+	int n=ni;
+	lint expn=next_num<lint>();
 	for(int i=0;i<n;i++){
 		a[i]=ni;
 	}
-	if(t<n){
-		printf("%d\n",a[t]);
-		return 0;
+	c[n]=1;
+	for(int i=1;i<=n;i++){
+		c[n-i]=(O-ni)%O;
 	}
-	memset(M.a,0,N<<2);
-	M[n]=C[n]=1;
-	for(int i=n-1;i>=0;i--){
-		M[i]=C[i]=sub(0,ni);
-	}
-	M.set(shifter((n<<1)-1));
-	M.dft();
-	{
-		int *a=new int[N];
-		for(int i=0;i<=n;i++){
-			a[i]=C[n-i];
-		}
-		P.rev(a,n-1);
-		P.set(shifter((n<<1)-3));
-		P.dft();
-	}
-	Poly s(new int[N]);
-	fpow(s,t);
-	int ans=0;
+	poly::init(c,n);
+	poly::gpow(b,expn-1);
+	lint ans=0;
 	for(int i=0;i<n;i++){
-		apadd(ans,mul(s[i],a[i]));
+		ans+=(lint)a[i]*b[i]%O;
 	}
-	printf("%d\n",ans);
+	printf("%lld\n",ans%O);
+	return 0;
 }
