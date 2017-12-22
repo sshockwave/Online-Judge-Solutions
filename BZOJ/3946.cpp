@@ -18,7 +18,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=50010,L=600010+N,O=998244353,INF=0x7f7f7f7f;
+const int N=50010,L=600010,O=998244353,INF=0x7f7f7f7f;
 inline int fpow(int x,int n){
 	int a=1;
 	for(;n;n>>=1,x=(lint)x*x%O){
@@ -50,7 +50,7 @@ namespace T{
 			sum=len,prod=pw;
 		}
 		inline void up(){
-			sum=lson->len+len+rson->len;
+			sum=lson->sum+len+rson->sum;
 			prod=(lint)lson->prod*pw%O*rson->prod%O;
 			hush=(((lint)rson->hush*pw%O+str[len-1])%O*lson->prod%O+lson->hush)%O;
 		}
@@ -64,7 +64,7 @@ namespace T{
 		null->pw=null->prod=1;
 	}
 	inline node nn(node x=null){
-		static node n=new Node[N*30];
+		static node n=new Node[N*100];
 		return *n=*x,n->prior=rand(),n++;
 	}
 	int ghush(node x,int len){
@@ -72,7 +72,7 @@ namespace T{
 		if(len<=x->lson->sum)return ghush(x->lson,len);
 		if(len>x->lson->sum+x->len){
 			lint rh=ghush(x->rson,len-x->lson->sum-x->len);
-			return ((rh*x->pw%O+x->str[len-1])%O*x->lson->prod%O+x->lson->hush)%O;
+			return ((rh*x->pw%O+x->str[x->len-1])%O*x->lson->prod%O+x->lson->hush)%O;
 		}else return ((lint)x->str[len-x->lson->sum-1]*x->lson->prod%O+x->lson->hush)%O;
 	}
 	node mg(node u,node v){
@@ -197,6 +197,18 @@ namespace seg2{
 			x->up();
 		}
 	}
+	void add(node x,int l,int r,int v){
+		if(x->l==l&&x->r==r)return x->mn+=v,x->dt+=v,void();
+		if(r<=x->m){
+			add(x->lson,l,r,v);
+		}else if(l>x->m){
+			add(x->rson,l,r,v);
+		}else{
+			add(x->lson,l,x->m,v);
+			add(x->rson,x->m+1,r,v);
+		}
+		x->up();
+	}
 	int ask(node x,int l,int r){
 		if(x->l==l&&x->r==r)return x->mn;
 		x->down();
@@ -229,6 +241,9 @@ int main(){
 			}
 			if(r<n){
 				seg2::set(seg2::rt,r,glcp(r,r+1));
+			}
+			if(l<r){
+				seg2::add(seg2::rt,l,r-1,x->len);
 			}
 		}else{
 			printf("%d\n",l==r?seg::asklen(seg::rt,l):seg2::ask(seg2::rt,l,r-1));
