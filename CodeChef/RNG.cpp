@@ -18,7 +18,7 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=30010,O=104857601;
-inline int fpow(int x,int n){
+template<class T>inline int fpow(int x,T n){
 	int a=1;
 	for(;n;n>>=1,x=(lint)x*x%O){
 		if(n&1){
@@ -164,6 +164,10 @@ int main(){
 	c[n]=1;
 	for(int i=1;i<=n;i++){
 		c[n-i]=(O-ni)%O;
+	}
+	if(n==1){
+		printf("%lld\n",(lint)a[0]*fpow(O-c[0],expn-1)%O);
+		return 0;
 	}
 	poly::init(c,n);
 	poly::gpow(b,expn-1);
