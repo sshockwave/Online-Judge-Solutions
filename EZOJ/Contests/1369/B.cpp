@@ -33,27 +33,27 @@ inline int inv(int x){
 	return fpow(x,O-2);
 }
 int n,tot;
-int f[2][N][5];
+lint f[2][N][5];
 struct trans{
 	int j,k,mul;
-};
-vector<trans>vec[N][5];
+}pool[N*5*81],*ps,*vec[N][5],*endd[N][5];
 inline void puttrans(int j1,int k1,int j2,int k2,int mul){
-	vector<trans>&vc=vec[j1][k1];
-	for(vector<trans>::iterator it=vc.begin(),tt=vc.end();it!=tt;it++){
-		if(it->j==j2&&it->k==k2){
-			(it->mul+=mul)%=O;
+	trans* &head=vec[j1][k1];
+	for(trans* i=head;i<ps;i++){
+		if(i->j==j2&&i->k==k2){
+			i->mul+=mul;
 			return;
 		}
 	}
-	vc.push_back((trans){j2,k2,mul});
+	*ps++=(trans){j2,k2,mul};
 }
 int dp(int x,int pos){
 	static int cnt[9];
 	int frj=max(pos-x,0),toj=min(pos-1,n-x);
+	ps=pool;
 	for(int i=frj;i<=toj;i++){
 		for(int j=0;j<5;j++){
-			vec[i][j].clear();
+			vec[i][j]=ps;
 			int pos2;
 			memset(cnt,0,sizeof(cnt));
 			cnt[0]=pos-1-i,cnt[1]=i;
@@ -106,6 +106,7 @@ int dp(int x,int pos){
 					}
 				}
 			}
+			endd[i][j]=ps;
 		}
 	}
 	bool r=0;
@@ -115,14 +116,16 @@ int dp(int x,int pos){
 			for(int k=0;k<5;k++){
 				lint F=f[r][j][k];
 				if(F==0)continue;
-				vector<trans>&vc=vec[j][k];
-				for(vector<trans>::iterator it=vc.begin(),tt=vc.end();it!=tt;it++){
-					(f[!r][it->j][it->k]+=F*it->mul%O)%=O;
+				if(F>=O){
+					F%=O;
+				}
+				for(trans* i=vec[j][k],*ti=endd[j][k];i<ti;i++){
+					f[!r][i->j][i->k]+=F*i->mul;
 				}
 			}
 		}
 	}
-	return f[r][0][4];
+	return f[r][0][4]%O;
 }
 int a[N],pos[N];
 int main(){
