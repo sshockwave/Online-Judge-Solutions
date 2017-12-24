@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <vector>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -17,7 +18,8 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=23,O=1000000007;
+template<class T>inline T sqr(const T &x){return x*x;}
+const int N=110,K=90,O=1000000007;
 inline int fpow(int x,int n){
 	int a=1;
 	for(;n;n>>=1,x=(lint)x*x%O){
@@ -30,72 +32,134 @@ inline int fpow(int x,int n){
 inline int inv(int x){
 	return fpow(x,O-2);
 }
-int n;
-int pool[2][N][1<<N];
-template<class T>inline void dp(T F,T NF){
-	for(int s=0,ts=1<<n;s<ts;s++){
-		int x=n;
-		for(int i=1;i<=n;i++){
-			x-=(s>>(i-1))&1;
+int n,tot;
+int f[2][N][5];
+struct trans{
+	int j,k,mul;
+};
+vector<trans>vec[N][5];
+inline void puttrans(int j1,int k1,int j2,int k2,int mul){
+	vector<trans>&vc=vec[j1][k1];
+	for(vector<trans>::iterator it=vc.begin(),tt=vc.end();it!=tt;it++){
+		if(it->j==j2&&it->k==k2){
+			(it->mul+=mul)%=O;
+			return;
 		}
-		for(int i=1;i<=n;i++){
-			if((s>>(i-1))&1)continue;
-			lint cur=F[i][s];
-			if(cur==0)continue;
-			lint cur2=(cur<<1)%O;
-			(NF[i][s]+=cur*((x-1)*(x-1)%O+(n-x)*(n-x)%O)%O)%=O;//ll rr
-			for(int j=1;j<=n;j++){//lr
-				if(i!=j&&((s>>(j-1))&1)==0){
-					for(int k=1;k<=n;k++){
-						if(s>>(k-1)&1){
-							(NF[i][s^(1<<(j-1))^(1<<(k-1))]+=cur2)%=O;
+	}
+	vc.push_back((trans){j2,k2,mul});
+}
+int dp(int x,int pos){
+	static int cnt[9];
+	int frj=max(pos-x,0),toj=min(pos-1,n-x);
+	for(int i=frj;i<=toj;i++){
+		for(int j=0;j<5;j++){
+			vec[i][j].clear();
+			int pos2;
+			memset(cnt,0,sizeof(cnt));
+			cnt[0]=pos-1-i,cnt[1]=i;
+			cnt[7]=n-x-i,cnt[6]=n-pos-cnt[7];
+			if(j==4){
+				cnt[pos2=5]=1;
+			}else{
+				cnt[3+(j&1)]=1;
+				cnt[pos2=(j>>1)*6+2]=1;
+				if(j<2){
+					if(j&1){
+						if(cnt[7]==0||cnt[0]==0)continue;
+						cnt[7]--,cnt[0]--,cnt[6]++;
+					}else{
+						if(cnt[0]==0)continue;
+						cnt[0]--;
+					}
+				}else{
+					if(j&1){
+						if(cnt[7]==0)continue;
+						cnt[7]--;
+					}else{
+						if(cnt[6]==0)continue;
+						cnt[6]--;
+					}
+				}
+			}
+			for(int a=0;a<9;a++){
+				if(cnt[a]){
+					assert(cnt[a]>0);
+					for(int b=0;b<9;b++){
+						if(cnt[b]){
+							assert(cnt[b]>0);
+							int ma=a%3,mb=b%3;
+							int ta=b-mb+ma,tb=a-ma+mb;
+							int npos=ma==2?ta:mb==2?tb:pos2;
+							int mul=cnt[a]*cnt[b];
+							cnt[a]--,cnt[ta]++;
+							cnt[b]--,cnt[tb]++;
+							int tk;
+							if(npos==5){
+								tk=4;
+							}else{
+								tk=((npos>3)<<1)|cnt[4];
+							}
+							puttrans(i,j,cnt[1],tk,mul);
+							cnt[a]++,cnt[ta]--;
+							cnt[b]++,cnt[tb]--;
 						}
 					}
 				}
 			}
-			for(int j=1;j<=n;j++){//lx
-				if(i==j){
-					(NF[i][s]+=cur)%=O;
-				}else{
-					bool d=(s>>(j-1))&1;
-					(NF[j][s^(d<<(i-1))^(d<<(j-1))]+=cur2)%=O;
+		}
+	}
+	bool r=0;
+	for(int i=1;i<=tot;i++,r=!r){
+		memset(f[!r],0,sizeof(f[!r][0])*n);
+		for(int j=frj;j<=toj;j++){
+			for(int k=0;k<5;k++){
+				lint F=f[r][j][k];
+				if(F==0)continue;
+				vector<trans>&vc=vec[j][k];
+				for(vector<trans>::iterator it=vc.begin(),tt=vc.end();it!=tt;it++){
+					(f[!r][it->j][it->k]+=F*it->mul%O)%=O;
 				}
 			}
 		}
 	}
+	return f[r][0][4];
 }
-int a[N];
+int a[N],pos[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("count.in","r",stdin);
 	freopen("count.out","w",stdout);
 #endif
-	n=ni;
-	int tot=ni;
+	n=ni,tot=ni;
 	for(int i=1;i<=n;i++){
-		a[i]=ni;
-	}
-	memset(pool,0,sizeof(pool));
-	bool r=0;
-	for(int i=1;i<=n;i++){
-		int mask=0;
-		for(int j=1;j<=n;j++){
-			mask|=(a[j]>a[i])<<(j-1);
-		}
-		pool[r][i][mask]=1;
-	}
-	for(int i=1;i<=tot;i++,r=!r){
-		memset(pool[!r],0,sizeof(pool[!r]));
-		dp(pool[r],pool[!r]);
-		cout<<"i="<<i<<"\tcomplete"<<endl;
+		pos[a[i]=ni]=i;
 	}
 	lint ans=0;
-	for(int s=0,ts=1<<n;s<ts;s++){
-		for(int i=1;i<=n;i++){
-			if((s>>(i-1))&1)break;
-			ans+=pool[r][i][s];
+	for(int i=1;i<=n;i++){
+		int cnt=0;
+		for(int j=1;j<=n;j++){//i at pos j
+			int stat;
+			if(pos[i]==j){
+				stat=4;
+			}else if(pos[i]<j){
+				if(a[j]<i){
+					stat=0;
+				}else{
+					stat=1;
+				}
+			}else{
+				if(a[j]<i){
+					stat=2;
+				}else{
+					stat=3;
+				}
+			}
+			memset(f[0],0,sizeof(f[0][0])*n);
+			f[0][cnt][stat]=1;
+			ans+=dp(i,j);
+			cnt+=a[j]>i;
 		}
 	}
-	printf("%lld\n",ans%O*fpow(inv(n*n),tot)%O);
+	printf("%lld\n",ans%O*fpow(inv(n),tot<<1)%O);
 	return 0;
 }
