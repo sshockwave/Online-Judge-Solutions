@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <vector>
@@ -47,39 +48,47 @@ inline void puttrans(int j1,int k1,int j2,int k2,int mul){
 	}
 	*ps++=(trans){j2,k2,mul};
 }
+int cnt[9];
+inline int putcnt(int x,int pos,int i,int j){
+	int pos2;
+	memset(cnt,0,sizeof(cnt));
+	cnt[0]=pos-1-i,cnt[1]=i;
+	cnt[7]=n-x-i,cnt[6]=n-pos-cnt[7];
+	if(j==4){
+		cnt[pos2=5]=1;
+	}else{
+		cnt[3+(j&1)]=1;
+		cnt[pos2=(j>>1)*6+2]=1;
+		if(j<2){
+			if(j&1){
+				if(cnt[7]==0||cnt[0]==0)return -1;
+				cnt[7]--,cnt[0]--,cnt[6]++;
+			}else{
+				if(cnt[0]==0)return -1;
+				cnt[0]--;
+			}
+		}else{
+			if(j&1){
+				if(cnt[7]==0)return -1;
+				cnt[7]--;
+			}else{
+				if(cnt[6]==0)return -1;
+				cnt[6]--;
+			}
+		}
+	}
+	return pos2;
+}
 int dp(int x,int pos){
-	static int cnt[9];
 	int frj=max(pos-x,0),toj=min(pos-1,n-x);
 	ps=pool;
 	for(int i=frj;i<=toj;i++){
 		for(int j=0;j<5;j++){
 			vec[i][j]=ps;
-			int pos2;
-			memset(cnt,0,sizeof(cnt));
-			cnt[0]=pos-1-i,cnt[1]=i;
-			cnt[7]=n-x-i,cnt[6]=n-pos-cnt[7];
-			if(j==4){
-				cnt[pos2=5]=1;
-			}else{
-				cnt[3+(j&1)]=1;
-				cnt[pos2=(j>>1)*6+2]=1;
-				if(j<2){
-					if(j&1){
-						if(cnt[7]==0||cnt[0]==0)continue;
-						cnt[7]--,cnt[0]--,cnt[6]++;
-					}else{
-						if(cnt[0]==0)continue;
-						cnt[0]--;
-					}
-				}else{
-					if(j&1){
-						if(cnt[7]==0)continue;
-						cnt[7]--;
-					}else{
-						if(cnt[6]==0)continue;
-						cnt[6]--;
-					}
-				}
+			int pos2=putcnt(x,pos,i,j);
+			if(pos2==-1){
+				endd[i][j]=ps;
+				continue;
 			}
 			for(int a=0;a<9;a++){
 				if(cnt[a]){
@@ -93,13 +102,7 @@ int dp(int x,int pos){
 							int mul=cnt[a]*cnt[b];
 							cnt[a]--,cnt[ta]++;
 							cnt[b]--,cnt[tb]++;
-							int tk;
-							if(npos==5){
-								tk=4;
-							}else{
-								tk=((npos>3)<<1)|cnt[4];
-							}
-							puttrans(i,j,cnt[1],tk,mul);
+							puttrans(i,j,cnt[1],npos==5?4:((npos>3)<<1)|cnt[4],mul);
 							cnt[a]++,cnt[ta]--;
 							cnt[b]++,cnt[tb]--;
 						}
@@ -110,16 +113,15 @@ int dp(int x,int pos){
 		}
 	}
 	bool r=0;
+	int memsize=sizeof(f[!r][0])*(toj-frj+1);
 	for(int i=1;i<=tot;i++,r=!r){
-		memset(f[!r],0,sizeof(f[!r][0])*n);
+		memset(f[!r]+frj,0,memsize);
 		for(int j=frj;j<=toj;j++){
 			for(int k=0;k<5;k++){
 				lint F=f[r][j][k];
 				if(F==0)continue;
-				if(F>=O){
-					F%=O;
-				}
-				for(trans* i=vec[j][k],*ti=endd[j][k];i<ti;i++){
+				F%=O;
+				for(trans* i=vec[j][k];i<endd[j][k];i++){
 					f[!r][i->j][i->k]+=F*i->mul;
 				}
 			}
@@ -140,7 +142,7 @@ int main(){
 	lint ans=0;
 	for(int i=1;i<=n;i++){
 		int cnt=0;
-		for(int j=1;j<=n;j++){//i at pos j
+		for(int j=1;j<=i;j++){//i at pos j
 			int stat;
 			if(pos[i]==j){
 				stat=4;
