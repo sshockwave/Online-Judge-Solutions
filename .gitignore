@@ -1,5 +1,10 @@
+# Ignore files without extensions.
+# E.g. Linux binaries.
 *
 !*.*
+!*/
+
+# Ignore problem files
 *.exe
 *.in
 *.out
@@ -9,4 +14,6 @@ $RECYCLE.BIN/
 *.brute.cpp
 *.bat
 *.sh
+
+# Ignore vim dump
 *.swp
