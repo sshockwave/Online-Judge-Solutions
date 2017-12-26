@@ -29,7 +29,7 @@ inline void gmath(int n){
 }
 int f[N],g[N];
 int invf[N];
-int sumfg[N];
+lint sumfg[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("cactus.in","r",stdin);
@@ -58,24 +58,21 @@ int main(){
 			ans+=(lint)invf[j]*f[i-j]%O;
 		}
 		invf[i]=ans%O;
-		//get invsh[i]
-		ans=0;
 		if((i&1)==0){
 			g[i]=invf[i>>1];
 		}
 		ans=0;
-		for(int j=0;j<=i;j++){
-			if((j&1)==0){
-				ans+=(lint)invf[j>>1]*f[i-j]%O;
-			}
+		for(int j=0;j<=i;j+=2){
+			ans+=(lint)invf[j>>1]*f[i-j]%O;
 		}
 		g[i]=(g[i]+ans%O)%O;
 		g[i]=(lint)(g[i]+invf[i])*inv[2]%O;
+		int tmp=(lint)g[i]*i%O;
 		g[i]=(g[i]-f[i]+O)%O;
-		ans=(lint)(f[i]+g[i])*i%O;
 		for(int j=i;j<=n;j+=i){
-			sumfg[j]=(sumfg[j]+ans)%O;
+			sumfg[j]+=tmp;
 		}
+		sumfg[i]%=O;
 	}
 	printf("%d\n",f[n]);
 	return 0;
