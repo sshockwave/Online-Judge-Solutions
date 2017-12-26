@@ -66,7 +66,6 @@ namespace T{
 		}
 		inline void up(){
 			size=lson->size+1+rson->size;
-			assert(!rev);
 			for(int d=0;d<2;d++,swap(lson,rson)){
 				hei[d]=lson->hei[d];
 				cnt[d]=lson->cnt[d];
@@ -94,8 +93,6 @@ namespace T{
 			return fa->lson==this?0:fa->rson==this?1:-1;
 		}
 		inline void rot(){
-			assert(~side());
-			assert(!rev&&!fa->rev);
 			bool d=!side();
 			son[d]->fa=fa,fa->son[!d]=son[d],son[d]=fa;
 			int g=fa->side();
@@ -131,11 +128,7 @@ namespace T{
 	inline void acc(node x){
 		for(node s=null;x!=null;s=x,x=x->fa){
 			x->splay();
-			assert(!x->rev);
-			if(x->rson!=null){
-				x->rson->down();
-				x->putinfo(x->rson);
-			}
+			x->putinfo(x->rson);
 			x->delinfo(s);
 			x->rson=s;
 			x->up();
@@ -175,6 +168,7 @@ int main(){
 		if(fa[i]!=0){
 			T::acc(f);
 			f->splay();
+			node[i]->splay();
 			node[i]->fa=f;
 			f->rson=node[i];
 			f->up();
@@ -192,16 +186,11 @@ int main(){
 			T::node x=node[ni],y=node[ni];
 			T::acc(x);
 			x->splay();
-			assert(x->fa==T::null);
 			ans-=x->cnt[0];
 			x->putrev();//chroot x
-			assert(ans>=0);
 			T::acc(y);
 			y->splay();
-			assert(y->fa==T::null);
-			y->down();
 			ans-=y->cnt[0];
-			assert(ans>=0);
 			x->fa=y;
 			y->rson=x;
 			y->up();
@@ -210,17 +199,11 @@ int main(){
 			T::node x=node[ni];
 			T::acc(x);
 			x->splay();
-			assert(x->fa==T::null);
-			assert(!x->rev);
 			if(x->lson!=T::null){
 				ans-=x->cnt[0];
-				assert(ans>=0);
-				assert(!x->lson->rev);
 				ans+=x->lson->cnt[0];
 				x->lson=x->lson->fa=T::null;
 				x->up();
-				assert(x->fa==T::null);
-				assert(!x->rev);
 				ans+=x->cnt[0];
 			}
 		}
