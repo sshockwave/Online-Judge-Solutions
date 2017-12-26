@@ -28,6 +28,8 @@ inline void gmath(int n){
 	}
 }
 int f[N],g[N];
+int invf[N];
+int sumfg[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("cactus.in","r",stdin);
@@ -36,24 +38,45 @@ int main(){
 	int n=ni;
 	O=ni;
 	gmath(n);
+	memset(sumfg,0,sizeof(sumfg));
 	memset(g,0,sizeof(g));
-	f[1]=1;
+	f[0]=0,f[1]=1;
 	for(int i=1;i<=n;i++){
-		g[i]++;
+		sumfg[i]++;
 	}
+	invf[0]=invf[1]=1;
 	for(int i=2;i<=n;i++){
+		//get f[i]
 		lint ans=0;
 		for(int j=1;j<i;j++){
-			ans+=(lint)f[j]*g[i-j]%O;
+			ans+=(lint)f[j]*sumfg[i-j]%O;
 		}
 		f[i]=ans%O*inv[i-1]%O;
-		int tmp=(lint)f[i]*i%O;
+		//get invf[i]
+		ans=0;
+		for(int j=0;j<i;j++){
+			ans+=(lint)invf[j]*f[i-j]%O;
+		}
+		invf[i]=ans%O;
+		//get invsh[i]
+		ans=0;
+		if((i&1)==0){
+			g[i]=invf[i>>1];
+		}
+		ans=0;
+		for(int j=0;j<=i;j++){
+			if((j&1)==0){
+				ans+=(lint)invf[j>>1]*f[i-j]%O;
+			}
+		}
+		g[i]=(g[i]+ans%O)%O;
+		g[i]=(lint)(g[i]+invf[i])*inv[2]%O;
+		g[i]=(g[i]-f[i]+O)%O;
+		ans=(lint)(f[i]+g[i])*i%O;
 		for(int j=i;j<=n;j+=i){
-			g[j]=(g[j]+tmp)%O;
+			sumfg[j]=(sumfg[j]+ans)%O;
 		}
 	}
 	printf("%d\n",f[n]);
-	puts("0");
-	puts("0");
 	return 0;
 }
