@@ -3,6 +3,8 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <set>
+#include <map>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -18,72 +20,8 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=1010,M=35,O=998244353;
-int a[M][M],n,m;
-namespace brute12{
-	int ans;
-	bool vis[M][N];
-	int perm[M][N];
-	inline bool check(){
-		for(int i=1;i<=m;i++){
-			for(int j=1;j<=m;j++){
-				bool flag=true;
-				for(int k=1;k<=n;k++){
-					if(perm[j][perm[i][k]]!=perm[a[i][j]][k])return false;
-					flag&=perm[i][k]==perm[j][k];
-				}
-				if(i!=j&&flag)return false;
-			}
-		}
-		return true;
-	}
-	void dfs(int i,int j){
-		if(j>n){
-			i++,j=1;
-		}
-		if(i>m)return ans+=check(),void();
-		for(int &x=perm[i][j]=1;x<=n;x++){
-			if(!vis[i][x]){
-				vis[i][x]=true;
-				dfs(i,j+1);
-				vis[i][x]=false;
-			}
-		}
-	}
-	inline int Main(){
-		ans=0;
-		memset(vis,0,sizeof(vis));
-		dfs(1,1);
-		return ans;
-	}
-}
-int mu[N],prime[N],ps=0;
-bool np[N];
-inline void sieve(int n){
-	mu[1]=1;
-	memset(np,0,sizeof(np));
-	for(int i=2;i<=n;i++){
-		if(!np[i]){
-			prime[ps++]=i;
-			mu[i]=-1;
-		}
-		for(int j=0,cur=2;j<ps&&i*cur<=n;cur=prime[++j]){
-			np[i*cur]=true;
-			if(i%cur){
-				mu[i*cur]=-mu[i];
-			}else{
-				mu[i*cur]=0;
-				break;
-			}
-		}
-	}
-}
-int fac[N];
-int c[N][N];
+int c[N][N],fac[N];
 inline void gmath(int n){
-	fac[0]=1;
-	for(int i=1;i<=n;i++){
-		fac[i]=(lint)fac[i-1]*i%O;
-	}
 	memset(c,0,sizeof(c));
 	for(int i=0;i<=n;i++){
 		c[i][0]=1;
@@ -91,52 +29,129 @@ inline void gmath(int n){
 			c[i][j]=(c[i-1][j-1]+c[i-1][j])%O;
 		}
 	}
+	fac[0]=1;
+	for(int i=1;i<=n;i++){
+		fac[i]=(lint)fac[i-1]*i%O;
+	}
 }
-namespace brute34{
-	int f[N];
-	inline int dp(int m){
-		f[0]=1;
-		for(int i=1;i<=n;i++){
-			lint ans=0;
-			for(int j=1;j<=m&&j<=i;j++){
-				if(m%j==0){
-					ans+=(lint)f[i-j]*c[i-1][j-1]%O*fac[j-1]%O;
+int g[M][M],n,m;
+int ginv[M];
+int que[M];
+inline int gstate(int s){
+	int qh=0,qt=0;
+	for(int i=1;i<=m;i++){
+		if((s>>i)&1){
+			que[qt++]=i;
+		}
+	}
+	while(qh<qt){
+		int x=que[qh++];
+		for(int i=1;i<=m;i++){
+			if((s>>i)&1){
+				if(((s>>g[x][i])&1)==0){
+					s|=1<<g[x][i];
+					que[qt++]=g[x][i];
+				}
+				if(((s>>g[i][x])&1)==0){
+					s|=1<<g[i][x];
+					que[qt++]=g[i][x];
 				}
 			}
-			f[i]=ans%O;
 		}
-		return f[n];
 	}
-	inline int Main(){
-		lint ans=0;
-		for(int i=1;i<=m;i++){
-			if(m%i==0){
-				ans+=dp(i)*mu[m/i];
-			}
+	return s;
+}
+set<int>subg;
+void dfs(int s){
+	if(subg.find(s)!=subg.end())return;
+	subg.insert(s);
+	for(int i=1;i<=m;i++){
+		if(((s>>i)&1)==0){
+			dfs(gstate(s|(1<<i)));
 		}
-		return (ans%O+O)%O;
 	}
 }
-inline int Main(){
-	n=ni,m=ni;
-	bool flag34=true;
+inline bool valid(int s){
 	for(int i=1;i<=m;i++){
-		for(int j=1;j<=m;j++){
-			a[i][j]=ni;
-			flag34&=(a[i][j]-(i+j-1))%m==0;
+		if((s>>i)&1){
+			for(int j=1;j<=m;j++){
+				bool flag=false;
+				for(int k=1;k<=m;k++){
+					if(((s>>k)&1)&&g[i][j]==g[j][k]){
+						flag=true;
+						break;
+					}
+				}
+				if(!flag)return false;
+			}
 		}
 	}
-	if(m<=4&&n<=5)return brute12::Main();
-	if(flag34)return brute34::Main();
-	//TODO
-	return 0;
+	return true;
+}
+int cnt[M],f[N];
+inline int calc(int s){
+	memset(cnt+1,0,m<<2);
+	for(set<int>::iterator it=subg.begin(),ti=subg.end();it!=ti;it++){
+		int t=*it;
+		if((s|t)==t){
+			int bitcnt=0;
+			for(int i=1;i<=m;i++){
+				bitcnt+=(t>>i)&1;
+			}
+			assert(m%bitcnt==0);
+			cnt[m/bitcnt]++;
+		}
+	}
+	f[0]=1;
+	for(int i=1;i<=n;i++){
+		lint ans=0;
+		for(int j=1;j<=m&&j<=i;j++){
+			if(cnt[j]){
+				ans+=(lint)c[i-1][j-1]*fac[j-1]%O*cnt[j]%O*f[i-j]%O;
+			}
+		}
+		f[i]=ans%O;
+	}
+	return f[n];
+}
+map<int,int>ans;
+inline int Main(){
+	n=ni,m=ni;
+	for(int i=1;i<=m;i++){
+		for(int j=1;j<=m;j++){
+			g[i][j]=ni;
+		}
+	}
+	for(int i=1;i<=m;i++){
+		for(int j=1;j<=m;j++){
+			for(int k=1;k<=m;k++){
+				if(g[i][g[j][k]]!=g[g[i][j]][k])return 0;
+			}
+		}
+	}
+	subg.clear(),dfs(0),subg.erase(0);
+	ans.clear();
+	for(set<int>::iterator it=subg.begin(),ti=subg.end();it!=ti;it++){
+		if(valid(*it)){
+			ans[*it]=calc(*it);
+		}
+	}
+	for(map<int,int>::iterator it=ans.end(),ti=ans.begin();it!=ti;){
+		lint tmp=0;
+		for(map<int,int>::iterator it2=it--,ti=ans.end();it2!=ti;it2++){
+			if((it->first|it2->first)==it2->first){
+				tmp+=it2->second;
+			}
+		}
+		it->second=(it->second+O-tmp%O)%O;
+	}
+	return ans.begin()->second;
 }
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("monkey.in","r",stdin);
 	freopen("monkey.out","w",stdout);
 #endif
-	sieve(N-1);
 	gmath(N-1);
 	for(int tot=ni;tot--;){
 		printf("%d\n",Main());
