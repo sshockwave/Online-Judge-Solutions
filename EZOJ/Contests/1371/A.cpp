@@ -35,6 +35,41 @@ inline void gmath(int n){
 	}
 }
 int g[M][M],n,m;
+int invg[M];
+inline bool checkg(){
+	for(int i=1;i<=m;i++){
+		for(int j=1;j<=m;j++){
+			for(int k=1;k<=m;k++){
+				if(g[i][g[j][k]]!=g[g[i][j]][k])return false;
+			}
+		}
+	}
+	int unit=0;
+	for(int i=1;i<=m;i++){
+		bool flag=true;
+		for(int j=1;j<=m;j++){
+			if(j!=g[i][j]||j!=g[j][i]){
+				flag=false;
+				break;
+			}
+		}
+		if(flag){
+			if(unit)return false;
+			unit=i;
+		}
+	}
+	memset(invg,0,sizeof(invg));
+	for(int i=1;i<=m;i++){
+		for(int j=1;j<=m;j++){
+			if(g[i][j]==unit){
+				if(g[j][i]!=unit)return false;
+				if(invg[i])return false;
+				invg[i]=j;
+			}
+		}
+	}
+	return true;
+}
 int ginv[M];
 int que[M];
 inline int gstate(int s){
@@ -75,14 +110,7 @@ inline bool valid(int s){
 	for(int i=1;i<=m;i++){
 		if((s>>i)&1){
 			for(int j=1;j<=m;j++){
-				bool flag=false;
-				for(int k=1;k<=m;k++){
-					if(((s>>k)&1)&&g[i][j]==g[j][k]){
-						flag=true;
-						break;
-					}
-				}
-				if(!flag)return false;
+				if(((s>>g[g[j][i]][invg[j]])&1)==0)return false;
 			}
 		}
 	}
@@ -122,13 +150,7 @@ inline int Main(){
 			g[i][j]=ni;
 		}
 	}
-	for(int i=1;i<=m;i++){
-		for(int j=1;j<=m;j++){
-			for(int k=1;k<=m;k++){
-				if(g[i][g[j][k]]!=g[g[i][j]][k])return 0;
-			}
-		}
-	}
+	if(!checkg())return 0;
 	subg.clear(),dfs(0),subg.erase(0);
 	ans.clear();
 	for(set<int>::iterator it=subg.begin(),ti=subg.end();it!=ti;it++){
