@@ -17,6 +17,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+template<class T>inline T sqr(T x){return x*x;}
 const int N=1000010;
 namespace trie{
 	int n=0;
@@ -26,10 +27,8 @@ namespace trie{
 	const int D=26;
 	int son[N][D],fail[N],dep[N]={0};
 	int rt;
-	int same[N];
 	inline void init(){
 		memset(son,0,sizeof(son));
-		memset(same,0,sizeof(same));
 		rt=nn();
 		for(int i=0;i<D;i++){
 			son[0][i]=rt;
@@ -46,7 +45,6 @@ namespace trie{
 			}
 		}
 	}
-	int stk[N],ss=0;
 	int que[N];
 	int bfs(){
 		int qh=0,qt=0;
@@ -54,13 +52,6 @@ namespace trie{
 		fail[rt]=0;
 		while(qh<qt){
 			int x=que[qh++];
-			ss=0;
-			for(int p=x;p;p=fa[p]){
-				stk[ss++]=p;
-			}
-			for(int p=fail[x];dep[p];p=fail[p]){
-				same[stk[dep[p]]]++;
-			}
 			for(int i=0;i<D;i++){
 				int s=son[x][i];
 				if(s==0)continue;
@@ -70,6 +61,32 @@ namespace trie{
 			}
 		}
 		return qt;
+	}
+	int size[N];
+	lint ans;
+	int stk[N],ss=0;
+	void dfs(int x){
+		if(dep[fail[x]]){
+			ans-=size[stk[ss-dep[fail[x]]]]-1;
+		}
+		stk[ss++]=x;
+		for(int i=0;i<D;i++){
+			if(son[x][i]){
+				dfs(son[x][i]);
+			}
+		}
+		ss--;
+	}
+	inline lint Main(){
+		int n=bfs();
+		ans=sqr((lint)n-1);
+		memset(size,0,sizeof(size));
+		for(int i=n-1;i>=1;i--){
+			int x=que[i];
+			size[fail[x]]+=++size[x];
+		}
+		dfs(rt);
+		return ans;
 	}
 }
 char s[N];
@@ -83,21 +100,6 @@ int main(){
 		scanf("%s",s);
 		trie::ins(s);
 	}
-	trie::fail[trie::rt]=0;
-	int size=trie::bfs()-1;
-	lint ans=(lint)size*size;
-	for(int x=2;x<=trie::n;x++){
-		using namespace trie;/*
-		for(int p=x;p=fail[p],dep[p];){
-			ans-=same[p];
-		}*/
-		int p=fail[x];
-		for(;dep[fail[p]];p=fail[p]);
-		cout<<"x="<<x<<"\tp="<<p<<"\tsame="<<same[x]<<"\tfail="<<fail[x]<<endl;
-		if(dep[p]){
-			ans-=same[p];
-		}
-	}
-	printf("%lld\n",ans);
+	printf("%lld\n",trie::Main());
 	return 0;
 }
