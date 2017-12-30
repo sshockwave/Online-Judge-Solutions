@@ -31,6 +31,7 @@ int val[N],lst[N];
 inline bool lcmp(int a,int b){
 	return val[a]<val[b];
 }
+bool mark[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("heike.in","r",stdin);
@@ -48,6 +49,7 @@ int main(){
 	memset(mxrm,0,sizeof(mxrm));
 	memset(mnrm,127,sizeof(mnrm));
 	memset(rest,0,sizeof(rest));
+	memset(mark,0,sizeof(mark));
 	for(int i=1;i<=len;i++){
 		for(int j=i;j<=len;j++){
 			rest[i][j]=j-i+1;
@@ -60,6 +62,7 @@ int main(){
 		if(ban[l][r].l){//insert fail
 			apmax(mxrm[ban[l][r].l][ban[l][r].r],val[x]);
 		}else{//insert success
+			mark[x]=true;
 			ans+=val[x];
 			for(int a=1;a<=l;a++){
 				for(int b=r;b<=len;b++){
@@ -81,13 +84,8 @@ int main(){
 		}
 	}
 	for(int y=len;y>=1;y--){
-		int cur=0;
 		for(int x=1;x<=y;x++){
-			apmax(mxrm[x][y],cur);
-			cur=mxrm[x][y];
-			if(y<len){
-				apmax(mxrm[x][y],mxrm[x][y+1]);
-			}
+			apmax(mxrm[x][y],max(mxrm[x-1][y],mxrm[x][y+1]));
 		}
 	}
 	printf("%d\n",ans);
@@ -102,8 +100,12 @@ int main(){
 			}
 		}else{//delete
 			int x=ni;
-			int l=intv[x].l,r=intv[x].r;
-			printf("%d\n",ans-val[x]+mxrm[l][r]);
+			if(mark[x]){
+				int l=intv[x].l,r=intv[x].r;
+				printf("%d\n",ans-val[x]+mxrm[l][r]);
+			}else{
+				printf("%d\n",ans);
+			}
 		}
 	}
 	return 0;
