@@ -1,9 +1,10 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#define NDEBUG
 #include <cassert>
 #include <cctype>
+#include <cstdlib>
+#include <map>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -18,241 +19,239 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=100010,C=17;
-lint ban[C];
-inline bool valid(lint x){
-	for(int i=0;i<C;i++){
-		if(ban[i]==x)return false;
+const int N=100010,C=13;
+const lint LINF=0x7f7f7f7f7f7f7f7f;
+lint banval[C];
+map<lint,int>ban;
+namespace T{
+	struct Node;
+	typedef Node* node;
+	node null;
+	struct Node{
+		//treap
+		node lson,rson;
+		int prior;
+		//interval
+		int l,r;
+		lint val;
+		//subtree info
+		int len;
+		lint sum,mn,mx;
+		//tag
+		bool tag;
+		lint dt;
+		inline int index(){
+			map<lint,int>::iterator it=ban.lower_bound(val);
+			return it!=ban.end()?it->second:C;
+		}
+		inline void setval(lint v){
+			if(this==null)return;
+			val=v,sum=v*len,mn+=v,mx+=v;
+			tag=true,dt=v;
+		}
+		inline void addval(lint v){
+			if(this==null)return;
+			val+=v,sum+=v*len,mn+=v,mx+=v;
+			dt+=v;
+		}
+		inline void up(){
+			assert(!tag&&dt==0);
+			len=lson->len+(r-l+1)+rson->len;
+			sum=lson->sum+val*(r-l+1)+rson->sum;
+			mn=min(val,min(lson->mn,rson->mn));
+			mx=max(val,max(lson->mx,rson->mx));
+		}
+		inline void down(){
+			if(tag){
+				lson->setval(dt);
+				rson->setval(dt);
+				tag=false,dt=0;
+			}else if(dt){
+				lson->addval(dt);
+				rson->addval(dt);
+				dt=0;
+			}
+		}
+	}Null,pool[N];
+	node pt[N],*n=pt;
+	node rt[C+1],nrt[C+1];
+	inline node nn(node x=null){
+		return **n=*x,(*n)->prior=rand(),*n++;
 	}
-	return true;
-}
-lint a[N];
-inline void fixup(int l,int r){
-	while(true){
-		bool flag=true;
-		for(int i=l;i<=r;i++){
-			if(!valid(a[i])){
-				flag=false;
-				break;
-			}
-		}
-		if(flag)break;
-		for(int i=l;i<=r;i++){
-			a[i]++;
-		}
+	void del(node x){
+		if(x==null)return;
+		del(x->lson),*--n=x,del(x->rson);
 	}
-}
-namespace brute6{
-	namespace seg{
-		struct Node;
-		typedef Node* node;
-		struct Node{
-			node lson,rson;
-			int l,m,r;
-			bool tag;
-			lint val,mx,mn,sum;
-			inline void setval(lint v){
-				tag=true;
-				val=mx=mn=v;
-				sum=v*(r-l+1);
-			}
-			inline void addval(lint v){
-				val+=v;
-				mx+=v;
-				mn+=v;
-				sum+=v*(r-l+1);
-			}
-			inline void up(){
-				assert(!tag);
-				assert(val==0);
-				mx=max(lson->mx,rson->mx);
-				mn=min(lson->mn,rson->mn);
-				sum=lson->sum+rson->sum;
-			}
-			inline void down(){
-				if(tag){
-					tag=false;
-					lson->setval(val);
-					rson->setval(val);
-					val=0;
-				}else if(val){
-					lson->addval(val);
-					rson->addval(val);
-					val=0;
-				}
-			}
-		};
-		node rt;
-		node build(int l,int r){
-			static node n=new Node[N<<1];
-			node x=n++;
-			x->l=l,x->m=(l+r)>>1,x->r=r;
-			if(l==r){
-				x->setval(a[l]);
-			}else{
-				x->lson=build(l,x->m);
-				x->rson=build(x->m+1,r);
-				x->val=0;
-				x->tag=false;
-				x->up();
-			}
-			return x;
+	inline void init(){
+		for(int i=0;i<N;i++){
+			pt[i]=pool+i;
 		}
-		void cover(node x,int l,int r,lint v){
-			if(x->l==l&&x->r==r){
-				x->setval(v);
-				return;
-			}
-			x->down();
-			if(r<=x->m){
-				cover(x->lson,l,r,v);
-			}else if(l>x->m){
-				cover(x->rson,l,r,v);
-			}else{
-				cover(x->lson,l,x->m,v);
-				cover(x->rson,x->m+1,r,v);
-			}
-			x->up();
-		}
-		void add(node x,int l,int r,lint v){
-			if(x->l==l&&x->r==r){
-				x->addval(v);
-				return;
-			}
-			x->down();
-			if(r<=x->m){
-				add(x->lson,l,r,v);
-			}else if(l>x->m){
-				add(x->rson,l,r,v);
-			}else{
-				add(x->lson,l,x->m,v);
-				add(x->rson,x->m+1,r,v);
-			}
-			x->up();
-		}
-		lint ask(node x,int l,int r){
-			if(x->tag)return x->val*(r-l+1);
-			if(x->l==l&&x->r==r)return x->sum;
-			x->down();
-			if(r<=x->m)return ask(x->lson,l,r);
-			if(l>x->m)return ask(x->rson,l,r);
-			return ask(x->lson,l,x->m)+ask(x->rson,x->m+1,r);
-		}
-		lint askmax(node x,int l,int r){
-			if(x->tag)return x->val;
-			if(x->l==l&&x->r==r)return x->mx;
-			x->down();
-			if(r<=x->m)return askmax(x->lson,l,r);
-			if(l>x->m)return askmax(x->rson,l,r);
-			return max(askmax(x->lson,l,x->m),askmax(x->rson,x->m+1,r));
-		}
-		lint askmin(node x,int l,int r){
-			if(x->tag)return x->val;
-			if(x->l==l&&x->r==r)return x->mn;
-			x->down();
-			if(r<=x->m)return askmin(x->lson,l,r);
-			if(l>x->m)return askmin(x->rson,l,r);
-			return min(askmin(x->lson,l,x->m),askmin(x->rson,x->m+1,r));
+		null=&Null;
+		memset(null,0,sizeof(Null));
+		null->lson=null->rson=null;
+		null->mn=LINF;
+		for(int i=0;i<=C;i++){
+			rt[i]=null;
 		}
 	}
-	inline void Main(int n,int tot){
-		seg::rt=seg::build(1,n);
-		while(tot--){
-			int op=ni;
-			if(op==1){
-				int x=ni;
-				printf("%lld\n",seg::ask(seg::rt,x,x));
-			}else if(op==2){
-				int l=ni,r=ni,v=ni;
-				for(;!valid(v);v++);
-				seg::cover(seg::rt,l,r,v);
-			}else if(op==3){
-				int l=ni,r=ni;
-				seg::add(seg::rt,l,r,ni);
-			}else if(op==4){
-				int l=ni,r=ni;
-				lint v=seg::askmax(seg::rt,l,r);
-				seg::cover(seg::rt,l,r,v);
-			}else if(op==5){
-				int l=ni,r=ni;
-				lint v=seg::askmin(seg::rt,l,r);
-				seg::cover(seg::rt,l,r,v);
-			}else if(op==6){
-				int l=ni,r=ni;
-				lint v=(long double)(seg::ask(seg::rt,l,r))/(r-l+1)+1e-9;
-				seg::cover(seg::rt,l,r,v);
-			}
+	node mg(node u,node v){
+		if(u==null||v==null)return u!=null?u:v;
+		if(u->prior>v->prior){
+			return u->down(),u->rson=mg(u->rson,v),u->up(),u;
+		}else{
+			return v->down(),v->lson=mg(u,v->lson),v->up(),v;
 		}
+	}
+	node rtl,rtr,y;
+	void _sp(node x,int m,node &lt,node &rt){
+		if(x==null)return lt=rt=null,void();
+		x->down();
+		if(m<x->l){
+			rt=x,_sp(x->lson,m,lt,x->lson),x->up();
+		}else if(m>=x->r){
+			lt=x,_sp(x->rson,m,x->rson,rt),x->up();
+		}else{
+			y=nn(x);
+			x->r=m,y->l=m+1;
+			x->rson=y->lson=null;
+			x->up(),y->up();
+			lt=x,rt=null;
+		}
+	}
+	void sp(node x,int m,node &lt,node &rt){
+		lt=rt=null;
+		rtl=rtr=y=null;
+		_sp(x,m,rtl,rtr);
+		if(y!=null){
+			rtr=mg(y,rtr);
+		}
+		lt=rtl,rt=rtr;
+	}
+	void ins(node &x,node y){
+		if(x==null)return x=y,void();
+		if(y->prior>x->prior){
+			sp(x,y->l,y->lson,y->rson);
+			(x=y)->up();
+			return;
+		}
+		x->down();
+		if(y->l<x->l){
+			ins(x->lson,y);
+		}else{
+			ins(x->rson,y);
+		}
+		x->up();
+	}
+	void fixup(node &x,lint v){
+		while(x->mx>v){
+			assert(x!=null);
+			x->down();
+			if(x->val>v){
+				node y=x;
+				x=mg(x->lson,x->rson);
+				y->lson=y->rson=null,y->up();
+				ins(T::rt[y->index()],y);
+			}else if(x->lson->mx>v){
+				fixup(x->lson,v),x->up();
+			}else if(x->rson->mx>v){
+				fixup(x->rson,v),x->up();
+			}else assert(false);
+		}
+	}
+	lint gval(node x,int p){
+		if(x==null)return -1;
+		if(x->l<=p&&p<=x->r)return x->val;
+		x->down();
+		return gval(p<x->l?x->lson:x->rson,p);
 	}
 }
+T::node lhs[C+1],rhs[C+1];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("operation.in","r",stdin);
 	freopen("operation.out","w",stdout);
 #endif
-	ban[0]=233;
+	ban[banval[0]=233]=0;
 	for(int i=1;i<C;i++){
-		ban[i]=ban[i-1]*10+3;
+		ban[banval[i]=banval[i-1]*10+3]=i;
 	}
-	int n=ni,tot=ni;
-	for(int i=1;i<=n;i++){
-		a[i]=ni;
+	int n=ni;
+	ni;
+	T::init();
+	for(int i=1,j;i<=n;i++){
+		T::node x=T::nn();
+		x->l=x->r=i;
+		x->val=ni;
+		x->up();
+		j=x->index();
+		T::rt[j]=T::mg(T::rt[j],x);
 	}
-	if(n>4000){
-		brute6::Main(n,tot);
-		return 0;
-	}
-	for(int l,r,x;tot--;){
-		lint val;
-		switch(ni){
-			case 1:
-				printf("%lld\n",a[ni]);
-				break;
-			case 2:
-				l=ni,r=ni,x=ni;
-				for(;!valid(x);x++);
-				for(int i=l;i<=r;i++){
-					a[i]=x;
+	for(int op;scanf("%d",&op)!=EOF;){
+		if(op==1){
+			int x=ni;
+			lint val;
+			for(int i=0;i<=C;i++){
+				val=T::gval(T::rt[i],x);
+				if(val!=-1)break;
+			}
+			printf("%lld\n",val);
+		}else{
+			int l=ni,r=ni;
+			for(int i=0;i<=C;i++){
+				T::sp(T::rt[i],l-1,lhs[i],T::rt[i]);
+				T::sp(T::rt[i],r,T::rt[i],rhs[i]);
+			}
+			if(op==3){//addval
+				for(int dt=ni;dt;){
+					for(int i=C;i>=0;i--){
+						T::rt[i]->addval(dt);
+						if(i==C)continue;
+						T::fixup(T::rt[i],banval[i]);
+					}
+					dt=0;
+					for(int i=0;i<C;i++){
+						if(T::rt[i]->mx==banval[i]){
+							dt=1;
+							break;
+						}
+					}
 				}
-				break;
-			case 3:
-				l=ni,r=ni,x=ni;
-				for(int i=l;i<=r;i++){
-					a[i]+=x;
+				for(int i=0;i<=C;i++){
+					T::rt[i]=T::mg(T::mg(lhs[i],T::rt[i]),rhs[i]);
 				}
-				fixup(l,r);
-				break;
-			case 4:
-				l=ni,r=ni,val=a[l];
-				for(int i=l+1;i<=r;i++){
-					apmax(val,a[i]);
+			}else{//setval
+				T::node x=T::nn();
+				x->l=l,x->r=r;
+				if(op==2){
+					x->val=ni;
+				}else if(op==4){
+					x->val=0;
+					for(int i=0;i<=C;i++){
+						apmax(x->val,T::rt[i]->mx);
+					}
+				}else if(op==5){
+					x->val=LINF;
+					for(int i=0;i<=C;i++){
+						apmin(x->val,T::rt[i]->mn);
+					}
+				}else if(op==6){
+					x->val=0;
+					for(int i=0;i<=C;i++){
+						x->val+=T::rt[i]->sum;
+					}
+					x->val=(long double)x->val/(r-l+1)+1e-9;
 				}
-				assert(valid(val));
-				for(int i=l;i<=r;i++){
-					a[i]=val;
+				for(;ban.find(x->val)!=ban.end();x->val++);
+				x->up();
+				for(int i=0,j=x->index();i<=C;i++){
+					T::del(T::rt[i]);
+					if(i==j){
+						T::rt[i]=T::mg(T::mg(lhs[i],x),rhs[i]);
+					}else{
+						T::rt[i]=T::mg(lhs[i],rhs[i]);
+					}
 				}
-				break;
-			case 5:
-				l=ni,r=ni,val=a[l];
-				for(int i=l+1;i<=r;i++){
-					apmin(val,a[i]);
-				}
-				assert(valid(val));
-				for(int i=l;i<=r;i++){
-					a[i]=val;
-				}
-				break;
-			case 6:
-				l=ni,r=ni,val=0;
-				for(int i=l;i<=r;i++){
-					val+=a[i];
-				}
-				val=(long double)val/(r-l+1)+1e-9;
-				for(;!valid(val);val++);
-				for(int i=l;i<=r;i++){
-					a[i]=val;
-				}
-				break;
+			}
 		}
 	}
 	return 0;
