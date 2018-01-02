@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#define NDEBUG
 #include <cassert>
 #include <cctype>
 using namespace std;
@@ -18,7 +19,7 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=22,M=N;
-const double EPS=1e-9,DINF=1e100;
+const double EPS=1e-8,DINF=1e100;
 inline int sgn(double x){
 	return x>EPS?1:x<-EPS?-1:0;
 }
@@ -33,9 +34,8 @@ namespace lp{
 		assert(sgn(a[y][x]));
 		swap(nvar[x],mvar[y]);
 		double c=-1/a[y][x];
-		a[y][x]=1;
-		a[y][0]*=-c;
-		for(int i=1;i<=n;i++){
+		a[y][x]=-1;
+		for(int i=0;i<=n;i++){
 			a[y][i]*=c;
 		}
 		for(int j=0;j<=m;j++){
@@ -51,20 +51,28 @@ namespace lp{
 		return sgn(a[j][i])==-1?-a[j][0]/a[j][i]*a[0][i]:DINF;
 	}
 	inline void simplex(){
-		int p=0,q=0;
-		do for(int i=1;i<=n;i++){
-			if(sgn(a[0][i])!=1)continue;
-			int curj=1;
-			for(int j=2;j<=m;j++){
-				if(delta(i,curj)>delta(i,j)){
-					curj=j;
+		for(int p,q;;){
+			p=q=0;
+			for(int i=1;i<=n;i++){
+				if(sgn(a[0][i])==1&&(p==0||nvar[i]<nvar[p])){
+					p=i;
 				}
 			}
-			if(p==0||delta(p,q)<delta(i,curj)){
-				p=i,q=curj;
+			if(p==0)return;
+			double dt=DINF;
+			for(int j=1;j<=m;j++){
+				if(sgn(a[j][p])==-1){
+					double cur=-a[j][0]/a[j][p];
+					if(sgn(cur-dt)==0&&mvar[j]<mvar[q]){
+						q=j;
+					}else if(cur<dt){
+						q=j,dt=cur;
+					}
+				}
 			}
-			if(delta(p,q)==DINF)throw "Unbounded";
-		}while(p&&(pivot(p,q),p=q=0,true));
+			if(q==0)throw "Unbounded";
+			pivot(p,q);
+		}
 	}
 	inline double solve(int n,int m){
 		memset(nvar,0,sizeof(nvar));
@@ -84,8 +92,8 @@ namespace lp{
 			}
 		}
 		if(sgn(a[pt][0])==-1){//initialize
-			static double *tmp=new double[N];
-			memcpy(tmp+1,a[0]+1,n);
+			static double *b=new double[N];
+			memcpy(b+1,a[0]+1,sizeof(double)*n);
 			memset(a[0]+1,0,sizeof(double)*n);
 			a[0][++lp::n]=-1;
 			for(int j=1;j<=m;j++){
@@ -114,11 +122,18 @@ namespace lp{
 					break;
 				}
 			}
-			a[0][0]=0;
-			for(int i=1;i<=n;i++){
-				a[0][i]=tmp[nvar[i]];
-			}
 			lp::n=n;
+			memset(a[0],0,sizeof(double)*(n+1));
+			for(int i=1;i<=n;i++){
+				if(nvar[i]>n)continue;
+				a[0][i]+=b[nvar[i]];
+			}
+			for(int j=1;j<=m;j++){
+				if(mvar[j]>n)continue;
+				for(int i=0;i<=n;i++){
+					a[0][i]+=b[mvar[j]]*a[j][i];
+				}
+			}
 		}
 		simplex();
 		memset(ans,0,sizeof(ans));
@@ -149,7 +164,7 @@ int main(){
 		printf("%.10lf\n",lp::solve(n,m));
 		if(t){
 			for(int i=1;i<=n;i++){
-				printf("%.10lf ",lp::ans[n]);
+				printf("%.10lf ",lp::ans[i]);
 			}
 			putchar('\n');
 		}
