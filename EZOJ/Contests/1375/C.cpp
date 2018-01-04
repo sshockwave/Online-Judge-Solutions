@@ -3,7 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <vector>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -20,163 +20,70 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>T gcd(const T &a,const T &b){return b?gcd(b,a%b):a;}
 const int N=9,O=998244353;
-inline int fpow(int x,int n){
-	int a=1;
-	for(;n;n>>=1,x=(lint)x*x%O){
-		if(n&1){
-			a=(lint)a*x%O;
-		}
-	}
-	return a;
+lint mx[N],n,ts;
+int f[2][1<<N];
+inline void clr(int f[]){
+	memset(f,0,ts<<2);
 }
-typedef vector<lint>vi;
-typedef vi::iterator iter;
-int gans(vi &org){
-	if(org.empty())return 1;
-	{
-		int sh=0;
-		lint g=0;
-		for(iter it=org.begin();it!=org.end();it++){
-			if(*it==0)return 0;
-			g=gcd(g,*it);
+inline int solve(){
+	int *f=::f[0],*nf=::f[1];
+	clr(f);
+	f[0]=1;
+	sort(mx,mx+n);
+	int sh=0;
+	for(;(1ll<<sh)<=mx[n-1];sh++);
+	for(int i=sh;i>=0;i--,swap(f,nf)){
+		clr(nf);
+		int mask=0;
+		for(int j=0;j<n;j++){
+			mask|=((mx[j]>>i)&1)<<j;
 		}
-		assert(g);
-		for(;(g&1)==0;g>>=1,sh++);
-		if(sh){
-			vi coor;
-			for(iter it=org.begin();it!=org.end();it++){
-				lint val=*it>>sh;
-				if(val!=1){
-					coor.push_back(val);
+		for(int s=0;s<ts;s++){
+			int F=f[s];
+			if(F==0)continue;
+			(nf[s|mask]+=F)%=O;
+			for(int j=0;j<n;j++){
+				if((s>>j)&1){
+					(nf[s|mask]+=F)%=O;
+				}else if((mask>>j)&1){
+					(nf[s|(mask^(1<<j))]+=F)%=O;
 				}
 			}
-			return (lint)gans(coor)*fpow(org.size()+1,sh)%O;
 		}
 	}
-	{
-		bool flag=false;
-		for(iter it=org.begin();it!=org.end();it++){
-			if(*it==1){
-				flag=true;
-				break;
-			}
-		}
-		if(flag){
-			vi coor;
-			for(iter it=org.begin();it!=org.end();it++){
-				if(*it!=1){
-					coor.push_back(*it);
-				}
-			}
-			return gans(coor);
-		}
-	}
-	int sh;
-	vi coor=org;
-	//no more org
-	if(coor.size()==1)return coor[0]%O;
-	if(coor.size()==2){
-		lint a=coor[0],b=coor[1];
-		if(a>b){
-			swap(a,b);
-		}
-		for(sh=0;(1ll<<(sh+1))<=a;sh++);
-		lint len=1ll<<sh;
-		lint cnt=b/len;
-		lint ans=cnt*fpow(3,sh)%O;
-		if(b%len){
-			vi nxt;
-			nxt.push_back(len),nxt.push_back(b%len);
-			ans+=gans(nxt);
-			if((cnt&1)==0&&a>len){
-				vi nxt;
-				nxt.push_back(b%len),nxt.push_back(a-len);
-				ans+=gans(nxt);
-			}
-		}
-		if(a>len){
-			vi nxt;
-			nxt.push_back(a-len),nxt.push_back(len);
-			ans+=((cnt+1)>>1)*gans(nxt)%O;
-		}
-		return ans%O;
-	}
-	/*
-	if(cnt==1){
-		iter pt;
-		for(pt=coor.begin();(*pt&1)==0;pt++);
-		g=0;
-		for(iter it=coor.begin();it!=coor.end();it++){
-			if(it!=pt){
-				g=gcd(g,*it);
-			}
-		}
-		assert(g&&(g&1)==0);
-		for(sh=0;(g&1)==0&&(1ll<<(sh+1))<*pt;g>>=1,sh++);
-		lint oldval=*pt;
-		for(iter it=coor.begin();it!=coor.end();it++){
-			*it>>=sh;
-		}
-		int ans1=gans(coor);
-		*pt++;
-		int ans2=gans(coor);
-		vi nxt;
-		for(int i=0,ti=coor.size()-1;i<ti;i++){
-			nxt.push_back(1ll<<sh);
-		}
-		nxt.push_back(oldval%(1ll<<sh));
-		ans2=(lint)(ans2-ans1+O)%O*gans(nxt)%O;
-		ans1=((lint)ans1*fpow(coor.size()+1,sh)%O+ans2)%O;
-		return (lint)ans1*fact%O;
-	}*/
-	lint mn=coor[0];
-	for(iter it=coor.begin()+1;it!=coor.end();it++){
-		apmin(mn,*it);
-	}
-	for(;(1ll<<(sh+1))<=mn;sh++);
 	lint ans=0;
-	for(int s=1,ts=1<<coor.size();s<ts;s++){
-		vi nxt;
-		int cnt=0;
-		for(int i=0,ti=coor.size();i<ti;i++){
-			if((s>>i)&1){
-				cnt++;
-				nxt.push_back(mn);
-			}else{
-				nxt.push_back(coor[i]);
-			}
-		}
-		if(cnt&1){
-			ans+=gans(nxt);
-		}else{
-			ans-=gans(nxt);
-		}
+	for(int s=0;s<ts;s++){
+		ans+=f[s];
 	}
-	return (ans%O+O)%O;
+	return ans%O;
 }
-int a[N][2];
+lint a[N][2];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("village.in","r",stdin);
 	freopen("village.out","w",stdout);
 #endif
-	int k=ni;
-	for(int i=0;i<k;i++){
+	n=ni,ts=1<<n;
+	for(int i=0;i<n;i++){
 		a[i][1]=next_num<lint>()-1;
 		a[i][0]=next_num<lint>();
 	}
 	lint ans=0;
-	for(int s=0,ts=1<<k;s<ts;s++){
-		vi coor;
+	for(int s=0;s<ts;s++){
 		int cnt=0;
-		for(int i=0;i<k;i++){
+		for(int i=0;i<n;i++){
 			cnt+=(s>>i)&1;
-			coor.push_back(a[i][(s>>i)&1]);
+			mx[i]=a[i][(s>>i)&1]-1;
+			if(mx[i]<0){
+				cnt=-1;
+				break;
+			}
 		}
+		if(cnt==-1)continue;
 		if(cnt&1){
-			ans-=gans(coor);
+			ans-=solve();
 		}else{
-			ans+=gans(coor);
+			ans+=solve();
 		}
 	}
 	printf("%lld\n",(ans%O+O)%O);
