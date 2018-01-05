@@ -21,7 +21,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=30010,rtN=200;
+const int N=30010,rtN=200,M=2;
 int a[N];
 int pos[N];
 int *lst[N];
@@ -32,8 +32,8 @@ inline ull gen(){
 	return (ull)rand()*RAND_MAX+rand();
 }
 ull col[N],val[N];
-map<ull,int>cnt[rtN];
-ull tag[rtN];
+map<ull,int>cnt[rtN*M];
+ull tag[rtN*M];
 int ans=0;
 inline void addm(int b,int v){
 	map<ull,int>::iterator it=cnt[b].find(tag[b]);
@@ -59,7 +59,7 @@ int main(){
 #endif
 	srand(262526);
 	int n=ni,rt;
-	for(rt=0;rt*rt<n;rt++);
+	for(rt=1;rt*rt*M<n;rt++);
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
 		lst[i]=a+i;
@@ -87,7 +87,7 @@ int main(){
 			int cb=nxt/rt;
 			ull dt=col[a[i]];
 			addm(cb,-1);
-			for(int j=nxt,tj=nb*rt;j<tj;j++){
+			for(int j=nxt,tj=nb*rt;j<=n&&j<tj;j++){
 				modm(cb,val[j],-1);
 				modm(cb,val[j]^=dt,1);
 			}
