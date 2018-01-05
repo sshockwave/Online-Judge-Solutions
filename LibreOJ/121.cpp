@@ -65,7 +65,10 @@ namespace T{
 		inline void rot(){
 			assert(~side());
 			bool d=!side();
-			fa->son[!d]=son[d],son[d]->fa=fa,son[d]=fa;
+			if(son[d]!=null){
+				son[d]->fa=fa;
+			}
+			fa->son[!d]=son[d],son[d]=fa;
 			int g=fa->side();
 			if(~g){
 				fa->fa->son[g]=this;
@@ -159,6 +162,8 @@ int main(){
 				del[x->val]=true;
 				lnk(u,enode[i]);
 				lnk(v,enode[i]);
+			}else if(enode[i]->val<INF){
+				del[enode[i]->val]=true;
 			}
 		}else if(op[i]==1){
 			if(del[i])continue;
@@ -168,7 +173,7 @@ int main(){
 			u->fa=v->fa=null;
 		}else{
 			chr(u),acc(v),v->splay();
-			putchar(u->fa!=null?'Y':'N');
+			putchar(u==v||u->fa!=null?'Y':'N');
 			putchar('\n');
 		}
 	}
