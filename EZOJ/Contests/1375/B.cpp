@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cctype>
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include <cstdlib>
 using namespace std;
 typedef long long lint;
@@ -32,17 +32,17 @@ inline ull gen(){
 	return (ull)rand()*RAND_MAX+rand();
 }
 ull col[N],val[N];
-map<ull,int>cnt[rtN*M];
+unordered_map<ull,int>cnt[rtN*M];
 ull tag[rtN*M];
 int ans=0;
 inline void addm(int b,int v){
-	map<ull,int>::iterator it=cnt[b].find(tag[b]);
+	unordered_map<ull,int>::iterator it=cnt[b].find(tag[b]);
 	if(it!=cnt[b].end()){
 		ans+=it->second*v;
 	}
 }
 inline void modm(int b,ull p,int v){
-	map<ull,int>::iterator it=cnt[b].find(p);
+	unordered_map<ull,int>::iterator it=cnt[b].find(p);
 	if(it==cnt[b].end()){
 		cnt[b][p]=v;
 		return;
