@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cctype>
 using namespace std;
-typedef double db;
 typedef long long lint;
 #define cout cerr
 #define ni (next_num<int>())
@@ -18,110 +17,87 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=210,K=16;
-const db EPS=1e-8,DINF=1e100;
-inline int sig(db x){
-	return x<-EPS?-1:x>EPS;
-}
-namespace lp{
-	const int N=::N,M=::N*3;
-	db a[M][N];
-	int nvar[N],mvar[M];
-	int n,m;
-	inline void pivot(int x,int y){
-		swap(nvar[x],mvar[y]);
-		db c=-1/a[y][x];
-		a[y][x]=-1;
-		for(int i=0;i<=n;i++){
-			a[y][i]*=c;
-		}
-		for(int j=0;j<=m;j++){
-			if(j==y)continue;
-			c=a[j][x],a[j][x]=0;
-			for(int i=0;i<=n;i++){
-				a[j][i]+=a[y][i]*c;
+const int N=210,K=16,INF=0x7f7f7f7f;
+namespace G{
+	const int N=::N,E=N*2*2;
+	int to[E],bro[E],cap[E],val[E],head[N],e=0,n=0,s,t;
+	inline int nn(){
+		return ++n;
+	}
+	inline void init(){
+		s=nn(),t=nn();
+		memset(head,-1,sizeof(head));
+	}
+	inline void ae(int u,int v,int c,int w){
+		to[e]=v,bro[e]=head[u],cap[e]=c,val[e]=w,head[u]=e++;
+	}
+	inline void add(int u,int v,int c,int w){
+		ae(u,v,c,w),ae(v,u,0,-w);
+	}
+	int dis[N],pre[N],que[N];
+	bool inque[N];
+	inline void spfa(){
+		memset(dis+1,127,n<<2);
+		memset(inque+1,0,n);
+		int qh=0,qt=0;
+		dis[s]=0,pre[s]=-1;
+		inque[s]=true,que[qt++]=s;
+		while(qh!=qt){
+			int x=que[qh++];
+			if(qh==N){
+				qh=0;
+			}
+			inque[x]=false;
+			for(int i=head[x],v;~i;i=bro[i]){
+				if(cap[i]&&dis[v=to[i]]>dis[x]+val[i]){
+					dis[v]=dis[x]+val[i],pre[v]=i;
+					if(!inque[v]){
+						inque[v]=true;
+						que[qt++]=v;
+						if(qt==N){
+							qt=0;
+						}
+					}
+				}
 			}
 		}
 	}
-	inline void simplex(){
-		while(true){
-			int p=0,q=0;
-			for(int i=1;i<=n;i++){
-				if(sig(a[0][i])==1&&(p==0||nvar[i]<nvar[p])){
-					p=i;
-				}
-			}
-			if(p==0)return;
-			double dt=DINF;
-			for(int j=1;j<=m;j++){
-				if(sig(a[j][p])==-1){
-					apmin(dt,-a[j][0]/a[j][p]);
-				}
-			}
-			for(int j=1;j<=m;j++){
-				if(sig(a[j][p])==-1&&sig(dt+a[j][0]/a[j][p])==0&&(q==0||mvar[j]<mvar[q])){
-					q=j;
-				}
-			}
-			if(q==0)return;
-			pivot(p,q);
+	inline int aug(){
+		int dt=INF;
+		for(int p=t;p!=s;p=to[pre[p]^1]){
+			apmin(dt,cap[pre[p]]);
 		}
+		for(int p=t;p!=s;p=to[pre[p]^1]){
+			cap[pre[p]]-=dt;
+			cap[pre[p]^1]+=dt;
+		}
+		return dt;
+	}
+	inline int mcmf(){
+		int cost=0;
+		for(;spfa(),dis[t]<INF;cost+=dis[t]*aug());
+		return cost;
 	}
 }
-bool prefill[N];
+int node[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("prince.in","r",stdin);
 	freopen("prince.out","w",stdout);
 #endif
-	int n=ni,len=ni;
-	int r=len-ni,l=ni;
-	for(int i=1;i<=l;i++){
-		prefill[i]=1;
+	int n=ni,k=ni,p=ni,q=ni;
+	G::init();
+	node[0]=G::s,node[n-k+2]=G::t;
+	for(int i=n-k+1;i>=1;i--){
+		G::add(node[i]=G::nn(),node[i+1],k-p-q,0);
 	}
-	for(int i=l+1;i<=len;i++){
-		prefill[i]=0;
+	G::add(G::s,node[1],k-p,0);
+	int ans=0;
+	for(int i=1;i<=n;i++){
+		int x=ni,y=ni;
+		ans+=x;
+		G::add(node[max(1,i-k+1)],node[min(n-k+1,i)+1],1,x-y);
 	}
-	for(int i=len+1;i<=n;i++){
-		prefill[i]=prefill[i-len];
-	}
-	{//lp init
-		lp::n=n,lp::m=0;
-		using namespace lp;
-		memset(a,0,sizeof(a));
-		for(int i=1;i<=n;i++){
-			int x=ni,y=ni;
-			a[0][0]+=x;
-			a[0][i]=y-x;
-		}
-		for(int i=1;i<=n;i++){
-			m++;
-			a[m][0]=1;
-			a[m][i]=-1;
-		}
-		for(int lend=1,rend=len;rend<=n;lend++,rend++){
-			a[++m][0]=r;
-			for(int j=lend;j<=rend;j++){
-				a[m][j]=-1;
-			}
-			a[++m][0]=-l;
-			for(int j=lend;j<=rend;j++){
-				a[m][j]=1;
-			}
-		}
-		for(int i=1;i<=n;i++){
-			nvar[i]=i;
-		}
-		for(int j=1;j<=m;j++){
-			mvar[j]=j+n;
-		}
-		for(int i=1;i<=n;i++){
-			if(prefill[i]){
-				pivot(i,i);
-			}
-		}
-	}
-	lp::simplex();
-	printf("%d\n",(int)(lp::a[0][0]+1e-8));
+	printf("%d\n",ans-G::mcmf());
 	return 0;
 }
