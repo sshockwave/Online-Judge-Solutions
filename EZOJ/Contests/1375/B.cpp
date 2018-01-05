@@ -4,8 +4,11 @@
 #include <cassert>
 #include <cctype>
 #include <algorithm>
+#include <map>
+#include <cstdlib>
 using namespace std;
 typedef long long lint;
+typedef unsigned long long ull;
 #define cout cerr
 #define ni (next_num<int>())
 template<class T>inline T next_num(){
@@ -18,19 +21,45 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=30010;
+const int N=30010,rtN=200;
 int a[N];
+int pos[N];
 int *lst[N];
 inline bool lcmp(int* a,int* b){
 	return *a<*b;
 }
-int cnt[N];
+inline ull gen(){
+	return (ull)rand()*RAND_MAX+rand();
+}
+ull col[N],val[N];
+map<ull,int>cnt[rtN];
+ull tag[rtN];
+int ans=0;
+inline void addm(int b,int v){
+	map<ull,int>::iterator it=cnt[b].find(tag[b]);
+	if(it!=cnt[b].end()){
+		ans+=it->second*v;
+	}
+}
+inline void modm(int b,ull p,int v){
+	map<ull,int>::iterator it=cnt[b].find(p);
+	if(it==cnt[b].end()){
+		cnt[b][p]=v;
+		return;
+	}
+	it->second+=v;
+	if(it->second==0){
+		cnt[b].erase(it);
+	}
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("meet.in","r",stdin);
 	freopen("meet.out","w",stdout);
 #endif
-	int n=ni;
+	srand(262526);
+	int n=ni,rt;
+	for(rt=0;rt*rt<n;rt++);
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
 		lst[i]=a+i;
@@ -39,24 +68,37 @@ int main(){
 	for(int i=1,j=0,k=0;i<=n;i++){
 		if(*lst[i]!=k){
 			j++;
+			col[j]=gen();
 			k=*lst[i];
 		}
 		*lst[i]=j;
 	}
+	memset(pos,127,sizeof(pos));
+	memset(val,0,sizeof(val));
+	memset(tag,0,sizeof(tag));
 	lint ans=0;
-	for(int i=1;i<=n;i++){
-		memset(cnt+1,0,n<<2);
-		int tp[2]={0,0};
-		for(int j=i;j<=n;j++){
-			if(cnt[a[j]]){
-				tp[cnt[a[j]]&1]--;
+	for(int i=n;i>=1;i--){
+		int nxt=pos[a[i]];
+		pos[a[i]]=i;
+		::ans++;
+		modm(i/rt,tag[i/rt],1);
+		if(nxt<=n){
+			int nb=(nxt+rt-1)/rt;
+			int cb=nxt/rt;
+			ull dt=col[a[i]];
+			addm(cb,-1);
+			for(int j=nxt,tj=nb*rt;j<tj;j++){
+				modm(cb,val[j],-1);
+				modm(cb,val[j]^=dt,1);
 			}
-			cnt[a[j]]++;
-			tp[cnt[a[j]]&1]++;
-			if(tp[0]==0){
-				ans++;
+			addm(cb,1);
+			for(int j=nb,tj=n/rt;j<=tj;j++){
+				addm(j,-1);
+				tag[j]^=dt;
+				addm(j,1);
 			}
 		}
+		ans+=::ans;
 	}
 	printf("%lld\n",ans);
 	return 0;
