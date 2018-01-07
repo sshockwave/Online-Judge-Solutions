@@ -34,13 +34,13 @@ namespace G{
 	inline void add(int u,int v,int w,int c){
 		ae(u,v,w,c),ae(v,u,-w,0);
 	}
-	int dis[N],pre[N],que[N];
+	int dis[N],que[N];
 	bool inque[N];
 	inline void spfa(){
 		memset(dis+1,127,n<<2);
 		memset(inque+1,0,n);
 		int qh=0,qt=0;
-		dis[s]=0,pre[s]=-1,inque[s]=true,que[qt++]=s;
+		dis[s]=0,inque[s]=true,que[qt++]=s;
 		while(qh!=qt){
 			int x=que[qh++];
 			if(qh==N){
@@ -49,7 +49,7 @@ namespace G{
 			inque[x]=false;
 			for(int i=head[x],v;~i;i=bro[i]){
 				if(cap[i]&&dis[v=to[i]]>dis[x]+val[i]){
-					dis[v]=dis[x]+val[i],pre[v]=i;
+					dis[v]=dis[x]+val[i];
 					if(!inque[v]){
 						inque[v]=true,que[qt++]=v;
 						if(qt==N){
@@ -60,15 +60,19 @@ namespace G{
 			}
 		}
 	}
-	inline int aug(){
-		int dt=INF;
-		for(int p=t;p!=s;p=to[pre[p]^1]){
-			apmin(dt,cap[pre[p]]);
+	int vis[N],tim=0;
+	int aug(int x,int a){
+		if(x==t)return a;
+		if(vis[x]==tim)return 0;
+		vis[x]=tim;
+		int r=a,d;
+		for(int i=head[x],v;(~i)&&r;i=bro[i]){
+			if(cap[i]&&dis[v=to[i]]==dis[x]+val[i]){
+				d=aug(v,min(cap[i],r));
+				cap[i]-=d,cap[i^1]+=d,r-=d;
+			}
 		}
-		for(int p=t;p!=s;p=to[pre[p]^1]){
-			cap[pre[p]]-=dt,cap[pre[p]^1]+=dt;
-		}
-		return dt;
+		return a-r;
 	}
 }
 int node[L][L];
@@ -112,7 +116,11 @@ int main(){
 		G::add(node[x][y],G::t,0,1);
 	}
 	int flow=0,cost=0;
-	for(int dt;G::spfa(),G::dis[G::t]<INF;dt=G::aug(),flow+=dt,cost+=dt*G::dis[G::t]);
+	for(int dt;G::spfa(),G::dis[G::t]<INF;){
+		G::tim++;
+		flow+=dt=G::aug(G::s,INF);
+		cost+=dt*G::dis[G::t];
+	}
 	printf("%d\n",flow==n?cost:-1);
 	return 0;
 }
