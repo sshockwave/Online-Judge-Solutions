@@ -19,7 +19,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=500010,logN=20;
+const int N=500010,logN=18;
 const lint LINF=0x7f7f7f7f7f7f7f7f;
 namespace seg{
 	const int N=::N*::logN;
@@ -45,10 +45,6 @@ namespace seg{
 			if(rson->diff>-LINF){
 				apmax(diff,rson->diff-lson->sum);
 			}
-		}
-		inline void down(){
-			lson=lson!=null?lson:new Node;
-			rson=rson!=null?rson:new Node;
 		}
 	}Null,pool[N];
 	inline void init(){
@@ -80,9 +76,9 @@ namespace seg{
 		}else{
 			int m=(l+r)>>1;
 			if(p<=m){
-				add(x->lson,p,v,l,m);
+				x->lson=add(x->lson,p,v,l,m);
 			}else{
-				add(x->rson,p,v,m+1,r);
+				x->rson=add(x->rson,p,v,m+1,r);
 			}
 			x->up(l,r);
 		}
@@ -125,7 +121,7 @@ int n,lastans=0;
 typedef map<int,pair<int,lint> >mp;
 inline void putans(mp &m,int tim){
 	pair<int,lint>p=(--m.upper_bound(tim))->second;
-	printf("%d %lld\n",p.first,p.second);
+	printf("%d %lld\n",lastans=p.first,p.second);
 }
 mp ans[N];
 inline int gnum(){
@@ -137,6 +133,7 @@ int main(){
 	freopen("forgive.out","w",stdout);
 #endif
 	n=ni;
+	seg::init();
 	for(int i=1;i<=n;i++){
 		rt[i]=seg::null;
 		ans[i][0]=make_pair(1,1);
@@ -146,20 +143,21 @@ int main(){
 			case 1:
 				{
 					int u=gnum(),g=ni;
-					seg::add(rt[u],g,g);
+					rt[u]=seg::add(rt[u],g,g);
 					ans[u][tim]=rt[u]->gans();
 					break;
 				}
 			case 2:
 				{
 					int u=gnum(),g=ni;
-					seg::add(rt[u],g,-g);
+					rt[u]=seg::add(rt[u],g,-g);
 					ans[u][tim]=rt[u]->gans();
 					break;
 				}
 			case 3:
 				{
 					int u=gnum(),v=gnum();
+					if(u==v)continue;
 					rt[u]=seg::mg(rt[u],rt[v]),rt[v]=seg::null;
 					ans[u][tim]=rt[u]->gans();
 					ans[v][tim]=rt[v]->gans();
