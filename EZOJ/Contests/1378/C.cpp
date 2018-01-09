@@ -54,7 +54,7 @@ int main(){
 						if(jmp>len)continue;
 						int (*f)[2][2]=::f[jmp];
 						apadd(f[j+1][a][b],F);//new peak
-						apadd(f[j][a][b],F*sd);//slope
+						apadd(f[j][a][b],F*sd%O);//slope
 						if(a==0){
 							apadd(f[j][1][b],F);
 						}
