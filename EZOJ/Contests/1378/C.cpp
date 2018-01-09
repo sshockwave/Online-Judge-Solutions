@@ -31,7 +31,7 @@ int main(){
 	freopen("count.in","r",stdin);
 	freopen("count.out","w",stdout);
 #endif
-	space();
+	//space();
 	int n=ni,len=ni;
 	memset(f,0,sizeof(f));
 	for(int i=0;i<n;i++){
