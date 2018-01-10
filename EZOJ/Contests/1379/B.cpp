@@ -133,18 +133,6 @@ namespace T{
 		len0->fa=len0->fail=len1;
 		null->fail=len0;
 	}
-	inline lint gans(node u,node v){
-		if(u==null||v==null)return 0;
-		node w=acc(u);
-		lint ans=w->sum;
-		w=acc(v);//lca
-		ans+=w->sum;
-		acc(w);
-		w->spa();
-		ans-=w->sum*2;
-		ans+=(lint)w->len*w->cnt;
-		return ans;
-	}
 }
 struct Q{
 	int op,l1,r1,l2,r2,c;
@@ -236,7 +224,30 @@ int main(){
 				u=T::low(T::acc(aft[str+l1-pool]),len1);
 				v=T::low(T::acc(aft[str+l2-pool]),len2);
 			}
-			printf("%lld\n",T::gans(u,v));
+			using namespace T;
+			if(u==null||v==null){
+				puts("0");
+				continue;
+			}
+			node w=acc(u);
+			lint ans=w->sum;
+			w=acc(v);//lca
+			ans+=w->sum;
+			acc(w);
+			w->spa();
+			ans-=w->sum*2;
+			int c1,c2;
+			if(q[tt].op==2){
+				c1=str[r1-w->len];
+				c2=str[r2-w->len];
+			}else{
+				c1=str[l1+w->len];
+				c2=str[l2+w->len];
+			}
+			if(w->len==min(len1,len2)||c1!=c2){
+				ans+=(lint)w->len*w->cnt;
+			}
+			printf("%lld\n",ans);
 		}
 	}
 	return 0;
