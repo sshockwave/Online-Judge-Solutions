@@ -32,22 +32,43 @@ namespace IO{
 		}
 	}
 }
+namespace B{
+	int c[N],n;
+	inline void init(int _n){
+		memset(c+1,0,(n=_n)<<2);
+	}
+	inline void add(int x,int v){
+		for(;x<=n;c[x]+=v,x+=x&-x);
+	}
+	inline int sum(int x){
+		int ans=0;
+		for(;x;ans+=c[x],x^=x&-x);
+		return ans;
+	}
+}
+int pos[N],n;
+inline lint work(const int a[],const int b[]){
+	for(int i=1;i<=n;i++){
+		pos[a[i]]=i;
+	}
+	B::init(n);
+	lint ans=0;
+	for(int i=1;i<=n;i++){
+		ans+=B::sum(b[pos[i]]);
+		B::add(b[pos[i]],1);
+	}
+	return ans;
+}
 int a[N],b[N],c[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("dalao.in","r",stdin);
 	freopen("dalao.out","w",stdout);
 #endif
-	int n=ni;
+	n=ni;
 	IO::seed=next_num<lint>(),IO::gen(a,n);
 	IO::seed=next_num<lint>(),IO::gen(b,n);
 	IO::seed=next_num<lint>(),IO::gen(c,n);
-	lint ans=0;
-	for(int i=1;i<=n;i++){
-		for(int j=1;j<=n;j++){
-			ans+=a[i]<a[j]&&b[i]<b[j]&&c[i]<c[j];
-		}
-	}
-	printf("%lld\n",ans);
+	printf("%lld\n",(work(a,b)+work(b,c)+work(c,a)-(((lint)n*(n-1))>>1))>>1);
 	return 0;
 }
