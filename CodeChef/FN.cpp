@@ -86,15 +86,15 @@ namespace logarithm{
 				vec[i].clear();
 			}
 		}
-		inline bool ae(int val,int exp){
+		inline bool ae(lint val,int exp){
 			vector<node>&v=vec[(val^Magic)%M];
 			for(vector<node>::iterator it=v.begin();it!=v.end();it++){
 				if(it->val==val)return false;
 			}
-			v.push_back((node){val,exp});
+			v.push_back((node){(int)val,exp});
 			return true;
 		}
-		inline int ask(int val,int ad){//does it exist? exp:INF;
+		inline int ask(lint val,int ad){//does it exist? exp:INF;
 			vector<node>&v=vec[(val^Magic)%M];
 			for(vector<node>::iterator it=v.begin();it!=v.end();it++){
 				if(it->val==val&&(it->exp&1)==ad)return it->exp;
@@ -109,7 +109,7 @@ namespace logarithm{
 		for(rtO=0;rtO*rtO<O;rtO++);
 		x=fpow(x,rtO);
 		for(int i=0,w=1;i<=rtO;i++,w=(lint)w*x%O){
-			if(H::ae(w,i*rtO))break;
+			if(!H::ae(w,i*rtO))break;
 		}
 		for(int i=0;i<H::M;i++){
 			sort(H::vec[i].begin(),H::vec[i].end());
@@ -119,13 +119,10 @@ namespace logarithm{
 		if(n==0)return INF;
 		int ans=INF;
 		for(int i=0;i<=rtO;i++,n=(lint)n*x%O){
-			int t=H::ask(n,(ad^i)&1);
+			lint t=H::ask(n,(ad^i)&1);
 			if(t<INF){
-				apmin(ans,t-i);
+				apmin(ans,((t-i)%(O-1)+O-1)%(O-1));
 			}
-		}
-		if(ans<0){
-			ans=(ans%(O-1)+O-1)%(O-1);
 		}
 		return ans;
 	}
@@ -138,21 +135,21 @@ inline int Main(){
 	int inv2=inv(2);
 	int x=cipolla(5),y=(lint)(1+x)*inv2%O;
 	assert((lint)x*x%O==5);
-	c=(lint)c*x;
+	c=(lint)c*x%O;
 	int ans=INF;
 	logarithm::init(y);
 	{//odd
 		int rt=cipolla(((lint)c*c%O+O-4)%O);
 		if(rt!=-1){
-			apmin(ans,dlog((lint)(c+rt)*inv2%O,1));
-			apmin(ans,dlog((lint)(c+O-rt)*inv2%O,1));
+			apmin(ans,dlog(((lint)c+rt)*inv2%O,1));
+			apmin(ans,dlog(((lint)c+O-rt)*inv2%O,1));
 		}
 	}
 	{//even
-		int rt=cipolla(((lint)c*c%O+O+4)%O);
+		int rt=cipolla(((lint)c*c%O+4)%O);
 		if(rt!=-1){
-			apmin(ans,dlog((lint)(c+rt)*inv2%O,0));
-			apmin(ans,dlog((lint)(c+O-rt)*inv2%O,0));
+			apmin(ans,dlog(((lint)c+rt)*inv2%O,0));
+			apmin(ans,dlog(((lint)c+O-rt)*inv2%O,0));
 		}
 	}
 	return ans!=INF?ans:-1;
