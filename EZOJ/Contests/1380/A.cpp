@@ -18,28 +18,20 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=10000010,O=998244353;
-const int P=700000;
-int prime[P],ps=0;
+const int N=1000010,O=998244353;
+int _mu[N],prime[N/10],ps=0;
 char mu[N];
 bool np[N];
-int pref[N];
-const int M=6100000;
-int lst[M],ls=0;
 inline void sieve(int n){
 	memset(np,0,sizeof(np));
-	mu[1]=1;
-	pref[1]=1;
-	lst[ls++]=1;
+	_mu[0]=0;
+	mu[1]=_mu[1]=1;
 	for(int i=2;i<=n;i++){
 		if(!np[i]){
 			prime[ps++]=i;
 			mu[i]=-1;
 		}
-		pref[i]=pref[i-1]+(mu[i]!=0);
-		if(mu[i]){
-			lst[ls++]=i;
-		}
+		_mu[i]=_mu[i-1]+mu[i];
 		for(int j=0,cur=2,t;t=i*cur,j<ps&&t<=n;cur=prime[++j]){
 			np[t]=1;
 			if(i%cur){
@@ -52,17 +44,13 @@ inline void sieve(int n){
 	}
 }
 lint rt=0;
-inline lint F(lint n){
-	if(n<=rt)return pref[n];
-	lint ans=0,sqr;
-	for(int i=0,j;j=lst[i],sqr=(lint)j*j,sqr<=n;i++){
-		if(mu[j]==1){
-			ans+=n/sqr;
-		}else{
-			ans-=n/sqr;
-		}
+inline int F(lint n){
+	lint ans=0;
+	for(lint l=1,r,d;l<=n;l=r+1){
+		r=n/(d=n/l);
+		ans+=(r-l+1)*d;
 	}
-	return ans;
+	return ans%O;
 }
 int main(){
 #ifndef ONLINE_JUDGE
@@ -71,16 +59,12 @@ int main(){
 #endif
 	lint n=next_num<lint>();
 	for(;rt*rt<n;rt++);
-	rt*=10;
 	sieve(rt);
-	int ans=0;
-	lint cur,last=0;
-	for(lint l=1,r,d;l<=n;l=r+1){
-		r=n/(d=n/l);
-		cur=F(r);
-		ans=(ans+d*(cur-last))%O;
-		last=cur;
+	lint ans=0;
+	for(lint l=1,r;l*l<=n;l=r+1){
+		r=n/(n/l);
+		ans+=(_mu[r]-_mu[l-1])*F(n/(l*l))%O;
 	}
-	printf("%d\n",ans);
+	printf("%lld\n",(ans%O+O)%O);
 	return 0;
 }
