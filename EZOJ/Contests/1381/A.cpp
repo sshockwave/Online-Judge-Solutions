@@ -96,13 +96,33 @@ int type,lastans=0;
 inline int getnum(){
 	return ni^(type*lastans);
 }
-typedef map<int,seg::node>mp;
-mp rt[N];//time->rt
+struct mp{
+	vector<int>v;
+	vector<seg::node>rt;
+	inline seg::node lower_bound(int tim){//find first >=tim
+		int l=0,r=v.size()-1;
+		while(l<r){
+			int m=((l+r)>>1)+1;
+			if(v[m]>=tim){
+				l=m;
+			}else{
+				r=m-1;
+			}
+		}
+		return rt[l];
+	}
+	inline seg::node& operator [] (const int &i){
+		if(!v.empty()&&*v.rbegin()==i)return *rt.rbegin();
+		v.push_back(i);
+		rt.push_back(seg::null);
+		return *rt.rbegin();
+	}
+}rt[N];//time->rt
 int pos[N],pre[N<<1],idx[N<<1],nxt[N<<1];
 inline void addv(int x,int col,int v){
 	for(;x<=n;x+=x&(-x)){
 		assert(rt[x].lower_bound(tim)!=rt[x].end());
-		seg::node t=rt[x].lower_bound(tim)->second;
+		seg::node t=rt[x].lower_bound(tim);
 		rt[x][tim]=seg::add(t,col,v);
 	}
 }
@@ -150,7 +170,7 @@ int main(){
 		int l=getnum(),r=getnum(),k=getnum();
 		seg::vi vec;
 		for(int x=r;x;x^=x&-x){
-			seg::node nd=rt[x].lower_bound(l)->second;
+			seg::node nd=rt[x].lower_bound(l);
 			if(nd!=seg::null){
 				vec.push_back(nd);
 			}
