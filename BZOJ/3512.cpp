@@ -24,6 +24,7 @@ int prime[N/10],ps=0;
 int mu[N]={0,1},phi[N]={0,1},prephi[N]={0,1},mnfac[N]={0,1};
 int sqf[N]={0,1};
 bool np[N];
+int f[N];
 inline void sieve(int n){
 	memset(np,0,sizeof(np));
 	for(int i=2;i<=n;i++){
@@ -64,14 +65,12 @@ int _phi(int n){
 	}
 	return cche[overall/n]=(ans%O+O)%O;
 }
-typedef map<pair<int,int>,int>mp;
-mp smp;
 int Sup(int i,int m){
 	if(m==0)return 0;
 	if(m==1)return phi[i];
-	mp::iterator it=smp.find(make_pair(i,m));
-	if(it!=smp.end())return it->second;
-	return smp[make_pair(i,m)]=i!=1?((lint)Sup(i/mnfac[i],m)*(mnfac[i]-1)%O+Sup(i,m/mnfac[i]))%O:_phi(m);
+	if(i==1)return _phi(m);
+	int p=mnfac[i];
+	return ((lint)Sup(i/p,m)*(p-1)+Sup(i,m/p))%O;
 }
 int main(){
 #ifndef ONLINE_JUDGE
@@ -87,7 +86,10 @@ int main(){
 	overall=m;
 	lint ans=0;
 	for(int i=1;i<=n;i++){
-		ans+=(lint)i/sqf[i]*Sup(sqf[i],m);
+		if(sqf[i]==i){
+			f[i]=Sup(i,m);
+		}
+		ans+=(lint)i/sqf[i]*f[sqf[i]];
 	}
 	printf("%lld\n",(ans%O+O)%O);
 	return 0;
