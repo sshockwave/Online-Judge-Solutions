@@ -65,7 +65,7 @@ struct db{
 	}
 };
 namespace lp{
-	const int N=45*2+3,M=45*8+15;
+	const int N=45*2+3,M=45*8+45+5;
 	db a[M][N];
 	int n=0,m=0;
 	int nvar[N],mvar[M];
