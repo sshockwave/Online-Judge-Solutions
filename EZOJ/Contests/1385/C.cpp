@@ -22,39 +22,13 @@ const int N=1000010,INF=0x7f7f7f7f;
 struct Intv{
 	int l,r,len;
 	inline friend bool operator < (const Intv &a,const Intv &b){
-		return a.len<b.len;
+		return a.l!=b.l?a.l<b.l:a.r>b.r;
 	}
-}ints[N];
-namespace brute1{
-	int n,k;
-	lint ans=0;
-	int col[N];
-	void dfs(int x){
-		if(x>n){
-			lint sum=0;
-			for(int i=1;i<=k;i++){
-				int l=-INF,r=INF;
-				for(int j=1;j<=n;j++){
-					if(col[j]==i){
-						apmax(l,ints[j].l);
-						apmin(r,ints[j].r);
-					}
-				}
-				if(l<r&&r<INF){
-					sum+=r-l;
-				}
-			}
-			apmax(ans,sum);
-			return;
-		}
-		for(int &i=col[x]=1;i<=k;i++){
-			dfs(x+1);
-		}
-	}
-	inline lint Main(){
-		dfs(1);
-		return ans;
-	}
+}ints[N],tp2[N];
+lint val1[N],val2[N];
+int vs1=0,vs2=0;
+inline bool lencmp(const Intv &a,const Intv &b){
+	return a.len<b.len;
 }
 int main(){
 #ifndef ONLINE_JUDGE
@@ -66,31 +40,49 @@ int main(){
 		ints[i]=(Intv){ni,ni};
 		ints[i].len=ints[i].r-ints[i].l;
 	}
-	if(k==n){
-		lint sum=0;
-		for(int i=1;i<=n;i++){
+	lint ans=0,sum=0;
+	{
+		sort(ints+1,ints+n+1,lencmp);
+		int l=-INF,r=INF;
+		for(int i=1;i<=n-(k-1);i++){
+			apmax(l,ints[i].l);
+			apmin(r,ints[i].r);
+		}
+		if(r<INF&&l<r){
+			sum+=r-l;
+		}
+		for(int i=n-(k-1)+1;i<=n;i++){
 			sum+=ints[i].len;
 		}
-		printf("%lld\n",sum);
-		return 0;
-	}
-	if(n<=8){
-		brute1::n=n,brute1::k=k;
-		printf("%lld\n",brute1::Main());
-		return 0;
+		ans=sum,sum=0;
 	}
 	sort(ints+1,ints+n+1);
-	lint ans=0;
-	for(int i=n,ti=n-k+1;i>ti;i--){
-		ans+=ints[i].len;
+	for(int i=n,l=INF,r=INF;i>=1;i--){
+		if(r<=ints[i].r){
+			val2[++vs2]=ints[i].len;
+		}else{
+			sum+=ints[i].len;
+			l=ints[i].l;
+			if(r<INF){
+				val1[++vs1]=r-l;
+			}
+			r=ints[i].r;
+		}
 	}
-	int l=-INF,r=INF;
-	for(int i=1,ti=n-k+1;i<=ti;i++){
-		apmax(l,ints[i].l);
-		apmin(r,ints[i].r);
+	sort(val1+1,val1+vs1+1);
+	sort(val2+1,val2+vs2+1);
+	assert(vs1+vs2==n-1);
+	for(int i=1;i<=vs1;i++){
+		val1[i]+=val1[i-1];
 	}
-	if(l<r&&r<INF){
-		ans+=r-l;
+	for(int i=1;i<=vs2;i++){
+		val2[i]+=val2[i-1];
+	}
+	int i=min(k-1,vs1),j=vs2+1;
+	for(;i+(vs2-(j-1)+1)+1<=k;j--);
+	assert(j>=1);
+	for(;i>=0&&j>=1;i--,j--){
+		apmax(ans,sum-(val1[vs1]-val1[i])+(val2[vs2]-val2[j-1]));
 	}
 	printf("%lld\n",ans);
 	return 0;
