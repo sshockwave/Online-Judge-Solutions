@@ -11,60 +11,79 @@ template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
 	bool flag=c=='-';
-	flag?(c=getchar()):0;
+	flag?c=getchar():0;
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return flag?-i:i;
 }
-template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){
-	if(a<b){
-		a=b;
+template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
+template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+const int N=20,D=26;
+int f[1<<N];
+namespace SAM{
+	struct Node;
+	typedef Node* node;
+	struct Node{
+		node lnk,go[D];
+		int len;
+		int mask;
+		inline node ext(int c);
+	}pool[N];
+	node n=pool;
+	inline node nn(){
+		return ++n;
 	}
-}
-const int N=20,L=1000010,D=26;
-inline int lb(int x){
-	return x&(-x);
-}
-struct SAM{
-	typedef SAM* node;
-	node lnk,go[D];
-	int len,tag;
-	node head,nxt;
-	inline void ae(node x){
-		x->nxt=head,head=x;
+	inline node Node::ext(int c){
+		node p=this,np=nn();
+		np->len=p->len+1;
+		for(;p&&p->go[c]==0;p=p->lnk){
+			p->go[c]=np;
+		}
+		if(p==0)return np->lnk=pool,np;
+		node q=p->go[c];
+		if(q->len==p->len+1)return np->lnk=q,np;
+		assert(q->len>p->len+1);
+		node nq=nn();
+		*nq=*q;
+		nq->len=p->len+1;
+		q->lnk=np->lnk=nq;
+		for(;p&&p->go[c]==q;p=p->lnk){
+			p->go[c]=nq;
+		}
+		return np;
 	}
-	void dfs(){
-		for(node i=head;i;i=i->nxt){
-			i->dfs();
-			tag|=i->tag;
+	inline void work(){
+		for(node p=n;p>pool;p--){
+			apmax(f[p->mask],p->len);
+			p->lnk->mask|=p->mask;
 		}
 	}
-	inline node add(int);
-}pol[L*2],*pool=pol;
-inline SAM* SAM::add(int c){
-	node p=this,np=++pool;
-	np->len=p->len+1;
-	for(;p&&p->go[c]==0;p=p->lnk){
-		p->go[c]=np;
-	}
-	if(p==0){
-		np->lnk=pol;
-		return go[c];
-	}
-	node q=p->go[c];
-	if(q->len==p->len+1){
-		np->lnk=q;
-		return go[c];
-	}
-	node nq=++pool;
-	*nq=*q,q->lnk=np->lnk=nq;
-	nq->len=p->len+1;
-	for(;p&&p->go[c]==q;p=p->lnk){
-		p->go[c]=nq;
-	}
-	return go[c];
 }
-char s[L];
-int ans[1<<N];
+namespace trie{
+	const int N=1000010;
+	const int rt=1;
+	int son[N][D],mask[N],n=1;
+	inline int nn(int &x){
+		return x==0?x=++n:x;
+	}
+	char* ins(int x,char s[],int m){
+		mask[x]|=m;
+		while(true){
+			char c=s[0];
+			if(c==0)return s;
+			if(c=='<')return s+1;
+			s=ins(nn(son[x][c-'a']),s+1,m);
+		}
+	}
+	void dfs(int x,SAM::node y){
+		y->mask=mask[x];
+		for(int i=0;i<D;i++){
+			if(son[x][i]){
+				dfs(son[x][i],y->ext(i));
+			}
+		}
+	}
+}
+char s[trie::N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("wechat.in","r",stdin);
@@ -73,37 +92,23 @@ int main(){
 	int n=ni;
 	for(int i=0;i<n;i++){
 		scanf("%s",s);
-		static SAM* stk[L];
-		int t=0;
-		stk[0]=pol;
-		for(int j=0;s[j];j++){
-			if(isalpha(s[j])){
-				stk[t+1]=stk[t]->add(s[j]-'a');
-				stk[++t]->tag|=1<<i;
-			}else{
-				t--;
-			}
-		}
+		trie::ins(trie::rt,s,1<<i);
 	}
-	for(SAM* i=pol+1;i<=pool;i++){
-		i->lnk->ae(i);
-	}
-	pol->dfs();
-	for(SAM* i=pol+1;i<=pool;i++){
-		apmax(ans[i->tag],i->len);
-	}
-	for(int i=(1<<n)-1;i;i--){
-		for(int j=i;j;j^=lb(j)){
-			apmax(ans[i^lb(j)],ans[i]);
+	memset(f,0,sizeof(f));
+	trie::dfs(trie::rt,SAM::pool);
+	SAM::work();
+	for(int s=(1<<n)-1;s;s--){
+		for(int t=s;t;t^=t&-t){
+			apmax(f[s^(t&-t)],f[s]);
 		}
 	}
 	for(int tot=ni;tot--;){
 		scanf("%s",s);
-		int tim=0;
+		int mask=0;
 		for(int i=0;i<n;i++){
-			tim|=(s[i]-'0')<<i;
+			mask|=(s[i]-'0')<<i;
 		}
-		printf("%d\n",ans[tim]);
+		printf("%d\n",f[mask]);
 	}
 	return 0;
 }
