@@ -72,7 +72,7 @@ void mark(int x,int y){
 	}
 }
 char s[N];
-int f[N][N][2];
+int f[N*3][2],g[N*3][3];
 inline int Main(){
 	n=ni;
 	gmath::init(n*3);
@@ -93,69 +93,83 @@ inline int Main(){
 		}
 	}
 	int cnt=0;
+	memset(f,0,sizeof(f));
 	for(int i=1;i<=n;i++){
 		const int newcnt=!mat[0][i]+!mat[1][i]+!mat[2][i],sum=cnt+newcnt;
-		memset(f[i],0,sizeof(f[i][0])*(sum+1));
 		if(i==1){
 			if(mat[1][i]){
-				f[i][0][0]=1;
+				f[0][0]=1;
 			}else{
-				f[i][sum][0]=gmath::fac[newcnt-1];
+				f[sum][0]=gmath::fac[newcnt-1];
 			}
-		}else for(int j=0,tj=mat[1][i-1]?0:cnt;j<=tj;j++){
-			using gmath::A;
-			lint F=f[i-1][j][0];
-			if(F){
-				/*
-				   trans to [0]
-				   requirements
-				   if mat[1][i]==1 then new j==0 && the other two is arbitrary
-				   else the other two has to go before j
-				 */
-				if(mat[1][i]){
-					apadd(f[i][0][0],F*A(sum,newcnt)%O);
-				}else for(int nj=newcnt;nj<=sum;nj++){
-					apadd(f[i][nj][0],F*A(nj-1,newcnt-1)%O);
+		}else if(mat[1][i]){
+			int a=gmath::A(sum,newcnt);
+			for(int j=0,tj=mat[1][i-1]?0:cnt;j<=tj;j++){
+				lint F=f[j][0]+f[j][1];
+				f[j][0]=f[j][1]=0;
+				if(F){
+					apadd(f[0][0],F*a%O);
 				}
-				/*
-				   trans to [1]
-				   requirements
-				   mat[1][i]==0
-				   mat[1][i-1]==1 || old j < new j
-				   at least one of mat[0][i] and mat[2][i] is > new j
-				 */
-				if(mat[1][i]==0&&newcnt>1){
-					for(int nj=j+1;nj<=sum;nj++){//insert after nj
-						if(newcnt>1&&j+newcnt-2<nj){//ins one after nj
-							apadd(f[i][nj][1],F*(newcnt-1)*(sum-nj)%O*A(nj-1,newcnt-2)%O);
-						}
-						if(newcnt>2){//ins two after nj
-							apadd(f[i][nj][1],F*A(sum-nj,2)%O);
-						}
+			}
+		}else{
+			//type 0 to [0]:A(nj-1,newcnt-1)
+			//type 1 to [1]:(newcnt-1)*(sum-nj)*A(nj-1,newcnt-2)
+			//type 2 to [1]:A(sum-nj,2)
+			memset(g,0,sizeof(g[0])*(sum+1));
+			for(int j=0,tj=mat[1][i-1]?0:cnt;j<=tj;j++){
+				int F=f[j][0];
+				if(F){
+					/*
+					   trans to [0]
+					   requirements
+					   if mat[1][i]==1 then new j==0 && the other two is arbitrary
+					   else the other two has to go before j
+					 */
+					apadd(g[newcnt][0],F);
+					/*
+					   trans to [1]
+					   requirements
+					   mat[1][i]==0
+					   mat[1][i-1]==1 || old j < new j
+					   at least one of mat[0][i] and mat[2][i] is > new j
+					 */
+					if(newcnt==2){
+						apadd(g[j+1][1],F);//insert one after nj
+					}else if(newcnt==3){
+						apadd(g[j+2][1],F);//insert one after nj
+						apadd(g[j+1][2],F);//insert two after nj
 					}
 				}
-			}
-			F=f[i-1][j][1];
-			if(F){
-				/*
-				   new j < j
-				   therefore no trans to [1]
-				   trans to [0]
-				   if mat[1][i]==1 then new j==0 && the other two is arbitrary
-				   else the other two has to go before j
-				 */
-				if(mat[1][i]){
-					apadd(f[i][0][0],F*A(sum,newcnt)%O);
-				}else for(int nj=newcnt;nj<j+newcnt;nj++){
-					apadd(f[i][nj][0],F*A(nj-1,newcnt-1)%O);
+				F=f[j][1];
+				if(F){
+					/*
+					   new j < j
+					   therefore no trans to [1]
+					   trans to [0]
+					   if mat[1][i]==1 then new j==0 && the other two is arbitrary
+					   else the other two has to go before j
+					 */
+					apadd(g[newcnt][0],F);
+					apadd(g[j+newcnt][0],O-F);
 				}
+			}
+			assert(g[0][0]==0&&g[0][1]==0&&g[0][2]==0);
+			for(int j=0;j<=sum;j++){
+				if(j){
+					apadd(g[j][0],g[j-1][0]);
+					apadd(g[j][1],g[j-1][1]);
+					apadd(g[j][2],g[j-1][2]);
+				}
+				using gmath::A;
+				f[j][0]=(lint)g[j][0]*A(j-1,newcnt-1)%O;
+				f[j][1]=((lint)g[j][1]*(newcnt-1)%O*(sum-j)%O*A(j-1,newcnt-2)+(lint)g[j][2]*A(sum-j,2))%O;
 			}
 		}
 		cnt=sum;
 	}
 	lint ans=0;
 	for(int j=0;j<=cnt;j++){
-		ans+=f[n][j][0];
+		ans+=f[j][0];
 	}
 	return ans%O;
 }
