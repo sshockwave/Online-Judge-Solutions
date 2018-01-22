@@ -17,7 +17,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=6,M=1<<N,O=1000000007;//partial
+const int N=100010,O=1000000007;
 inline int fpow(int x,int n){
 	int a=1;
 	for(;n;n>>=1,x=(lint)x*x%O){
@@ -30,76 +30,50 @@ inline int fpow(int x,int n){
 inline int inv(int x){
 	return fpow(x,O-2);
 }
-int a[M][M];
-inline void gauss(int n){//n vars
-	for(int i=0;i<n;i++){
-		int j=i;
-		for(;j<n&&a[j][i]==0;j++);
-		assert(j<n);
-		for(int k=i;k<=n;k++){
-			swap(a[i][k],a[j][k]);
+namespace gmath{
+	int fac[N],invfac[N];
+	inline void init(int n){
+		fac[0]=1;
+		for(int i=1;i<=n;i++){
+			fac[i]=(lint)fac[i-1]*i%O;
 		}
-		lint r=inv(a[i][i]);
-		for(int k=i;k<=n;k++){
-			a[i][k]=r*a[i][k]%O;
-		}
-		for(j=i+1;j<n;j++){
-			if(a[j][i]==0)continue;
-			r=O-a[j][i];
-			for(int k=i;k<=n;k++){
-				a[j][k]=(int)(a[j][k]+r*a[i][k]%O)%O;
-			}
+		invfac[n]=inv(fac[n]);
+		for(int i=n;i>=1;i--){
+			invfac[i-1]=(lint)invfac[i]*i%O;
 		}
 	}
-	for(int i=n-1;i>=0;i--){
-		for(int j=0;j<i;j++){
-			if(a[j][i]){
-				a[j][n]=(O-(lint)a[i][n]*a[j][i]%O+a[j][n])%O,a[j][i]=0;
-			}
-		}
+	inline int C(int n,int k){
+		if(n<k)return 0;
+		return (lint)fac[n]*invfac[k]%O*invfac[n-k]%O;
 	}
 }
-int invn2;
+using gmath::C;
 char s[N];
+int f[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("eat.in","r",stdin);
 	freopen("eat.out","w",stdout);
 #endif
-	int n=ni;
-	invn2=inv((lint)n*(n-1)/2%O);
+	const int n=ni;
+	gmath::init(n);
+	const int invn2=inv(C(n,2));
+	const int inv2n=inv(fpow(2,n));
+	f[0]=inv(2),f[1]=(f[0]+O-inv2n)%O;
+	for(int i=2;i<n;i++){
+		lint A=C(n-(i-1),2),B=C(i-1,2);
+		//f[i-1]=inv2n+f[i]*A*invn2+f[i-2]*B*invn2+f[i-1]*(A+B)*invn2
+		f[i]=(f[i-1]+O-f[i-2]*B%O*invn2%O+O-f[i-1]*(A+B)%O*invn2%O+O-inv2n)%O*inv(A*invn2%O)%O;
+	}
+	f[n]=inv(2);
+	for(int i=0,j=n;i<j;i++,j--){//debug
+		assert(f[i]==f[j]);
+	}
 	scanf("%s",s);
-	int mask=0;
-	for(int i=0;i<n;i++){
-		mask|=(s[i]-'A')<<i;
+	int cnt=0;
+	for(int i=0;s[i];i++){
+		cnt+=s[i]-'A';
 	}
-	memset(a,0,sizeof(a));
-	for(int s=0,ts=1<<n;s<ts;s++){
-		if(s!=0&&s!=(ts-1)){
-			for(int i=0;i<n;i++){
-				for(int j=i+1;j<n;j++){
-					int s2=s;
-					bool flag=(s>>i)&1;
-					if(flag){
-						s2|=1<<j;
-					}else if((s2>>j)&1){
-						s2^=1<<j;
-					}
-					a[s][s2]=(a[s][s2]+invn2)%O;
-				}
-			}
-		}
-		a[s][s]=(a[s][s]+O-1)%O;
-		if(s==mask){
-			a[s][ts]=O-1;
-		}
-	}
-	gauss(1<<n);
-	lint ans=0;
-	for(int s=0,ts=1<<n;s<ts;s++){
-		ans+=a[s][ts];
-		cout<<"f["<<s<<"]="<<a[s][ts]<<endl;
-	}
-	printf("%lld\n",ans%O*inv(1<<n)%O);
+	printf("%d\n",f[cnt]);
 	return 0;
 }
