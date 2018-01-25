@@ -5,7 +5,9 @@
 #include <cassert>
 #include <cctype>
 #include <cstdlib>
+#ifndef NDEBUG
 #include <fstream>
+#endif
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -21,73 +23,53 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=100010,INF=0x7f7f7f7f;
-namespace T{//Treap
-	const int N=::N*20*6;//TODO::check size
+namespace T{
+	const int N=::N*20*5;
 	struct Node;
 	typedef Node* node;
 	node null;
-	inline node nn(node);
 	struct Node{
 		//Treap
-		int son[2];
-		int size,pri,tag;
+		node lson,rson;
+		int size,tag;
 		//Info
 		int val,dt;
 		lint sum;
 		inline void addval(int x){
-			val+=x,dt+=x,sum+=(lint)x*size;
+			if(this==null)return;
+			dt+=x,sum+=(lint)size*x;
 		}
-		inline node lson();
-		inline node rson();
 		inline void up(){
-			assert(dt==0);
-			size=lson()->size+1+rson()->size;
-			sum=lson()->sum+val+rson()->sum;
+			size=lson->size+1+rson->size;
+			sum=lson->sum+val+rson->sum+(lint)size*dt;
 		}
-		inline void down();
 	}pool[N],Null;
-	inline node Node::lson(){
-		return son[0]!=-1?pool+son[0]:null;
-	}
-	inline node Node::rson(){
-		return son[1]!=-1?pool+son[1]:null;
-	}
-	inline int toid(node x){
-		return x==null?-1:x-pool;
-	}
-	inline void Node::down(){
-		if(dt){
-			if(lson()!=null){
-				son[0]=toid(nn(lson())),lson()->addval(dt);
-			}
-			if(rson()!=null){
-				son[1]=toid(nn(rson())),rson()->addval(dt);
-			}
-		}
-		dt=0;
-	}
 	inline void init(){
 		memset(null=&Null,0,sizeof(Null));
-		null->son[0]=null->son[1]=-1;
+		null->lson=null->rson=null;
 	}
 	int tim=0;
 	inline node nn(node x=null){
 		static node n=pool;
 		assert(n<pool+N);
-		return x->tag<tim?*n=*x,n->pri=rand(),n->tag=tim,n++:x;
+		return x->tag<tim?*n=*x,n->tag=tim,n++:x;
 	}
 	node mg(node u,node v){
 		if(u==null||v==null)return u!=null?u:v;
-		if(u->pri>v->pri){
+		if(rand()%(u->size+v->size)<u->size){
 			u=nn(u);
-			u->down();
-			u->son[1]=toid(mg(u->rson(),v));
+			if(u->dt){
+				v=nn(v),v->addval(-u->dt);
+			}
+			u->rson=mg(u->rson,v);
 			u->up();
 			return u;
 		}else{
 			v=nn(v);
-			v->down();
-			v->son[0]=toid(mg(u,v->lson()));
+			if(v->dt){
+				u=nn(u),u->addval(-v->dt);
+			}
+			v->lson=mg(u,v->lson);
 			v->up();
 			return v;
 		}
@@ -96,28 +78,49 @@ namespace T{//Treap
 		if(x==null)return lhs=rhs=null,void();
 		if(k==0)return lhs=null,rhs=x,void();
 		if(k==x->size)return lhs=x,rhs=null,void();
-		x=nn(x),x->down();
-		if(k<=x->lson()->size){
-			node lson;
-			rhs=x,sp(x->lson(),k,lhs,lson);
-			x->son[0]=toid(lson);
+		x=nn(x);
+		if(k<=x->lson->size){
+			rhs=x;
+			x->lson=nn(x->lson),x->lson->addval(x->dt);
+			sp(x->lson,k,lhs,x->lson);
+			x->lson->addval(-x->dt);
 		}else{
-			node rson;
-			lhs=x,sp(x->rson(),k-x->lson()->size-1,rson,rhs);
-			x->son[1]=toid(rson);
+			lhs=x;
+			x->rson=nn(x->rson),x->rson->addval(x->dt);
+			sp(x->rson,k-x->lson->size-1,x->rson,rhs);
+			x->rson->addval(-x->dt);
 		}
 		x->up();
 	}
-	lint sum(node x,int k){
+	lint sum(node x,lint k){
 		if(x==null||k==0)return 0;
-		if(k<=x->lson()->size)return sum(x->lson(),k)+(lint)x->dt*k;
-		return x->lson()->sum+x->val+sum(x->rson(),k-x->lson()->size-1)+(lint)x->dt*(k-1);
+		if(k==x->size)return x->sum;
+		lint ans;
+		if(k<=x->lson->size){
+			ans=sum(x->lson,k);
+		}else{
+			ans=x->lson->sum+x->val+sum(x->rson,k-x->lson->size-1);
+		}
+		return ans+k*x->dt;
 	}
 }
+T::node build(int l,int r){
+	using namespace T;
+	if(l>r)return null;
+	node x=nn();
+	int m=(l+r)>>1;
+	x->lson=build(l,m-1);
+	x->val=ni;
+	x->rson=build(m+1,r);
+	x->up();
+	return x;
+}
+#ifndef NDEBUG
 inline string space(){
 	ifstream fin("/proc/self/status");
 	return string(istreambuf_iterator<char>(fin),istreambuf_iterator<char>());
 }
+#endif
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("add.in","r",stdin);
@@ -125,22 +128,14 @@ int main(){
 #endif
 	int n=ni,tot=ni;
 	T::init();
-	T::node rt=T::null;
-	for(int i=1;i<=n;i++){
-		using namespace T;
-		tim++;
-		node x=nn();
-		x->val=ni;
-		x->up();
-		x->tag=--tim;
-		rt=mg(rt,x);
-	}
+	T::tim++;
+	T::node rt=build(1,n);
 	while(tot--){
-		int op=ni,l=ni,r=ni;
+		const int op=ni,l=ni,r=ni;
 		using namespace T;
 		if(op==1){
 			node lhs,rhs;
-			//tim++;
+			tim++;
 			sp(rt,l-1,lhs,rt);
 			sp(rt,r-l+1,rt,rhs);
 			rt=nn(rt),rt->addval(ni);
@@ -153,7 +148,6 @@ int main(){
 			sp(sect,size,sect,rhs);
 			sp(rt,r-1,lhs,rt);
 			sp(rt,size,rt,rhs);
-			//tim++;
 			rt=mg(mg(lhs,sect),rhs);
 		}else{
 			printf("%lld\n",sum(rt,r)-sum(rt,l-1));
