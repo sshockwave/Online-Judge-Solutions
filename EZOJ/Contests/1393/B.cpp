@@ -6,7 +6,13 @@
 using namespace std;
 typedef long long lint;
 #define cout cerr
-#define ni (next_num<int>())
+#define ni (getint())
+inline int getint(){
+	int t;
+	int ret=scanf("%d",&t);
+	assert(ret!=EOF);
+	return t;
+}
 template<class T>inline T next_num(){
 	T i=0;char c;
 	while(!isdigit(c=getchar())&&c!='-');
@@ -17,7 +23,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=5010,D=105,INF=0x7f7f7f7f;
+const int N=5010,D=1005,INF=0x7f7f7f7f;
 namespace G{
 	const int N=::N<<2,E=((::N<<1/*in->t'*/)+(::N<<1/*s'->ou*/)+(::N<<1/*ou->t*/)+(::N<<3/*sam*/))<<1;//cout
 	int to[E],bro[E],cap[E],head[N],e=0,n=0;
@@ -75,6 +81,7 @@ namespace sam{
 		memset(go,0,sizeof(go));
 	}
 	inline int nn(){
+		assert(n<N);
 		return ++n;
 	}
 	inline int ext(int p,int c){
@@ -100,6 +107,7 @@ namespace trie{
 	const int N=::N;
 	int son[N][D],n=0,rt=0;
 	inline int nn(int &x){
+		assert(n<N);
 		return x=x?x:++n;
 	}
 	inline void init(){
