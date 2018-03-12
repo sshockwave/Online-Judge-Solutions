@@ -334,6 +334,7 @@ int init(int l, int r, int n, int P) {
 		t=Log::bsgs(i);
 		if(t>=0&&(t&1))break;
 	}
+	assert(fpow(g,t)==m);
 	return m;
 }
 const int N=60010;
@@ -342,12 +343,12 @@ inline int lb(int x){
 	return x&-x;
 }
 void solve(int *A, int *B) {
-	int c=n+1+(n&1),totn=c+n+1;
+	const int c=n+1+(n&1),totn=c+n+1;
 	const lint totO=(lint)O*(O-1);
 	{//get x
 		int q=lb(O-1),p=(O-1)/q;
 		assert(c<q);
-		int invt=fpow(t,q>>1);
+		int invt=fpow(t,(q>>1)-1,q);
 		int xs=0;
 		for(int a=0;xs<totn;a++){
 			lint x1=(lint)a*c%q*invt%q*p;//mod O-1
@@ -356,10 +357,12 @@ void solve(int *A, int *B) {
 			if(x[xs]<0){
 				x[xs]=(x[xs]%totO+totO)%totO;
 			}
+			assert(fpow(m,x[xs]%(O-1))==fpow(x[xs]%O,c));
 		}
 	}
 	get(totn,x,Polynomial::py);
 	Polynomial::Poly f=Polynomial::interpolation(totn);
+	f.resize(totn-1);
 	for(int i=0;i<=n;i++){
 		A[i]=f[i],B[i]=f[i+c];
 	}
