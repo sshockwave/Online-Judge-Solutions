@@ -1,3 +1,4 @@
+#define NDEBUG
 #include <bits/stdc++.h>
 #include "poly.h"
 #define cout cerr
@@ -330,10 +331,7 @@ int init(int l, int r, int n, int P) {
 	GROOT::mod=P,::n=n;
 	GROOT::get_root();
 	Log::init();
-	for(int &i=m=l;i<=r;i++){
-		t=Log::bsgs(i);
-		if(t>=0&&(t&1))break;
-	}
+	t=Log::bsgs(m=max(2,l));
 	assert(fpow(g,t)==m);
 	return m;
 }
@@ -347,13 +345,11 @@ void solve(int *A, int *B) {
 	const lint totO=(lint)O*(O-1);
 	{//get x
 		int q=lb(O-1),p=(O-1)/q;
-		assert(c<q);
-		int invt=fpow(t,(q>>1)-1,q);
+		int invc=fpow(c,(q>>1)-1,q);
 		int xs=0;
-		for(int a=0;xs<totn;a++){
-			lint x1=(lint)a*c%q*invt%q*p;//mod O-1
-			lint x2=Polynomial::px[++xs]=fpow(g,a*p);//mod O
-			x[xs]=x1*O-x2*(O-1);
+		for(lint x1=0;xs<totn;x1++){//mod O-1
+			lint x2=Polynomial::px[++xs]=fpow(g,x1*t%q*invc%q*p%(O-1));//mod O
+			x[xs]=x1*p*O-x2*(O-1);
 			if(x[xs]<0){
 				x[xs]=(x[xs]%totO+totO)%totO;
 			}
