@@ -111,7 +111,7 @@ inline int powsum(int l,int r,int e){
 	assert(l<=r);
 	if(e==0)return r-l+1;
 	if(e==1)return (((lint)r*(r+1)-(lint)l*(l-1))>>1)%O;
-	if(r<=e*2){
+	if(r<=((lint)e<<2)){
 		sieve::gpow(r,e);
 		lint ans=0;
 		for(int i=l;i<=r;i++){
@@ -149,8 +149,14 @@ inline int Main(int n){
 	{//get f
 		memset(f+1,0,mxt*sizeof(f[0]));
 		for(int k=1;k<=mxtd;k++){
-			for(int b=1,kb;(kb=k*b)<=mxtd;b++){
-				int dt=lcm(kb,D)/D;
+			for(int kb=k,b=1;kb<=mxtd;kb+=k,b++){
+				int dt;
+				if(kb%D){
+					if((lint)kb*D>mxtd)continue;
+					dt=kb;
+				}else{
+					dt=kb/D;
+				}
 				int rt=rt_flr(n,kb);
 				for(int t=dt;t<=mxt;t+=dt){
 					f[t]=(f[t]+mu[b]*powsum(rt_cel(1<<t,kb),rt,(lint)b*t*D/k%(O-1)))%O;
