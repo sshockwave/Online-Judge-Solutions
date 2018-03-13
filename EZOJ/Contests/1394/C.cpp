@@ -80,9 +80,10 @@ namespace lct{
 		}
 	}pool[N],Null;
 	inline void draw(node x){
-		if(x!=null){
-			draw(x->fa),x->dn();
+		if(x->sd()!=-1){
+			draw(x->fa);
 		}
+		x->dn();
 	}
 	inline void init(){
 		memset(null=&Null,0,sizeof(Null));
@@ -102,48 +103,21 @@ namespace lct{
 	inline void chr(node x){
 		acc(x),x->spa(),x->putrev();
 	}
-	inline node fir_nod(node x){
-		if(x==null)return null;
-		node a=fir_nod(x->lson);
-		if(a!=null)return a;
-		if(!x->isedge)return x;
-		return fir_nod(x->rson);
-	}
-	inline node las_nod(node x){
-		if(x==null)return null;
-		node a=las_nod(x->rson);
-		if(a!=null)return a;
-		if(!x->isedge)return x;
-		return las_nod(x->lson);
-	}
 	lint work(node x){
 		Info lhs=(Info){0,0,0},rhs=(Info){0,0,0};
 		lint ans=LINF;
 		for(int d;;x=x->son[d]){
 			x->dn();
-			if(x->isedge){
-				lint val1=(lhs+x->lson->sum[0]).s+(rhs+x->rson->sum[1]+x->val).s;
-				lint val2=(lhs+x->lson->sum[0]+x->val).s+(rhs+x->rson->sum[1]).s;
-				d=val1!=val2?val1>val2:-1;
-			}else{
+			if(!x->isedge){
 				apmin(ans,(lhs+x->lson->sum[0]).s+(rhs+x->rson->sum[1]).s);
-				lint val1=x->lson->sum[0].n;
-				lint val2=x->rson->sum[1].n;
-				d=val1!=val2?val1<val2:-1;
 			}
-			if(d==1){
+			lint val1=lhs.n+x->lson->sum[0].n;
+			lint val2=rhs.n+x->rson->sum[1].n;
+			if(val1==val2&&!x->isedge)break;
+			if((d=val1<val2)){
 				lhs=lhs+x->lson->sum[0]+x->val;
-			}else if(d==0){
-				rhs=rhs+x->rson->sum[1]+x->val;
 			}else{
-				node u=las_nod(x->lson),v=fir_nod(x->rson);
-				if(u!=null){
-					u->spa(),apmin(ans,u->lson->sum[0].s+u->rson->sum[1].s);
-				}
-				if(v!=null){
-					v->spa(),apmin(ans,v->lson->sum[0].s+v->rson->sum[1].s);
-				}
-				return ans;
+				rhs=rhs+x->rson->sum[1]+x->val;
 			}
 			if(x->son[d]==null)break;
 		}
@@ -151,89 +125,13 @@ namespace lct{
 		return ans;
 	}
 }
-lct::node nd[N],nde[N];
-namespace brute{
-	const int N=160000;
-	const lint LINF=0x7f7f7f7f7f7f7f7fll;
-	namespace T{
-		const int E=N<<1;
-		int to[E],bro[E],val[E],head[N],e=0;
-		inline void init(){
-			memset(head,-1,sizeof(head));
-		}
-		inline void ae(int u,int v,int w){
-			to[e]=v,bro[e]=head[u],val[e]=w,head[u]=e++;
-		}
-		inline void add(int u,int v,int w){
-			ae(u,v,w),ae(v,u,w);
-		}
-		int stk[N],ss;
-		bool dfs(int x,int y,int f){
-			if(x==y)return true;
-			for(int i=head[x],v;~i;i=bro[i]){
-				if((v=to[i])!=f){
-					stk[++ss]=i;
-					if(dfs(v,y,x))return true;
-					ss--;
-				}
-			}
-			return false;
-		}
-	}
-	int a[N],pt[N];
-	Info lhs[N],rhs[N];
-	int main(int n){
-		for(int i=1;i<=n;i++){
-			a[i]=ni;
-		}
-		T::init();
-		for(int i=1;i<n;i++){
-			int u=ni,v=ni;
-			T::add(u,v,ni);
-		}
-		for(int tot=ni;tot--;){
-			int tp=ni,u=ni,v=ni;
-			if(tp==1){
-				if(u==v){
-					puts("0");
-					continue;
-				}
-				using T::stk;
-				using T::ss;
-				T::ss=0;
-				T::dfs(u,v,0);
-				pt[0]=u;
-				for(int i=1;i<=ss;i++){
-					pt[i]=T::to[stk[i]];
-				}
-				assert(pt[ss]==v);
-				lint ans=LINF;
-				lhs[0]=(Info){0,a[pt[0]],0};
-				for(int i=1;i<=ss;i++){
-					lhs[i]=lhs[i-1]+(Info){T::val[stk[i]],0,0}+(Info){0,a[pt[i]],0};
-				}
-				rhs[ss+1]=(Info){0,0,0};
-				for(int i=ss;i>=0;i--){
-					rhs[i]=rhs[i+1]+(Info){i==ss?0:T::val[stk[i+1]],0,0}+(Info){0,a[pt[i]],0};
-				}
-				for(int i=0;i<=ss;i++){//all go to pt[i]
-					apmin(ans,lhs[i].s+rhs[i].s);
-				}
-				printf("%lld\n",ans);
-			}else{
-				a[u]=v;
-			}
-		}
-		return 0;
-	}
-}
+lct::node nd[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("conference.in","r",stdin);
 	freopen("conference.out","w",stdout);
 #endif
 	int n=ni;
-	if(n<=3000)return brute::main(n);
 	lct::init();
 	for(int i=1;i<=n;i++){
 		nd[i]=lct::nn();
@@ -242,13 +140,12 @@ int main(){
 	}
 	for(int i=1;i<n;i++){
 		using namespace lct;
-		node u=nd[ni],v=nd[ni];
-		nde[i]=nn();
-		nde[i]->val.e=ni;
-		nde[i]->isedge=true;
-		nde[i]->up();
+		node u=nd[ni],v=nd[ni],x=nn();
+		x->val.e=ni;
+		x->isedge=true;
+		x->up();
 		chr(u),chr(v);
-		u->fa=v->fa=nde[i];
+		u->fa=v->fa=x;
 	}
 	for(int tot=ni;tot--;){
 		using namespace lct;
