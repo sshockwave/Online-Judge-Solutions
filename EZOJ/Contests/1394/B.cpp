@@ -43,7 +43,7 @@ struct bignum{
 		bool r=false;
 		for(int i=as-1;i>=0;i--){
 			if(r){
-				a[i]+=M>>1;
+				a[i]+=M;
 			}
 			r=a[i]&1;
 			a[i]>>=1;
