@@ -214,7 +214,7 @@ namespace brute{
 				}
 				rhs[ss+1]=(Info){0,0,0};
 				for(int i=ss;i>=0;i--){
-					rhs[i]=rhs[i+1]+(Info){i==ss?0:T::val[stk[i+1]],0,0}+(Inf){0,a[pt[i]],0};
+					rhs[i]=rhs[i+1]+(Info){i==ss?0:T::val[stk[i+1]],0,0}+(Info){0,a[pt[i]],0};
 				}
 				for(int i=0;i<=ss;i++){//all go to pt[i]
 					apmin(ans,lhs[i].s+rhs[i].s);
