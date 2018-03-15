@@ -2,7 +2,7 @@
 using namespace std;
 const int N=510;
 vector<int>to[N];
-int lnk[N],bst[N],vis[N],tim=0;
+int lnk[N],vis[N],tim=0;
 inline void ae(int u,int v){
 	to[u].push_back(v);
 }
@@ -22,25 +22,21 @@ bool dfs(int x){
 	return false;
 }
 int main(){
-	int n,e,ans=-1;
+	int n,e,ans=0;
 	scanf("%d%d",&n,&e);
 	for(int u,v;e--;scanf("%d%d",&u,&v),ae(u,v),ae(v,u));
 	srand(time(0));
+	memset(lnk+1,0,n<<2);
 	for(int tot=5;tot--;){
-		memset(lnk+1,0,n<<2);
-		int cur=0;
 		for(int i=1;i<=n;i++){
 			if(!lnk[i]){
-				tim++,cur+=dfs(i);
+				tim++,ans+=dfs(i);
 			}
-		}
-		if(cur>ans){
-			ans=cur,memcpy(bst+1,lnk+1,n<<2);
 		}
 	}
 	printf("%d\n",ans);
 	for(int i=1;i<=n;i++){
-		printf("%d ",bst[i]);
+		printf("%d ",lnk[i]);
 	}
 	putchar('\n');
 	return 0;
