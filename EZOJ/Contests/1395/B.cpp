@@ -103,27 +103,25 @@ namespace strtreap{
 	typedef Node* node;
 	node null,rt;
 	struct Node{
-		/* Treap */
+		/* SGT */
 		node lson,rson;
 		node lend,rend;
-		int pri;
 		/* Chain */
 		node pre,nxt;
 		/* String */
 		int c;
 		node str;
 		int len;
-		ull mark;
+		ull lval,mark,rval;
 		/* Info */
 		int v,lcp;
 		int size,mn;
 		valtreap::node val;
 		inline void lit_up(){
-			size=lson->size+1+rson->size;
 			lend=lson!=null?lson->lend:this;
 			rend=rson!=null?rson->rend:this;
-			assert(nxt->mark-pre->mark>=100000);
-			mark=pre->mark+((nxt->mark-pre->mark)>>1);
+			size=lson->size+1+rson->size;
+			assert(rval-lval>=10);
 			mn=min(lcp,min(lson->mn,rson->mn));
 		}
 		inline void up(){
@@ -141,13 +139,14 @@ namespace strtreap{
 		null->lson=null->rson=null;
 		null->lend=null->rend=null;
 		null->pre=null,null->nxt=pool;
+		null->lval=0,null->rval=-1;
 		null->str=null;
 		null->lcp=null->mn=INF;
 		null->val=valtreap::null;
 	}
 	inline node nn(node x=null){
 		static node n=pool+1;
-		return *n=*x,n->pri=rand(),n++;
+		return *n=*x,n++;
 	}
 	int ask_lcp(node x,node a,node b){
 		if(x==null)return INF;
@@ -169,67 +168,63 @@ namespace strtreap{
 	inline bool operator < (const Node &a,const Node &b){
 		return a.c!=b.c?a.c<b.c:a.str->mark<b.str->mark;
 	}
-	void sp(node x,node y,node &lhs,node &rhs){//didn't take care of pre and nxt
-		if(x==null)return lhs=rhs=null,void();
-		valtreap::del_all(x->val),x->val=valtreap::null;
-		if(*x<*y){
-			lhs=x,sp(x->rson,y,x->rson,rhs);
-		}else{
-			rhs=x,sp(x->lson,y,lhs,x->lson);
-		}
-		x->up();
-	}
-	void draw(node x){
-		if(x!=null){
-			draw(x->rson);
-			x->lit_up();
-		}
-	}
 	//[null,pool]
+	node *reb;
 	void ins(node &x,node n){//put pre & nxt in n
-		if(x==null){
-			x=n;
-		}else if(x->pri<n->pri){
-			sp(x,n,n->lson,n->rson);
-			x=n;
-			if(n->lson!=null){
-				n->pre=n->lson->rend;
-			}
-			if(n->rson!=null){
-				n->nxt=n->rson->lend;
-			}
-		}else{
+		if(x!=null){
 			valtreap::node v=valtreap::nn();
 			v->val=n->v;
 			valtreap::ins(x->val,v);
 			if(*n<*x){
 				n->nxt=x;
+				n->rval=x->mark-1;
 				ins(x->lson,n);
 			}else{
 				n->pre=x;
+				n->lval=x->mark+1;
 				ins(x->rson,n);
 			}
 			x->lit_up();
+			if(x->lson->size*3>x->size*2||x->rson->size*3>x->size*2){
+				reb=&x;
+			}
 			return;
 		}
+		x=n;
+		x->mark=x->lval+((x->rval-x->lval)>>1);
 		assert(x->lcp==INF);
-		if(x->pre!=null){
-			x->pre->nxt=x;
-		}
-		if(x->nxt!=null){
-			x->nxt->pre=x;
-		}
 		x->up();
 		if(x->pre!=null){
+			x->pre->nxt=x;
 			x->pre->lcp=x->pre->c==x->c?ask_lcp(rt,x->pre->str,x->str->pre)+1:0;
-			if(x->pre==x->lson->rend){
-				draw(x->lson);
-			}
 		}
 		if(x->nxt!=pool){
+			x->nxt->pre=x;
 			x->lcp=x->nxt->c==x->c?ask_lcp(rt,x->str,x->nxt->str->pre)+1:0;
 		}
 		x->lit_up();
+	}
+	node lst[N];
+	node build(int l,int r,ull lval,ull rval){
+		if(l>r)return null;
+		int m=(l+r)>>1;
+		node x=lst[m];
+		x->lval=lval,x->mark=lval+((rval-lval)>>1),x->rval=rval;
+		x->lson=build(l,m-1,lval,x->mark-1);
+		x->rson=build(m+1,r,x->mark+1,rval);
+		x->up();
+		return x;
+	}
+	void ins(node n){
+		reb=0;
+		ins(rt,n);
+		if(reb==0)return;
+		int ls=0;
+		for(node x=(*reb)->lend;;x=x->nxt){
+			lst[++ls]=x;
+			if(x==(*reb)->rend)break;
+		}
+		*reb=build(1,ls,(*reb)->lval,(*reb)->rval);
 	}
 	int ans;
 	bool ask_lef(node x,node y,int l,int r){//does not include y
@@ -286,7 +281,7 @@ int main(){
 		rt->c=-1;
 		rt->up();
 		for(int i=2;i<=n;i++){
-			ins(rt,pool+i);
+			ins(pool+i);
 			pool[i].len=pool[i].str->len+1;
 		}
 	}
@@ -309,9 +304,8 @@ int main(){
 			x->len=x->str->len+1;
 			x->v=ni;
 			x->c=gchar();
-			ins(rt,x);
+			ins(x);
 		}
 	}
 	return 0;
 }
-
