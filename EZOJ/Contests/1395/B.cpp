@@ -37,6 +37,11 @@ namespace valtreap{
 		assert(n<pt+N);
 		return **n=*x,n[0]->pri=rand(),n++[0];
 	}
+	inline node nn(int v){
+		node x=nn();
+		x->val=v;
+		return x;
+	}
 	inline void del(node x){
 		*(--n)=x;
 	}
@@ -76,12 +81,6 @@ namespace valtreap{
 		}
 		x->up();
 	}
-	void ins_all(node x,node &y){
-		if(x==null)return;
-		ins(y,nn(x));
-		ins_all(x->lson,y);
-		ins_all(x->rson,y);
-	}
 	int ask(node x,int val){//<=val
 		int ans=0;
 		while(x!=null){
@@ -117,21 +116,12 @@ namespace strtreap{
 		int v,lcp;
 		int size,mn;
 		valtreap::node val;
-		inline void lit_up(){
+		inline void up(){
 			lend=lson!=null?lson->lend:this;
 			rend=rson!=null?rson->rend:this;
 			size=lson->size+1+rson->size;
 			assert(rval-lval>=10);
 			mn=min(lcp,min(lson->mn,rson->mn));
-		}
-		inline void up(){
-			lit_up();
-			valtreap::del_all(val);
-			valtreap::node t=valtreap::nn();
-			t->val=v;
-			valtreap::ins(val=valtreap::null,t);
-			valtreap::ins_all(lson->val,val);
-			valtreap::ins_all(rson->val,val);
 		}
 	}pool[N],Null;
 	inline void init(){
@@ -172,9 +162,7 @@ namespace strtreap{
 	node *reb;
 	void ins(node &x,node n){//put pre & nxt in n
 		if(x!=null){
-			valtreap::node v=valtreap::nn();
-			v->val=n->v;
-			valtreap::ins(x->val,v);
+			valtreap::ins(x->val,valtreap::nn(n->v));
 			if(*n<*x){
 				n->nxt=x;
 				n->rval=x->mark-1;
@@ -184,7 +172,7 @@ namespace strtreap{
 				n->lval=x->mark+1;
 				ins(x->rson,n);
 			}
-			x->lit_up();
+			x->up();
 			if(x->lson->size*3>x->size*2||x->rson->size*3>x->size*2){
 				reb=&x;
 			}
@@ -194,6 +182,8 @@ namespace strtreap{
 		x->mark=x->lval+((x->rval-x->lval)>>1);
 		assert(x->lcp==INF);
 		x->up();
+		assert(x->val==valtreap::null);
+		valtreap::ins(x->val,valtreap::nn(n->v));
 		if(x->pre!=null){
 			x->pre->nxt=x;
 			x->pre->lcp=x->pre->c==x->c?ask_lcp(rt,x->pre->str,x->str->pre)+1:0;
@@ -202,9 +192,28 @@ namespace strtreap{
 			x->nxt->pre=x;
 			x->lcp=x->nxt->c==x->c?ask_lcp(rt,x->str,x->nxt->str->pre)+1:0;
 		}
-		x->lit_up();
+		x->up();
 	}
 	node lst[N];
+	int numa[N],numb[N];
+	inline void dfs(valtreap::node x,int num[],int &n){
+		if(x==valtreap::null)return;
+		dfs(x->lson,num,n);
+		num[++n]=x->val;
+		dfs(x->rson,num,n);
+		x->up();
+	}
+	valtreap::node stk[N];
+	int ss;
+	inline void psh(valtreap::node x){
+		stk[ss+1]=valtreap::null;
+		for(;ss>=1&&stk[ss]->pri<x->pri;ss--);
+		if(ss){
+			stk[ss]->rson=x;
+		}
+		x->lson=stk[ss+1],x->rson=valtreap::null;
+		stk[++ss]=x;
+	}
 	node build(int l,int r,ull lval,ull rval){
 		if(l>r)return null;
 		int m=(l+r)>>1;
@@ -212,6 +221,16 @@ namespace strtreap{
 		x->lval=lval,x->mark=lval+((rval-lval)>>1),x->rval=rval;
 		x->lson=build(l,m-1,lval,x->mark-1);
 		x->rson=build(m+1,r,x->mark+1,rval);
+		int na=0,nb=0;
+		dfs(x->lson->val,numa,na);
+		dfs(x->rson->val,numb,nb);
+		numa[na+1]=numb[nb+1]=INF;
+		ss=0,stk[1]=valtreap::null;
+		for(int i=1,j1=1,j2=1;i<=na+nb;i++){
+			psh(valtreap::nn(numa[j1]<numb[j2]?numa[j1++]:numb[j2++]));
+		}
+		valtreap::ins(x->val=stk[1],valtreap::nn(x->v));
+		dfs(x->val,numa,na=0);
 		x->up();
 		return x;
 	}
@@ -221,6 +240,7 @@ namespace strtreap{
 		if(reb==0)return;
 		int ls=0;
 		for(node x=(*reb)->lend;;x=x->nxt){
+			valtreap::del_all(x->val);
 			lst[++ls]=x;
 			if(x==(*reb)->rend)break;
 		}
@@ -280,6 +300,7 @@ int main(){
 		rt->str=rt;
 		rt->c=-1;
 		rt->up();
+		valtreap::ins(rt->val,valtreap::nn(rt->v));
 		for(int i=2;i<=n;i++){
 			ins(pool+i);
 			pool[i].len=pool[i].str->len+1;
