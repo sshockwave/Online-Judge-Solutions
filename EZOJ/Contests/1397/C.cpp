@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <cstdlib>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -59,6 +60,76 @@ namespace trie{
 		}
 	}
 }
+namespace T{
+	const int N=trie::N,E=N;
+	using trie::n;
+	int to[E],bro[E],head[N],e=0;
+	inline void init(){
+		memset(head+1,-1,n*sizeof(head[0]));
+		e=0;
+	}
+	inline void ae(int u,int v){
+		to[e]=v,bro[e]=head[u],head[u]=e++;
+	}
+	int tag[N],lst[N],pre[N],ls,stk[N],stkpre[N];
+	bool onring[N];
+	int *nxt,*go;
+	int *val,*sum;
+	int step;
+	void dfs(int x,int dep,int dt){
+		stk[dep]=x,stkpre[dep]=dep?stkpre[dep-1]+val[x]:0;
+		if(step<=dep){
+			go[x]=stk[dep-step];
+			sum[x]=stkpre[dep]-stkpre[dep-step];
+		}else{
+			int to=step-dep+dt;
+			go[x]=lst[to%ls];
+			sum[x]=stkpre[dep]+pre[ls]*(to/ls)+pre[to%ls]-pre[dt];
+		}
+		for(int i=head[x];~i;i=bro[i]){
+			dfs(to[i],dep+1,dt);
+		}
+	}
+	inline void Main(){
+		int tim=0;
+		memset(tag+1,0,n<<2);
+		memset(onring+1,0,n);
+		for(int i=1;i<=n;i++){
+			if(tag[i])continue;
+			int j=i;
+			tim++;
+			for(;tag[j]==0;j=nxt[j]){
+				tag[j]=tim;
+			}
+			if(tag[j]<tim)continue;
+			tim++;
+			for(;tag[j]<tim;j=nxt[j]){
+				tag[j]=tim;
+				onring[j]=true;
+			}
+		}
+		init();
+		for(int i=1;i<=n;i++){
+			if(!onring[i]){
+				ae(nxt[i],i);
+			}
+		}
+		tim++;
+		for(int i=1;i<=n;i++){
+			if(onring[i]&&tag[i]<tim){
+				ls=0;
+				for(int j=i;tag[j]<tim;j=nxt[j]){
+					tag[j]=tim;
+					lst[ls++]=j;
+					pre[ls]=pre[ls-1]+val[j];
+				}
+				for(int i=0;i<ls;i++){
+					dfs(lst[i],0,i);
+				}
+			}
+		}
+	}
+}
 struct Trans{
 	int to[trie::N],f[trie::N];
 	inline void id(){
@@ -79,9 +150,15 @@ struct Trans{
 			Trans tr;
 			tr.id();
 			return tr;
-		}
+		}/*
 		Trans tr=fpow(e>>1);
-		return e&1?(tr+tr+*this):(tr+tr);
+		return e&1?(tr+tr+*this):(tr+tr);*/
+		Trans tr;
+		T::nxt=to,T::val=f;
+		T::go=tr.to,T::sum=tr.f;
+		T::step=e;
+		T::Main();
+		return tr;
 	}
 }lett[D];
 char s[N];
