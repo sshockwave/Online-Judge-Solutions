@@ -133,7 +133,7 @@ inline int solve(int n){//okay
 		cur=calc(r);
 		ans+=(lint)(cur-last)*t%O*t%O*t%O;
 	}
-	return ans;
+	return ans%O;
 }
 inline int solve2(int n){//okay
 	lint ans=0;
@@ -143,7 +143,7 @@ inline int solve2(int n){//okay
 		cur=calc(r);
 		ans+=(lint)(cur-last)*t%O*t%O;
 	}
-	return (ans-_n(n))>>1;
+	return (ans-_n(n))%O*inv(2)%O;
 }
 inline int solve4(int n){//okay
 	return _n(n);
