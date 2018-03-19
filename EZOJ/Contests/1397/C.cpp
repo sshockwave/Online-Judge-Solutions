@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <cstdlib>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -18,9 +17,9 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=100010,D=26;
+const int SH=18,N=(1<<(SH-1))|10,D=26;
 namespace trie{
-	const int N=55;
+	const int N=52;
 	int son[N][D],ed[N],fail[N],fa[N],n=0;
 	inline int nn(int &x){
 		return x==0?x=++n:x;
@@ -60,76 +59,6 @@ namespace trie{
 		}
 	}
 }
-namespace T{
-	const int N=trie::N,E=N;
-	using trie::n;
-	int to[E],bro[E],head[N],e=0;
-	inline void init(){
-		memset(head+1,-1,n*sizeof(head[0]));
-		e=0;
-	}
-	inline void ae(int u,int v){
-		to[e]=v,bro[e]=head[u],head[u]=e++;
-	}
-	int tag[N],lst[N],pre[N],ls,stk[N],stkpre[N];
-	bool onring[N];
-	int *nxt,*go;
-	int *val,*sum;
-	int step;
-	void dfs(int x,int dep,int dt){
-		stk[dep]=x,stkpre[dep]=dep?stkpre[dep-1]+val[x]:0;
-		if(step<=dep){
-			go[x]=stk[dep-step];
-			sum[x]=stkpre[dep]-stkpre[dep-step];
-		}else{
-			int to=step-dep+dt;
-			go[x]=lst[to%ls];
-			sum[x]=stkpre[dep]+pre[ls]*(to/ls)+pre[to%ls]-pre[dt];
-		}
-		for(int i=head[x];~i;i=bro[i]){
-			dfs(to[i],dep+1,dt);
-		}
-	}
-	inline void Main(){
-		int tim=0;
-		memset(tag+1,0,n<<2);
-		memset(onring+1,0,n);
-		for(int i=1;i<=n;i++){
-			if(tag[i])continue;
-			int j=i;
-			tim++;
-			for(;tag[j]==0;j=nxt[j]){
-				tag[j]=tim;
-			}
-			if(tag[j]<tim)continue;
-			tim++;
-			for(;tag[j]<tim;j=nxt[j]){
-				tag[j]=tim;
-				onring[j]=true;
-			}
-		}
-		init();
-		for(int i=1;i<=n;i++){
-			if(!onring[i]){
-				ae(nxt[i],i);
-			}
-		}
-		tim++;
-		for(int i=1;i<=n;i++){
-			if(onring[i]&&tag[i]<tim){
-				ls=0;
-				for(int j=i;tag[j]<tim;j=nxt[j]){
-					tag[j]=tim;
-					lst[ls++]=j;
-					pre[ls]=pre[ls-1]+val[j];
-				}
-				for(int i=0;i<ls;i++){
-					dfs(lst[i],0,i);
-				}
-			}
-		}
-	}
-}
 struct Trans{
 	int to[trie::N],f[trie::N];
 	inline void id(){
@@ -137,7 +66,7 @@ struct Trans{
 			to[i]=i,f[i]=0;
 		}
 	}
-	inline friend Trans operator + (Trans a,Trans b){
+	inline friend Trans operator + (const Trans &a,const Trans &b){
 		Trans tmp;
 		for(int i=1;i<=trie::n;i++){
 			tmp.to[i]=b.to[a.to[i]],tmp.f[i]=a.f[i]+b.f[a.to[i]];
@@ -145,52 +74,62 @@ struct Trans{
 		}
 		return tmp;
 	}
-	inline Trans fpow(int e){
-		if(e==0){
-			Trans tr;
-			tr.id();
-			return tr;
-		}/*
-		Trans tr=fpow(e>>1);
-		return e&1?(tr+tr+*this):(tr+tr);*/
-		Trans tr;
-		T::nxt=to,T::val=f;
-		T::go=tr.to,T::sum=tr.f;
-		T::step=e;
-		T::Main();
-		return tr;
-	}
-}lett[D];
+}lett[D],str[N][SH];
 char s[N];
 namespace seg{
-	const int N=::N<<2;
+	const int N=::N<<1;
 	struct Node;
 	typedef Node* node;
 	struct Node{
 		node lson,rson;
-		int l,m,r;
+		int l,m,r,sh;
 		Trans tr;
-		node tagrt;
-		int tagl;
+		int st,pos,ed;//[st,ed)
+		inline void puttag(int s,int p,int e){
+			st=s,pos=p,ed=e;
+			tr=str[p][sh];
+		}
 		inline void up(){
-			assert(tagrt==0);
+			for(int i=1;i<=trie::n;i++){
+				assert(lson->tr.to[i]);
+				assert(rson->tr.to[i]);
+			}
 			tr=lson->tr+rson->tr;
 		}
-		inline void dn();
+		inline void dn(){
+			if(pos!=-1){
+				lson->puttag(st,pos,ed);
+				rson->puttag(st,(pos-st+(1<<(sh-1)))%(ed-st)+st,ed);
+				pos=-1;
+			}
+		}
 	}pool[N];
-	node build(int l,int r){
+	node build(int l,int r,int sh){
 		static node n=pool;
 		node x=n++;
-		x->l=l,x->m=(l+r)>>1,x->r=r;
-		x->tagrt=0;
+		x->l=l,x->m=(l+r)>>1,x->r=r,x->sh=sh;
+		x->pos=-1;
 		if(l==r){
 			x->tr=lett[s[l]-'a'];
 		}else{
-			x->lson=build(l,x->m);
-			x->rson=build(x->m+1,r);
+			x->lson=build(l,x->m,sh-1);
+			x->rson=build(x->m+1,r,sh-1);
 			x->up();
 		}
 		return x;
+	}
+	void cov(node x,int l,int r,int st,int pos,int ed){
+		if(x->l==l&&x->r==r)return x->puttag(st,pos,ed);
+		x->dn();
+		if(r<=x->m){
+			cov(x->lson,l,r,st,pos,ed);
+		}else if(l>x->m){
+			cov(x->rson,l,r,st,pos,ed);
+		}else{
+			cov(x->lson,l,x->m,st,pos,ed);
+			cov(x->rson,x->m+1,r,st,(pos-st+x->m+1-l)%(ed-st)+st,ed);
+		}
+		x->up();
 	}
 	Trans ask(node x,int l,int r){
 		if(x->l==l&&x->r==r)return x->tr;
@@ -198,36 +137,6 @@ namespace seg{
 		if(r<=x->m)return ask(x->lson,l,r);
 		if(l>x->m)return ask(x->rson,l,r);
 		return ask(x->lson,l,x->m)+ask(x->rson,x->m+1,r);
-	}
-	void cov(node x,int l,int r,node rt,int sh){
-		if(x->l==l&&x->r==r){
-			x->tagrt=rt,x->tagl=sh;
-			int lenrt=rt->r+1;
-			int lend=sh,rend=sh+r-l;
-			if(rend<lenrt){
-				x->tr=ask(rt,lend,rend);
-			}else{
-				x->tr=ask(rt,lend,rt->r)+rt->tr.fpow(rend/lenrt-1)+ask(rt,0,rend%lenrt);
-			}
-			return;
-		}
-		x->dn();
-		if(r<=x->m){
-			cov(x->lson,l,r,rt,sh);
-		}else if(l>x->m){
-			cov(x->rson,l,r,rt,sh);
-		}else{
-			cov(x->lson,l,x->m,rt,sh);
-			cov(x->rson,x->m+1,r,rt,(sh+x->m+1-l)%(rt->r+1));
-		}
-		x->up();
-	}
-	inline void Node::dn(){
-		if(tagrt){
-			cov(lson,l,m,tagrt,tagl);
-			cov(rson,m+1,r,tagrt,(tagl+m+1-l)%(tagrt->r+1));
-			tagrt=0;
-		}
 	}
 }
 int main(){
@@ -249,12 +158,25 @@ int main(){
 		}
 	}
 	scanf("%s",s);
-	seg::node rt=seg::build(0,strlen(s)-1);
-	while(tot2--){
+	int n=strlen(s),sh=0;
+	for(;(1<<sh)<n;sh++);
+	memset(s+n,'a',(1<<sh)-n);
+	seg::node rt=seg::build(0,(1<<sh)-1,sh);
+	for(int st=0,ed=0;tot2--;){
 		int op=ni,l=ni-1,r=ni-1;
 		if(op==1){
 			scanf("%s",s);
-			seg::cov(rt,l,r,seg::build(0,strlen(s)-1),0);
+			ed=st+strlen(s);
+			for(int i=st;i<ed;i++){
+				str[i][0]=lett[s[i-st]-'a'];
+			}
+			for(int j=0;j<sh;j++){
+				for(int i=st;i<ed;i++){
+					str[i][j+1]=str[i][j]+str[(i-st+(1<<j))%(ed-st)+st][j];
+				}
+			}
+			seg::cov(rt,l,r,st,st,ed);
+			st=ed;
 		}else{
 			printf("%d\n",seg::ask(rt,l,r).f[1]);
 		}
