@@ -5,16 +5,6 @@
 #include <cctype>
 using namespace std;
 typedef long long lint;
-#define cout cerr
-#define ni (next_num<int>())
-template<class T>inline T next_num(){
-	T i=0;char c;
-	while(!isdigit(c=getchar())&&c!='-');
-	bool flag=c=='-';
-	flag?c=getchar():0;
-	while(i=i*10-'0'+c,isdigit(c=getchar()));
-	return flag?-i:i;
-}
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 struct vEBproto{
@@ -24,10 +14,10 @@ struct vEBproto{
 template<unsigned w>struct vEB;
 template<>struct vEB<1>:vEBproto{
 	inline unsigned pred(unsigned x){
-		return x>=mx?mx:x>=mn?mn:-1;
+		return x==-1u?-1u:x>=mx?mx:x>=mn?mn:-1u;
 	}
 	inline unsigned succ(unsigned x){
-		return x<=mn?mn:x<=mx?mx:-1;
+		return x==-1u?-1u:x<=mn?mn:x<=mx?mx:-1u;
 	}
 	inline void ins(unsigned x){
 		if(mx==-1u){
@@ -39,32 +29,26 @@ template<>struct vEB<1>:vEBproto{
 	inline void del(unsigned x){
 		mn=mx=mn==mx?-1u:!x;
 	}
-	void dfs(unsigned t){
-		if(mn==-1u)return;
-		cout<<(t|mn)<<" ";
-		if(mn!=mx){
-			cout<<(t|mx)<<" ";
-		}
-	}
 };
-template<unsigned w>struct vEB:vEBproto{//n==(1<<w)
+template<unsigned w>struct vEB:vEBproto{
 	const static int flo=w>>1,cel=w-flo;
 	vEB<flo>summary;
 	vEB<cel>cluster[1<<flo];
 	inline unsigned pred(unsigned x){
-		if(x<0||x<mn)return -1u;
+		if(x==-1u||x<mn)return -1u;
 		if(x>=mx)return mx;
 		const unsigned hi=x>>cel,lo=x^(hi<<cel);
 		if(lo>=cluster[hi].mn)return (hi<<cel)|cluster[hi].pred(lo);
 		unsigned p=summary.pred(hi-1);
-		return p!=-1u?(hi<<cel)|cluster[p].mn:mn;
+		return p!=-1u?(p<<cel)|cluster[p].mx:mn;
 	}
 	inline unsigned succ(unsigned x){
 		if(x>mx)return -1u;
 		if(x<=mn)return mn;
 		const unsigned hi=x>>cel,lo=x^(hi<<cel);
 		if(cluster[hi].mx!=-1u&&lo<=cluster[hi].mx)return (hi<<cel)|cluster[hi].succ(lo);
-		return (hi<<cel)|cluster[summary.succ(hi+1)].mn;
+		int p=summary.succ(hi+1);
+		return (p<<cel)|cluster[p].mn;
 	}
 	inline void ins(unsigned x){
 		if(mx==-1u)return mn=mx=x,void();
@@ -80,9 +64,7 @@ template<unsigned w>struct vEB:vEBproto{//n==(1<<w)
 		cluster[hi].ins(lo);
 	}
 	inline void del(unsigned x){
-		assert(mx!=-1u);
 		if(mn==mx){
-			assert(x==mn);
 			mn=mx=-1u;
 			return;
 		}
@@ -98,21 +80,40 @@ template<unsigned w>struct vEB:vEBproto{//n==(1<<w)
 			mx=summary.mx!=-1u?(summary.mx<<cel)|cluster[summary.mx].mx:mn;
 		}
 	}
-	void dfs(unsigned t){
-		if(mn==-1u)return;
-		cout<<(mn|t)<<" ";
-		for(int i=0;i<(1<<(w>>1));i++){
-			cluster[i].dfs(t|(i<<(w-(w>>1))));
-		}
-	}
 };
 const int SH=20,N=1<<SH;
 vEB<SH>T;
-inline void putnum(unsigned x){
-	if(x==-1u){
-		puts("-1");
-	}else{
-		printf("%d\n",x);
+namespace IO{
+	const int N=30000010;
+	char s[N],*t=s;
+	char buf[N],*bufp=buf;
+	inline void init(){
+		fread(s,1,N,stdin);
+	}
+	inline unsigned ni(){
+		unsigned i=0;
+		for(;!isdigit(*t);t++);
+		while(i=i*10-'0'+*t,isdigit(*++t));
+		return i;
+	}
+	void putnum(unsigned x){
+		if(x){
+			int t=x/10;
+			putnum(t),*(bufp++)=x-t*10+'0';
+		}
+	}
+	inline void put(unsigned x){
+		if(x==-1u){
+			*(bufp++)='-',*(bufp++)='1';
+		}else if(x==0){
+			*(bufp++)='0';
+		}else{
+			putnum(x);
+		}
+		*(bufp++)='\n';
+	}
+	inline void flush(){
+		fwrite(buf,1,bufp-buf,stdout);
 	}
 }
 bool liv[N];
@@ -121,41 +122,42 @@ int main(){
 	freopen("van.in","r",stdin);
 	freopen("van.out","w",stdout);
 #endif
-	memset(liv,0,sizeof(liv));
-	ni;
+	IO::init();
+	IO::ni();
 	unsigned x;
-	for(int tot=ni;tot--;){
-		switch(ni){
+	for(int tot=IO::ni();tot--;){
+		switch(IO::ni()){
 			case 1:
-				x=ni;
+				x=IO::ni();
 				if(!liv[x]){
 					liv[x]=true;
 					T.ins(x);
 				}
 				break;
 			case 2:
-				x=ni;
+				x=IO::ni();
 				if(liv[x]){
 					T.del(x);
 					liv[x]=false;
 				}
 				break;
 			case 3:
-				putnum(T.mn);
+				IO::put(T.mn);
 				break;
 			case 4:
-				putnum(T.mx);
+				IO::put(T.mx);
 				break;
 			case 5:
-				putnum(T.pred(ni-1));
+				IO::put(T.pred(IO::ni()-1));
 				break;
 			case 6:
-				putnum(T.succ(ni+1));
+				IO::put(T.succ(IO::ni()+1));
 				break;
 			case 7:
-				putnum(liv[ni]?1u:-1u);
+				IO::put(liv[IO::ni()]?1u:-1u);
 				break;
 		}
 	}
+	IO::flush();
 	return 0;
 }
