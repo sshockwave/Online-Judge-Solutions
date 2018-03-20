@@ -23,12 +23,12 @@ const lint LINF=0x7f7f7f7f7f7f7f7fll;
 int n;
 lint a[N];
 int pre[N],nxt[N],roll_pre[N],roll_nxt[N];
-lint prev[N],nxtv[N],roll_prev[N],roll_nxtv[N];
+lint prev2[N],nxtv[N],roll_prev[N],roll_nxtv[N];
 lint premn[N],nxtmx[N];
 bool dfs(int l,int r){
 	if(premn[l]>=nxtmx[r])return true;
 	while(true){
-		if(prev[l]>=a[r]){
+		if(prev2[l]>=a[r]){
 			l=pre[l];
 		}else if(a[l]>=nxtv[r]){
 			r=nxt[r];
@@ -67,11 +67,11 @@ inline bool Main(){
 	}
 	for(int i=1;i<=n;i++){//pre
 		if(i==1){
-			pre[i]=i-1,prev[i]=-LINF;
+			pre[i]=i-1,prev2[i]=-LINF;
 		}else{
-			pre[i]=i-1,prev[i]=a[i];
-			for(int &j=pre[i];j>=1&&a[j]<a[i];apmin(prev[i],prev[j]),j=pre[j]);
-			for(int &j=pre[i];j>=1&&prev[j]>=prev[i];j=pre[j]);
+			pre[i]=i-1,prev2[i]=a[i];
+			for(int &j=pre[i];j>=1&&a[j]<a[i];apmin(prev2[i],prev2[j]),j=pre[j]);
+			for(int &j=pre[i];j>=1&&prev2[j]>=prev2[i];j=pre[j]);
 		}
 	}
 	for(int i=n;i>=1;i--){//nxt
