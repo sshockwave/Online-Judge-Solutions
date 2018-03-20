@@ -22,7 +22,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 typedef vector<int>vi;
 const int N=12,SN=1<<N;
-const db EPS=1e-8;
+const static db EPS=1e-8;
 struct State{
 	int n;
 	struct state{
@@ -116,6 +116,7 @@ int main(){
 	freopen("game.in","r",stdin);
 	freopen("game.out","w",stdout);
 #endif
+	srand(990099);
 	n=ni,sn=1<<n;
 	for(int i=0;i<n;i++){
 		a[i]=ni;
@@ -130,17 +131,23 @@ int main(){
 	using T::node;
 	T::ps=T::pool;
 	node seg=T::gen_seg(n),cha=T::gen_cha(n);
-	for(int l=1,r=1000,&m=a[0];m=(l+r)>>1,l<r;){
+	int l=1,r=1000;
+	for(int &m=a[0];l+1<r;){
+		m=(l+r)>>1;
 		db segv=T::dp(seg).grabans(),chav=T::dp(cha).grabans();
 		if(segv>chav){
 			r=m;
 		}else if(segv<chav){
-			l=m+1;
+			l=m;
 		}else break;
 	}
-	db mx=max(T::dp(seg).grabans(),T::dp(cha).grabans());
+	db mx1=(a[0]=l,max(T::dp(seg).grabans(),T::dp(cha).grabans()));
+	db mx2=(a[0]=r,max(T::dp(seg).grabans(),T::dp(cha).grabans()));
 	node res;
-	while(T::ps=T::pool,T::dp(res=T::gen_rnd(n)).grabans()<mx+EPS);
+	while(true){
+		if(T::ps=T::pool,a[0]=l,T::dp(res=T::gen_rnd(n)).grabans()>mx1+1e-8)break;
+		if(T::ps=T::pool,a[0]=r,T::dp(res=T::gen_rnd(n)).grabans()>mx2+1e-8)break;
+	}
 	puts("1");
 	printf("1 %d\n",a[0]);
 	for(int i=1;i<=T::ps-T::pool;i++){
