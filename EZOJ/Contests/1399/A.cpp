@@ -2,12 +2,9 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
-#include <cstdlib>
 #include <cctype>
 #include <algorithm>
 #include <cmath>
-#include <queue>
-#include <set>
 using namespace std;
 typedef double db;
 typedef long long lint;
@@ -23,83 +20,95 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+template<class T>inline T sqr(const T &x){return x*x;}
 const int N=5010;
 const db EPS=1e-8;
 struct Pt{
 	int x,y;
 	inline lint d2(){return (lint)x*x+(lint)y*y;}
+	inline db ang(){return atan2(y,x);}
 	inline friend Pt operator + (const Pt &a,const Pt &b){return (Pt){a.x+b.x,a.y+b.y};};
 	inline friend Pt operator - (const Pt &a,const Pt &b){return (Pt){a.x-b.x,a.y-b.y};};
 	inline friend lint dot(const Pt &a,const Pt &b){return (lint)a.x*b.x+(lint)a.y*b.y;};
 	inline friend lint crs(const Pt &a,const Pt &b){return (lint)a.x*b.y-(lint)a.y*b.x;};
-}pt[N<<1],seg[N];
-queue<int>q;
-set<int>s;
-db oldans,newans;
-inline db disid(int u,int v){
-	return sqrt((pt[u]-pt[v]).d2());
+}pt[N<<1],seg[N],base;
+db ang[N<<1],cosang[N],sinang[N];
+int lst[N<<1];
+inline bool lcmp(int a,int b){
+	return ang[a]<ang[b];
 }
-inline int sgn(lint x){
-	return x>0?1:x<0?-1:0;
+inline bool polarcmp(int i,int j){
+	return crs(pt[i]-base,pt[j]-base)>0;
 }
-inline bool intersect(Pt u1,Pt v1,Pt u2,Pt v2){
-	return sgn(crs(u1-v1,u2-v1))*sgn(crs(u1-v1,v2-v1))<0&&sgn(crs(u2-v2,u1-v2))*sgn(crs(u2-v2,v1-v2))<0;
-}
-inline bool work(){
-	if(q.empty())return false;
-	int x=q.front();
-	q.pop();
-	int &A=seg[x].x,&B=seg[x].y;
-	for(set<int>::iterator it=s.begin();it!=s.end();it++){
-		int y=*it;
-		int &C=seg[y].x,&D=seg[y].y;
-		if(!intersect(pt[A],pt[B],pt[C],pt[D]))continue;
-		db pre=disid(A,B)+disid(C,D);
-		db nxt1=disid(A,C)+disid(B,D);
-		db nxt2=disid(A,D)+disid(B,C);
-		if(nxt1>nxt2){
-			swap(B,C);
-			newans+=nxt1-pre;
-			s.erase(it);
-			q.push(x),q.push(y);
-			return true;
-		}else{
-			swap(B,D);
-			newans+=nxt2-pre;
-			s.erase(it);
-			q.push(x),q.push(y);
-			return true;
+bool mark[N<<1];
+int lnk[N<<1];
+void solve(int l,int r){
+	if(l>r)return;
+	int p=l;
+	for(int i=l+1;i<=r;i++){
+		int x=lst[i],y=lst[p];
+		if(pt[x].y<pt[y].y){
+			p=i;
+		}else if(pt[x].y==pt[y].y&&pt[x].x<pt[y].x){
+			p=i;
 		}
 	}
-	s.insert(x);
-	return true;
+	swap(lst[l],lst[p]);
+	base=pt[lst[l]];
+	sort(lst+l+1,lst+r+1,polarcmp);
+	int cnt[2]={0,0};
+	for(p=l+1;mark[lst[l]]==mark[lst[p]]||cnt[0]!=cnt[1];cnt[mark[lst[p]]]++,p++);
+	lnk[lst[l]]=lst[p],lnk[lst[p]]=lst[l];
+	solve(l+1,p-1),solve(p+1,r);
 }
-int a[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("nonintersect.in","r",stdin);
 	freopen("nonintersect.out","w",stdout);
 #endif
-	srand(990099);
 	int n=ni;
 	for(int i=1;i<=(n<<1);i++){
 		pt[i]=(Pt){ni,ni};
 	}
 	for(int i=1;i<=n;i++){
 		seg[i]=(Pt){ni,ni};
-		oldans+=disid(seg[i].x,seg[i].y);
+		ang[i]=(pt[seg[i].x]-pt[seg[i].y]).ang();
+		if(ang[i]>M_PI){
+			ang[i]-=M_PI;
+		}else if(ang[i]<0){
+			ang[i]+=M_PI;
+		}
 	}
-	newans=oldans;
-	for(int i=1;i<=n;i++){
-		a[i]=i;
+	sort(ang+1,ang+n+1);
+	{//get mark
+		cosang[0]=sinang[0]=0;
+		for(int i=1;i<=n;i++){
+			cosang[i]=cosang[i-1]+cos(ang[i]);
+			sinang[i]=sinang[i-1]+sin(ang[i]);
+		}
+		db alpa,alpb,val=-1;
+		for(int i=0;i<=n;i++){
+			db a=cosang[i]*2-cosang[n],b=sinang[i]*2-sinang[n];
+			db cur=sqr(a)+sqr(b);
+			if(cur>val){
+				val=cur;
+				alpa=a,alpb=b;
+			}
+		}
+		for(int i=1;i<=(n<<1);i++){
+			ang[i]=alpa*pt[i].x+alpb*pt[i].y,lst[i]=i;
+		}
+		sort(lst+1,lst+(n<<1)+1,lcmp);
+		memset(mark,0,sizeof(mark));
+		for(int i=1;i<=n;i++){
+			mark[lst[i]]=true;
+		}
 	}
-	random_shuffle(a+1,a+n+1);
-	for(int i=1;i<=n;i++){
-		q.push(a[i]);
-	}
-	while(work());
-	for(int i=1;i<=n;i++){
-		printf("%d %d\n",seg[i].x,seg[i].y);
+	solve(1,n<<1);
+	for(int i=1;i<=(n<<1);i++){
+		if(lnk[i]<i){
+			printf("%d %d\n",lnk[i],i);
+		}
 	}
 	return 0;
 }
