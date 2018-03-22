@@ -115,7 +115,7 @@ int main(){
 		if(ans<INF){
 			lastans=ans;
 		}else{
-			ans=-1;
+			ans=-1,lastans=0;
 		}
 		printf("%d\n",ans);
 	}
