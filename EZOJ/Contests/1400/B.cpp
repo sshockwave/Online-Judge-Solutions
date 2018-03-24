@@ -121,10 +121,10 @@ int main(){
 	}
 	ans+=G::mcmf();
 	for(int i=G::head[G::s];~i;i=G::bro[i]){
-		deg[G::to[i]]-=G::cap[i^1]*G::val[i];
+		deg[G::to[i]]-=G::cap[i^1]*G::val[i]*2;
 	}
 	for(int i=G::head[G::t];~i;i=G::bro[i]){
-		deg[G::to[i]]-=G::cap[i]*G::val[i^1];
+		deg[G::to[i]]+=G::cap[i]*G::val[i^1]*2;
 	}
 	vis[G::s]=vis[G::t]=true;
 	for(int i=1;i<=n;i++){
