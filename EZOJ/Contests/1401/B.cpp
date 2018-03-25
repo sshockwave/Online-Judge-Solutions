@@ -5,7 +5,6 @@
 #include <cctype>
 #include <vector>
 #include <algorithm>
-#include <fstream>//cout
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -41,8 +40,9 @@ struct Mat{
 		}
 	}
 	inline void ap(int f[2]){
-		f[0]=min(f[0]+a[0][0],f[1]+a[1][0]);
-		f[1]=min(f[0]+a[0][1],f[1]+a[1][1]);
+		int f0=f[0],f1=f[1];
+		f[0]=min(f0+a[0][0],f1+a[1][0]);
+		f[1]=min(f0+a[0][1],f1+a[1][1]);
 	}
 };
 int n;
@@ -97,25 +97,28 @@ namespace T{
 		}
 		return l;
 	}
+	inline int getdisl(int u,int f){
+		int x=getid(son[f],u);
+		return x>0?ldis[f][x-1]+(u-rend[son[f][x-1]])+1:(u-lend[f]);
+	}
+	inline int getdisr(int v,int f){
+		int y=getid(son[f],v),s=son[f].size();
+		return y<s?rdis[f][s-y-1]+(lend[son[f][y]]-v)+1:(rend[f]-v);
+	}
 	inline void gf(int x,int f[],int fa){
-		int id=getid(son[fa],x),s=son[fa].size();
-		int disl=id>0?ldis[fa][id-1]+1+(x-rend[son[fa][id-1]]):(x-lend[fa]);
-		int disr=id<s?rdis[fa][s-id-1]+(lend[son[fa][id]]-x)+1:(rend[fa]-x);
+		int disl=getdisl(x,fa);
+		int disr=getdisr(x,fa);
 		f[0]=min(disl,disr+1);
 		f[1]=min(disl+1,disr);
 	}
-	inline int calcdis(int u,int v,int f){//cout
+	inline int calcdis(int u,int v,int f){
 		if(u==v)return 0;
 		if(u>v){
 			swap(u,v);
 		}
 		int x=getid(son[f],u),y=getid(son[f],v);
 		int s=son[f].size(),ans=INF;
-		{
-			const int ld=x>0?ldis[f][x-1]+(u-rend[son[f][x-1]])+1:(u-lend[f]);
-			const int rd=y<s?rdis[f][s-y-1]+(lend[son[f][y]]-v)+1:(rend[f]-v);
-			apmin(ans,ld+rd+1);
-		}
+		apmin(ans,getdisl(u,f)+getdisr(v,f)+1);
 		if(x==y){
 			apmin(ans,v-u);
 		}else{
@@ -156,13 +159,15 @@ namespace T{
 			gf(u,uf,bln[u]),u=bln[u];
 			gf(v,vf,bln[v]),v=bln[v];
 		}
+		assert(dep[u]==dep[v]);
 		for(int j=ldep[u]-1;j>=0;j--){
 			if(fa[u][j]!=fa[v][j]){
 				f[u][j].ap(uf),u=fa[u][j];
 				f[v][j].ap(vf),v=fa[v][j];
-				apmin(j,ldep[u]-1);
+				apmin(j,ldep[u]);
 			}
 		}
+		assert(fa[u][0]==fa[v][0]);
 		int ans=INF;
 		apmin(ans,uf[0]+vf[0]+calcdis(lend[u],lend[v],fa[u][0]));
 		apmin(ans,uf[0]+vf[1]+calcdis(lend[u],rend[v],fa[u][0]));
@@ -170,10 +175,6 @@ namespace T{
 		apmin(ans,uf[1]+vf[1]+calcdis(rend[u],rend[v],fa[u][0]));
 		return ans;
 	}
-}
-inline string space(){
-	ifstream fin("/proc/self/status");
-	return string(istreambuf_iterator<char>(fin),istreambuf_iterator<char>());
 }
 vector<int>vec[N];
 int stk[N],ss=0;
