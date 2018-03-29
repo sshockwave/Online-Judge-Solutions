@@ -44,15 +44,16 @@ inline void putop(Pt *i,Pt *j,Pt *k){
 inline void work(int _a,int _b,int _c){
 	assert(!flat(_a,_b,_c));
 	Pt *a=pt+_a,*b=pt+_b,*c=pt+_c;
-	int p=-min(a->x,min(b->x,c->x));
-	int q=-min(a->y,min(b->y,c->y));
-	apmax(p,0),apmax(q,0);
+	const int tval=12;
+	int p=tval-min(a->x,min(b->x,c->x));
+	int q=tval-min(a->y,min(b->y,c->y));
+	assert(p>=0&&q>=0);
 	Pt v1=*b-*a,v2=*c-*a;
 	int mv1=p*v2.y-q*v2.x,mv2=q*v1.x-p*v1.y;
-	if(mv1*v1.x+mv2*v2.x<0||mv1*v1.y+mv2*v2.y<0){
+	if((lint)mv1*v1.x+(lint)mv2*v2.x<0||(lint)mv1*v1.y+(lint)mv2*v2.y<0){
 		mv1=-mv1,mv2=-mv2;
 	}
-	while(min(min(a->x,a->y),min(min(b->x,b->y),min(c->x,c->y)))<0){
+	while(min(min(a->x,a->y),min(min(b->x,b->y),min(c->x,c->y)))<tval){
 		if(mv1>0){
 			putop(b,c,a),putop(a,b,c);
 			_a=b-pt,_b=c-pt,_c=a-pt;
@@ -84,21 +85,44 @@ int main(){
 	for(int i=1;i<=n;i++){
 		pt[i]=(Pt){ni,ni};
 	}
-	for(int i=1,j,k;i<=n;i++){
-		if(min(pt[i].x,pt[i].y)<0){
-			bool flag=false;
-			for(j=1;j<=n;j++){
-				if(i!=j){
-					for(k=1;k<=n;k++){
-						if(i!=k&&j!=k&&!flat(i,j,k)){
-							flag=true;
-							break;
-						}
-					}
+	int a,b,c;
+	bool flag=false;
+	for(a=1;a<=n;a++){
+		for(b=1;b<=n;b++){
+			for(c=1;c<=n;c++){
+				if(!flat(a,b,c)){
+					flag=true;
+					break;
 				}
-				if(flag)break;
 			}
-			work(i,j,k);
+			if(flag)break;
+		}
+		if(flag)break;
+	}
+	if(!flag){
+		int mn=0;
+		for(int i=1;i<=n;i++){
+			apmin(mn,min(pt[i].x,pt[i].y));
+		}
+		if(mn<0){
+			puts("-1");
+		}else{
+			puts("0");
+		}
+		return 0;
+	}
+	work(a,b,c);
+	for(int i=1;i<=n;i++){
+		if(i!=a&&i!=b&&i!=c){
+			if(!flat(a,b,i)){
+				putop(a,b,i);
+			}else if(!flat(b,c,i)){
+				putop(b,c,i);
+			}else if(!flat(a,c,i)){
+				putop(a,c,i);
+			}else{
+				assert(false);
+			}
 		}
 	}
 	printf("%lu\n",vec.size());
