@@ -18,7 +18,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int N=1000010,D=100,O=998244353;
+const int N=1000010,D=100,O=1000000007;
 inline string space(){
 	ifstream fin("/proc/self/status");
 	return string(istreambuf_iterator<char>(fin),istreambuf_iterator<char>());
@@ -29,7 +29,7 @@ int main(){
 	freopen("klavir.in","r",stdin);
 	freopen("klavir.out","w",stdout);
 #endif
-	const int n=ni,m=ni;
+	const int m=ni,n=ni;
 	for(int i=1;i<=n;i++){
 		int c=ni-1;
 		fail[i]=go[i-1][c],go[i-1][c]=i;
@@ -38,8 +38,8 @@ int main(){
 		for(int j=0;j<m;j++){
 			sum+=f[go[i-1][j]];
 		}
-		f[i]=((lint)n*(f[i-1]+1)-sum%O)%O;
+		f[i]=((lint)m*(f[i-1]+1)+O-sum%O)%O;
 		printf("%d\n",f[i]);
 	}
 	return 0;
-}   
+}
