@@ -49,13 +49,13 @@ int main(){
 	n=readstr(n,s,cs);
 	m=readstr(m,t,ct);
 	if(m==1){
-		int cnt=0;
+		lint cnt=0;
 		for(int i=1;i<=n;i++){
 			if(s[i]==t[1]&&cs[i]>=ct[1]){
 				cnt+=cs[i]-ct[1]+1;
 			}
 		}
-		printf("%d\n",cnt);
+		printf("%lld\n",cnt);
 		return 0;
 	}
 	getkmp(m,t,ct,fail);
