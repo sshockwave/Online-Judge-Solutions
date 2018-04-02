@@ -26,9 +26,12 @@ int main(){
 	scanf("%d%d",&n,&e);
 	for(int u,v;e--;scanf("%d%d",&u,&v),ae(u,v),ae(v,u));
 	srand(time(0));
-	for(int i=1;i<=n;i++){
-		if(!lnk[i]){
-			tim++,ans+=dfs(i);
+	memset(lnk+1,0,n<<2);
+	for(int tot=5;tot--;){
+		for(int i=1;i<=n;i++){
+			if(!lnk[i]){
+				tim++,ans+=dfs(i);
+			}
 		}
 	}
 	printf("%d\n",ans);
