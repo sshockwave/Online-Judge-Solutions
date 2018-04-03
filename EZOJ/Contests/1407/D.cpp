@@ -29,7 +29,6 @@ inline int fpow(int x,int n){
 	return a;
 }
 inline int inv(int x){
-	assert(x);
 	return fpow(x,O-2);
 }
 namespace poly{
@@ -79,15 +78,14 @@ namespace poly{
 		int sh=0;
 		for(;(1<<sh)<_n;sh++);
 		arr(b);arr(c);
-		poly::init(1<<(sh+1));
-		cpy(c,a,_n),clr(c,_n),ntt(c);
-		memset(b,0,sizeof(b[0])<<sh);
+		memset(b,0,sizeof(b[0])<<(sh+1));
 		b[0]=::inv(a[0]);
 		for(int t=1;t<=sh;t++){
 			int full=1<<t;
 			init(full<<1),ntt(b);//always cleared
+			cpy(c,a,full),clr(c,full),ntt(c);
 			for(int i=0;i<n;i++){
-				b[i]=(O-(lint)c[i<<(sh-t)]*b[i]%O*b[i]%O+(b[i]<<1))%O;
+				b[i]=(O-(lint)c[i]*b[i]%O*b[i]%O+(b[i]<<1))%O;
 			}
 			ntt(b,-1),clr(b,full);
 		}
@@ -95,8 +93,6 @@ namespace poly{
 	}
 	const int* mod(const int a[],const int b[],const int n,const int m){
 		arr(ta);arr(tb);
-		assert(a[n]&&b[m]);
-		assert(m<=n);
 		for(int i=0;i<=n-m;i++){
 			ta[i]=a[n-i];
 		}
@@ -123,9 +119,6 @@ namespace poly{
 		ntt(ta,-1);
 		for(int i=0;i<=n;i++){
 			ta[i]=(a[i]+O-ta[i])%O;
-		}
-		for(int i=n+1;i<poly::n;i++){
-			assert(a[i]==ta[i]);
 		}
 		return ta;
 	}
