@@ -1,13 +1,12 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#define NDEBUG
 #include <cassert>
 #include <cctype>
-#include <vector>
-#include <map>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
-typedef vector<int>vi;
 #define cout cerr
 #define ni (next_num<int>())
 template<class T>inline T next_num(){
@@ -33,10 +32,41 @@ inline int fpow(int x,int n){
 inline int inv(int x){
 	return fpow(x,O-2);
 }
+int prod[N],prods;
+int ls;
 namespace lct{
 	const int N=::N+::E;
 	struct Node;
 	typedef Node* node;
+	node lst[N];
+	struct mapper{
+		node *pt;
+		int *val,size;
+		inline int& operator [] (node x){
+			int l=0,r=size-1;
+			while(l<r){
+				int m=(l+r)>>1;
+				if(pt[m]<x){
+					l=m+1;
+				}else{
+					r=m;
+				}
+			}
+			return val[l];
+		}
+		inline void init(){
+			pt=new node[ls];
+			size=ls;
+			for(int i=0;i<ls;i++){
+				pt[i]=lst[i];
+			}
+			sort(pt,pt+ls);
+			val=new int[ls];
+			for(int i=0;i<ls;i++){
+				this->operator[](lst[i])=i;
+			}
+		}
+	};
 	node null;
 	void draw(node);
 	struct Node{
@@ -49,9 +79,9 @@ namespace lct{
 		node lpt,rpt;
 		node ldg,rdg;
 		bool rev;
-		vi _prod,_invprod;
-		map<node,int>idx;
-		int mxsize;
+		int *_prod,*_invprod,ringsize;
+		mapper idx;
+		bool isbi,hasbi;
 		int val;
 		//Functions
 		inline int sd(){
@@ -59,7 +89,10 @@ namespace lct{
 		}
 		inline void putrev(){
 			if(this==null)return;
-			rev^=1,swap(lson,rson);
+			rev^=1;
+			swap(lson,rson);
+			swap(lpt,rpt);
+			swap(ldg,rdg);
 		}
 		inline int qry(node _u,node _v){
 			assert(_u!=_v);
@@ -68,7 +101,7 @@ namespace lct{
 			int u=idx[_u],v=idx[_v];
 			if(u>v)swap(u,v);
 			const static int inv2=inv(2);
-			int ans=(lint)_prod[_prod.size()-1]*_invprod[v]%O*_prod[u];
+			int ans=(lint)_prod[ringsize-1]*_invprod[v]%O*_prod[u]%O;
 			ans=(ans+(lint)_prod[v]*_invprod[u])%O;
 			return (lint)ans*inv2%O;
 		}
@@ -80,13 +113,13 @@ namespace lct{
 			}
 		}
 		inline void up(){
-			bool ispt=_prod.empty(),isdg=!ispt;
+			bool ispt=ringsize==0,isdg=!ispt;
 			lpt=lson->lpt!=null?lson->lpt:ispt?this:rson->lpt;
 			rpt=rson->rpt!=null?rson->rpt:ispt?this:lson->rpt;
 			ldg=lson->ldg!=null?lson->ldg:isdg?this:rson->ldg;
 			rdg=rson->rdg!=null?rson->rdg:isdg?this:lson->rdg;
 			assert(!rev);
-			mxsize=max((int)(idx.size()),max(lson->mxsize,rson->mxsize));
+			hasbi=isbi||lson->hasbi||rson->hasbi;
 			val=(lint)lson->val*rson->val%O;
 			if(ispt){
 				if(lson->rpt!=null&&lson->rdg!=null){
@@ -118,8 +151,9 @@ namespace lct{
 			for(int d,fd;d=sd(),~d;fd=fa->sd(),fd==d?fa->rot(),rot():fd==!d?rot(),rot():rot());
 		}
 	}pool[N],Null;
+	node pol=pool;
 	inline node nn(node x=null){
-		static node n=pool;
+		static node &n=pol;
 		return *n=*x,n++;
 	}
 	inline void init(){
@@ -128,7 +162,7 @@ namespace lct{
 		null->lpt=null->rpt=null;
 		null->ldg=null->rdg=null;
 		null->rev=false;
-		null->mxsize=0,null->val=1;
+		null->isbi=null->hasbi=0,null->val=1;
 	}
 	void draw(node x){
 		if(x->sd()!=-1){
@@ -146,18 +180,19 @@ namespace lct{
 	inline void chr(node x){
 		acc(x),x->spa(),x->putrev();
 	}
-	void putall(node x,vi &prod,map<node,int>&idx,node nfa){
+	void putall(node x,node nfa){
 		if(x==null)return;
 		x->dn();
-		putall(x->lson,prod,idx,nfa);
-		bool ispt=x->_prod.empty();
+		putall(x->lson,nfa);
+		assert(!x->hasbi);
+		bool ispt=x->ringsize==0;
 		if(ispt){
-			idx[x]=prod.size()-1;//cout
+			lct::lst[ls++]=x;
 		}else{
-			assert(x->_prod.size()==2);
-			prod.push_back(x->_prod[0]);
+			assert(x->ringsize==2);
+			prod[prods++]=x->_prod[0];
 		}
-		putall(x->rson,prod,idx,nfa);
+		putall(x->rson,nfa);
 		if(ispt){
 			x->fa=nfa;
 			x->lson=x->rson=null;
@@ -165,11 +200,12 @@ namespace lct{
 		}
 	}
 }
-inline void getprod(vi &prod,vi &invprod){
-	invprod.reserve(prod.size());
+inline void getprod(int* &p,int* &invprod){
 	lint pw=1;
-	for(vi::iterator it=prod.begin(),ti=prod.end();it!=ti;it++){
-		pw=pw**it%O,*it=pw,invprod.push_back(inv(pw));
+	p=new int[prods];
+	invprod=new int[prods];
+	for(int i=0;i<prods;i++){
+		pw=pw*prod[i]%O,p[i]=pw,invprod[i]=inv(pw);
 	}
 }
 lct::node nd[N];
@@ -182,6 +218,7 @@ int main(){
 	lct::init();
 	for(int i=1;i<=n;i++){
 		nd[i]=lct::nn();
+		nd[i]->up();
 	}
 	for(int ans=0;tot--;){
 		int op=ni;
@@ -195,27 +232,33 @@ int main(){
 		}
 		if(op==1){//add edge
 			int w=ni;
-			assert(u!=v);
 			lct::chr(u),lct::acc(v),v->spa();
 			bool flag;
-			if(u->sd()==-1){//create new edge
+			if(u==v){//self-loop
+				flag=true;
+			}else if(u->sd()==-1){//create new edge
 				flag=true;
 				lct::node e=lct::nn();
-				e->idx[u]=0,e->idx[v]=1;
-				e->_prod.push_back(w);
-				e->_prod.push_back(w);
+				ls=0,lct::lst[ls++]=u,lct::lst[ls++]=v;
+				e->idx.init();
+				prods=0,prod[prods++]=w,prod[prods++]=w;
+				e->ringsize=prods;
 				getprod(e->_prod,e->_invprod);
 				u->fa=e,e->fa=v;
-			}else if(v->mxsize==2){//create new ring
+				e->up();
+			}else if(!v->hasbi){//create new ring
 				flag=true;
 				lct::node e=lct::nn();
-				e->_prod.push_back(w);
-				lct::putall(v,e->_prod,e->idx,e);
-				assert(e->_prod.size()==e->idx.size());
+				e->isbi=true;
+				prods=0;
+				prod[prods++]=w;
+				ls=0,lct::putall(v,e);
+				e->ringsize=prods;
 				getprod(e->_prod,e->_invprod);
+				e->idx.init();
+				e->up();
 			}else{
 				flag=false;
-				assert(v->mxsize>2);
 			}
 			putchar('0'+flag),putchar('\n');
 		}else{//query
