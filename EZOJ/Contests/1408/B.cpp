@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -17,7 +18,7 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-const int SH=8,N=(1<<SH)+10,O=998244353,bigSH=30;
+const int SH=20,N=(1<<SH)+10,O=998244353;
 inline int fpow(int x,int n){
 	int a=1;
 	for(;n;n>>=1,x=(lint)x*x%O){
@@ -28,69 +29,65 @@ inline int fpow(int x,int n){
 	return a;
 }
 inline int inv(int x){
+	assert(x);
 	return fpow(x,O-2);
 }
-int eqn[N][N];
-inline void gauss(int n){//0~n
-	cout<<"gauss:"<<endl;
-	for(int i=0;i<n;i++){
-		for(int j=0;j<n;j++){
-			cout<<eqn[i][j]<<" ";
+namespace poly{
+	int n,invn,sh,r[N],o[N];
+	inline void init(int _n){
+		for(sh=0;(1<<sh)<_n;sh++);
+		n=1<<sh,invn=inv(n);
+		r[0]=0,o[0]=1;
+		for(int i=1,w=fpow(3,(O-1)>>sh);i<n;i++){
+			r[i]=(r[i>>1]>>1)|((i&1)<<(sh-1)),o[i]=(lint)o[i-1]*w%O;
 		}
-		cout<<"= "<<eqn[i][n]<<endl;
 	}
-	for(int i=0;i<n;i++){
-		int j=i;
-		for(;eqn[j][i]==0;j++);
-		if(i!=j){
-			for(int k=i;k<=n;k++){
-				swap(eqn[i][k],eqn[j][k]);
+	inline void ntt(int a[],int d=1){
+		for(int i=0;i<n;i++){
+			if(r[i]<i){
+				swap(a[i],a[r[i]]);
+
 			}
 		}
-		lint r=inv(eqn[i][i]);
-		for(int k=i;k<=n;k++){
-			eqn[i][k]=eqn[i][k]*r%O;
-		}
-		cout<<"i="<<i<<":reved"<<endl;
-		for(int k=0;k<n;k++){
-			for(int j=0;j<n;j++){
-				cout<<eqn[k][j]<<" ";
-			}
-			cout<<"= "<<eqn[k][n]<<endl;
-		}
-		for(j=0;j<n;j++){
-			if(j!=i&&eqn[j][i]){
-				r=O-eqn[j][i];
-				for(int k=i;k<=n;k++){
-					eqn[j][k]=(eqn[j][k]+r*eqn[i][k])%O;
+		for(int i=1;i<=sh;i++){
+			int full=1<<i,half=full>>1;
+			for(int j=0;j<half;j++){
+				lint w=o[j<<(sh-i)];
+				for(int k=j;k<n;k+=full){
+					int p=a[k],q=a[k+half]*w%O;
+					a[k]=(p+q)%O;
+					a[k+half]=(p+O-q)%O;
 				}
 			}
 		}
-		cout<<"i="<<i<<":"<<endl;
-		for(int k=0;k<n;k++){
-			for(int j=0;j<n;j++){
-				cout<<eqn[k][j]<<" ";
+		if(d==-1){
+			reverse(a+1,a+n);
+			for(int i=0;i<n;i++){
+				a[i]=(lint)a[i]*invn%O;
 			}
-			cout<<"= "<<eqn[k][n]<<endl;
 		}
 	}
-	//ans:eqn[i][n]
 }
 inline int _n(int n){
 	return (lint)n*(n+1)/2%O;
 }
-inline int work(int prob[],int n,int p){
-	for(int s=0,ts=1<<n;s<ts;s++){
-		eqn[s][ts]=(lint)(p+O-1)*s%O;
-		for(int t=0;t<ts;t++){
-			eqn[s][(s+t)&(ts-1)]=t==0?((lint)p*prob[0]+O-1)%O:((lint)p*prob[t]%O);
-		}
+inline int work(int f[],int sh,int p){
+	int n=1<<sh;
+	poly::init(n);
+	poly::ntt(f);
+	for(int i=0;i<poly::n;i++){
+		f[i]=inv((lint)(1+O-(lint)p*f[i]%O)%O);
 	}
-	gauss(1<<n);
-	return eqn[0][1<<n];
+	poly::ntt(f,-1);
+	f[0]=(f[0]+O-1)%O;
+	int ans=0;
+	for(int i=0;i<n;i++){
+		ans=(ans+(lint)f[i]*i)%O;
+	}
+	return (lint)ans*(O+1-p)%O*inv(p)%O;
 }
-char ban[bigSH];
-int prob[bigSH][N];
+char ban[SH+1];
+int prob[SH][N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("inhibit.in","r",stdin);
