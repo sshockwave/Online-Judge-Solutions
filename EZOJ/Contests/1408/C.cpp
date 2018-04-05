@@ -32,41 +32,10 @@ inline int fpow(int x,int n){
 inline int inv(int x){
 	return fpow(x,O-2);
 }
-int prod[N],prods;
-int ls;
 namespace lct{
-	const int N=::N+::E;
+	const int N=::N*4;
 	struct Node;
 	typedef Node* node;
-	node lst[N];
-	struct mapper{
-		node *pt;
-		int *val,size;
-		inline int& operator [] (node x){
-			int l=0,r=size-1;
-			while(l<r){
-				int m=(l+r)>>1;
-				if(pt[m]<x){
-					l=m+1;
-				}else{
-					r=m;
-				}
-			}
-			return val[l];
-		}
-		inline void init(){
-			pt=new node[ls];
-			size=ls;
-			for(int i=0;i<ls;i++){
-				pt[i]=lst[i];
-			}
-			sort(pt,pt+ls);
-			val=new int[ls];
-			for(int i=0;i<ls;i++){
-				this->operator[](lst[i])=i;
-			}
-		}
-	};
 	node null;
 	void draw(node);
 	struct Node{
@@ -76,14 +45,25 @@ namespace lct{
 			struct{node lson,rson;};
 			node son[2];
 		};
-		node lpt,rpt;
-		node ldg,rdg;
 		bool rev;
+		node lpt,rpt;
+		node lend,rend;
+		bool isring,hasring;
 		int *_prod,*_invprod,ringsize;
-		mapper idx;
-		bool isbi,hasbi;
+		int idx;
 		int val;
 		//Functions
+		inline int ask(node _u,node _v){
+			int u=_u->idx,v=_v->idx;
+			assert(u!=-1&&v!=-1);
+			if(u>v){
+				swap(u,v);
+			}
+			int ans=(lint)_prod[v]*_invprod[u]%O;
+			ans=(ans+(lint)_prod[ringsize-1]*_invprod[v]%O*_prod[u])%O;
+			const static int inv2=inv(2);
+			return (lint)ans*inv2%O;
+		}
 		inline int sd(){
 			return fa->lson==this?0:fa->rson==this?1:-1;
 		}
@@ -92,18 +72,7 @@ namespace lct{
 			rev^=1;
 			swap(lson,rson);
 			swap(lpt,rpt);
-			swap(ldg,rdg);
-		}
-		inline int qry(node _u,node _v){
-			assert(_u!=_v);
-			assert(idx.find(_u)!=idx.end());
-			assert(idx.find(_v)!=idx.end());
-			int u=idx[_u],v=idx[_v];
-			if(u>v)swap(u,v);
-			const static int inv2=inv(2);
-			int ans=(lint)_prod[ringsize-1]*_invprod[v]%O*_prod[u]%O;
-			ans=(ans+(lint)_prod[v]*_invprod[u])%O;
-			return (lint)ans*inv2%O;
+			swap(lend,rend);
 		}
 		inline void dn(){
 			if(rev){
@@ -113,23 +82,24 @@ namespace lct{
 			}
 		}
 		inline void up(){
-			bool ispt=ringsize==0,isdg=!ispt;
+			lend=lson!=null?lson->lend:this;
+			rend=rson!=null?rson->rend:this;
+			bool ispt=idx!=-1;
 			lpt=lson->lpt!=null?lson->lpt:ispt?this:rson->lpt;
 			rpt=rson->rpt!=null?rson->rpt:ispt?this:lson->rpt;
-			ldg=lson->ldg!=null?lson->ldg:isdg?this:rson->ldg;
-			rdg=rson->rdg!=null?rson->rdg:isdg?this:lson->rdg;
-			assert(!rev);
-			hasbi=isbi||lson->hasbi||rson->hasbi;
+			hasring=isring||lson->hasring||rson->hasring;
 			val=(lint)lson->val*rson->val%O;
 			if(ispt){
-				if(lson->rpt!=null&&lson->rdg!=null){
-					val=(lint)val*lson->rdg->qry(lson->rpt,this)%O;
+				if(lson->rend->ringsize&&lson->rpt!=null){
+					val=(lint)val*lson->rend->ask(lson->rpt,this)%O;
 				}
-				if(rson->lpt!=null&&rson->ldg!=null){
-					val=(lint)val*rson->ldg->qry(rson->lpt,this)%O;
+				if(rson->lend->ringsize&&rson->lpt!=null){
+					val=(lint)val*rson->lend->ask(rson->lpt,this)%O;
 				}
-			}else if(lson->rpt!=null&&rson->lpt!=null){
-				val=(lint)val*qry(lson->rpt,rson->lpt)%O;
+			}else if(ringsize&&lson->rpt!=null&&rson->lpt!=null){
+				assert(lson->rend->idx!=-1);
+				assert(rson->lend->idx!=-1);
+				val=(lint)val*ask(lson->rpt,rson->lpt)%O;
 			}
 		}
 		inline void rot(){
@@ -151,18 +121,26 @@ namespace lct{
 			for(int d,fd;d=sd(),~d;fd=fa->sd(),fd==d?fa->rot(),rot():fd==!d?rot(),rot():rot());
 		}
 	}pool[N],Null;
-	node pol=pool;
+	node pts[N],*ps=pts;
 	inline node nn(node x=null){
-		static node &n=pol;
-		return *n=*x,n++;
+		assert(ps-pts<N);
+		return **ps=*x,*(ps++);
+	}
+	inline void del(node x){
+		*--ps=x;
+		delete[] x->_prod;
+		delete[] x->_invprod;
 	}
 	inline void init(){
-		null=&Null;
+		for(int i=0;i<N;i++){
+			pts[i]=pool+i;
+		}
+		memset(null=&Null,0,sizeof(Null));
 		null->fa=null->lson=null->rson=null;
 		null->lpt=null->rpt=null;
-		null->ldg=null->rdg=null;
-		null->rev=false;
-		null->isbi=null->hasbi=0,null->val=1;
+		null->lend=null->rend=null;
+		null->idx=-1;
+		null->val=1;
 	}
 	void draw(node x){
 		if(x->sd()!=-1){
@@ -180,35 +158,39 @@ namespace lct{
 	inline void chr(node x){
 		acc(x),x->spa(),x->putrev();
 	}
-	void putall(node x,node nfa){
+	void putall(node x,node efa,int* &prod,int &tim){
 		if(x==null)return;
 		x->dn();
-		putall(x->lson,nfa);
-		assert(!x->hasbi);
-		bool ispt=x->ringsize==0;
-		if(ispt){
-			lct::lst[ls++]=x;
-		}else{
+		putall(x->lson,efa,prod,tim);
+		bool isedg=x->ringsize,istmp=x->idx!=-1,ispt=!isedg&&!istmp;
+		if(isedg){
 			assert(x->ringsize==2);
-			prod[prods++]=x->_prod[0];
+			prod++[0]=x->_prod[0];
+		}else if(ispt){
+			node t=nn();
+			t->idx=tim++;
+			t->fa=efa,x->fa=t;
 		}
-		putall(x->rson,nfa);
+		putall(x->rson,efa,prod,tim);
 		if(ispt){
-			x->fa=nfa;
 			x->lson=x->rson=null;
 			x->up();
+		}else{
+			del(x);
 		}
-	}
-}
-inline void getprod(int* &p,int* &invprod){
-	lint pw=1;
-	p=new int[prods];
-	invprod=new int[prods];
-	for(int i=0;i<prods;i++){
-		pw=pw*prod[i]%O,p[i]=pw,invprod[i]=inv(pw);
 	}
 }
 lct::node nd[N];
+int prod[N];
+inline void work(int n,lct::node x){
+	x->_prod=new int[n],x->_invprod=new int[n],x->ringsize=n;
+	lint w=1;
+	for(int i=0;i<n;i++){
+		w=w*prod[i]%O;
+		x->_prod[i]=w;
+		x->_invprod[i]=inv(w);
+	}
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("cactus.in","r",stdin);
@@ -230,40 +212,36 @@ int main(){
 			}
 			u=nd[x],v=nd[y];
 		}
-		if(op==1){//add edge
-			int w=ni;
-			lct::chr(u),lct::acc(v),v->spa();
+		lct::chr(u),lct::acc(v),v->spa();
+		if(op==1){
 			bool flag;
-			if(u==v){//self-loop
+			int w=ni;
+			if(u==v){
 				flag=true;
-			}else if(u->sd()==-1){//create new edge
-				flag=true;
-				lct::node e=lct::nn();
-				ls=0,lct::lst[ls++]=u,lct::lst[ls++]=v;
-				e->idx.init();
-				prods=0,prod[prods++]=w,prod[prods++]=w;
-				e->ringsize=prods;
-				getprod(e->_prod,e->_invprod);
-				u->fa=e,e->fa=v;
-				e->up();
-			}else if(!v->hasbi){//create new ring
+			}else if(u->sd()==-1){//add edge
 				flag=true;
 				lct::node e=lct::nn();
-				e->isbi=true;
-				prods=0;
-				prod[prods++]=w;
-				ls=0,lct::putall(v,e);
-				e->ringsize=prods;
-				getprod(e->_prod,e->_invprod);
-				e->idx.init();
-				e->up();
-			}else{
+				lct::node d1=lct::nn(),d2=lct::nn();
+				d1->fa=d2->fa=e;
+				d1->idx=0,d2->idx=1;
+				u->fa=d1,v->putrev(),v->fa=d2;
+				prod[0]=w,prod[1]=w;
+				work(2,e);
+				d1->up(),d2->up(),e->up();
+			}else if(v->hasring){
 				flag=false;
+			}else{//add ring
+				flag=true;
+				lct::node e=lct::nn();
+				int len=0,*p=prod;
+				p++[0]=w;
+				lct::putall(v,e,p,len);
+				work(len,e);
+				e->isring=true,e->up();
 			}
 			putchar('0'+flag),putchar('\n');
 		}else{//query
-			lct::chr(u),lct::acc(v),v->spa();
-			ans=u->sd()==-1?0:v->val;
+			ans=u==v||u->sd()!=-1?v->val:0;
 			printf("%d\n",ans);
 		}
 	}
