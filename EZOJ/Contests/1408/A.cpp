@@ -19,7 +19,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=310,INF=0x7f7f7f7f;
 namespace G{
-	const int N=::N*2,E=(N+::N+N)*2;//cout
+	const int N=::N*2,E=(N+::N+N+::N)*2;//cout
 	int to[E],bro[E],cap[E],val[E],head[N],e=0,n=0,s,t;
 	inline int nn(){
 		return ++n;
@@ -97,15 +97,16 @@ int main(){
 	G::init();
 	int midpt=G::nn();
 	for(int i=1;i<=n;i++){
-		G::add(midpt,innd[i]=G::nn(),1,1);
-		G::add(ound[i]=G::nn(),midpt,1,0);
+		G::add(midpt,innd[i]=G::nn(),INF,1);
+		G::add(ound[i]=G::nn(),midpt,INF,0);
 		G::add(G::s,ound[i],1,0);
 		G::add(innd[i],G::t,1,0);
+		G::add(innd[i],ound[i],INF,0);
 	}
 	while(tot--){
 		int u=ni,v=ni;
 		G::reset();
-		G::add(ound[u],innd[v],1,0);
+		G::add(ound[u],innd[v],INF,0);
 		printf("%d\n",G::mcmf());
 	}
 	return 0;
