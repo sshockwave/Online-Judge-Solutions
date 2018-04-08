@@ -101,6 +101,8 @@ int main(){
 			}
 		}
 	}
+	memset(costl,0,sizeof(costl));
+	memset(costr,0,sizeof(costr));
 	for(int j=1;j<=m;j++){
 		for(int i=1,l=0,cnt=0;i<=n;i++){
 			costl[i]=costl[i-1]+cnt;
