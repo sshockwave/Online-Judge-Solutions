@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <cstdlib>
 using namespace std;
 typedef long long lint;
 typedef long double db;
@@ -177,17 +178,25 @@ namespace solve10{
 		return 1-(db)1/M;
 	}
 }
-int main(){
+db Main(int tp){
 	n=ni;
-	printf("%.10Lf\n",solve1::main());
-	printf("%.10Lf\n",solve2::main());
-	printf("%.10Lf\n",solve3::main());
-	printf("%.10Lf\n",solve4::main());
-	printf("%.10Lf\n",solve5::main());
-	printf("%.10Lf\n",solve6::main());
-	printf("%.10Lf\n",solve7::main());
-	printf("%.10Lf\n",solve8::main());
-	printf("%.10Lf\n",solve9::main());
-	printf("%.10Lf\n",solve10::main());
-	return 0;
+	if(tp==1)return solve1::main();
+	if(tp==2)return solve2::main();
+	if(tp==3)return solve3::main();
+	if(tp==4)return solve4::main();
+	if(tp==5)return solve5::main();
+	if(tp==6)return solve6::main();
+	if(tp==7)return solve7::main();
+	if(tp==8)return solve8::main();
+	if(tp==9)return solve9::main();
+	if(tp==10)return solve10::main();
+	return -1;
+}
+int main(int argc,char *args[]){
+	int tp=atoi(args[1]);
+	freopen("random.in","r",stdin);
+	freopen((string("random")+args[1]+string(".out")).c_str(),"w",stdout);
+	for(int tot=10;tot--;){
+		printf("%.10Lf\n",Main(tp));
+	}
 }
