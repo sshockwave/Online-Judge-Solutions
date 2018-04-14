@@ -21,7 +21,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 const int N=200010;
 namespace seg{
-	const int N=::N*40;
+	const int N=::N*50;
 	struct Node;
 	typedef Node* node;
 	struct Node{
