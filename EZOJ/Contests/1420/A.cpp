@@ -66,6 +66,7 @@ namespace seg{
 			x->allmx=max(x->lson->allmx,x->rson->allmx);
 		}
 		x->c=new int[x->allmx]-1;
+		mset(x->c+1,0,x->allmx);
 		return x;
 	}
 	void alt(node x,int p,int v1,int v2){
@@ -87,6 +88,7 @@ namespace seg{
 		return max(ask_mx(x->lson,l,x->m),ask_mx(x->rson,x->m+1,r));
 	}
 	int ask_cnt(node x,int l,int r,int v){
+		if(v>x->allmx)return 0;
 		if(x->l==l&&x->r==r)return bit::ask(x->c,v,x->allmx);
 		if(r<=x->m)return ask_cnt(x->lson,l,r,v);
 		if(l>x->m)return ask_cnt(x->rson,l,r,v);
