@@ -130,7 +130,8 @@ int main(){
 		vec[pt[i].y].push_back(pt[i].x);
 	}
 	seg::node rt=seg::build(1,mxx);
-	int ans=1,anscnt=0;
+	int ans=1;
+	lint anscnt=0;
 	for(int i=1;i<=mxy;i++){
 		vi::iterator it=vec[i].begin(),ti=vec[i].end();
 		sort(it,ti);
@@ -156,6 +157,10 @@ int main(){
 		}
 	}
 	assert(anscnt);
-	printf("%d\n",q==1?ans:anscnt);
+	if(q==1){
+		printf("%d\n",ans);
+	}else{
+		printf("%lld\n",anscnt);
+	}
 	return 0;
 }
