@@ -49,25 +49,8 @@ inline void ext_kmp(int n,int m){
 	}
 }
 int * const ext=ext_t;
-int pv[N];//pv::first one to be bigger than r
-int gpv(int x,int mn){
-	assert(x);
-	if(ext[x]>=mn)return x;
-	if(pv[x]==x){
-		pv[x]=x-1;
-	}
-	return pv[x]=gpv(pv[x],mn);
-}
-inline bool judge(int m,int x){
-	if(ext[1]<x)return false;
-	int curat=1;
-	while(true){
-		if(curat+x>m)return true;
-		int p=gpv(curat+x,x);
-		if(p==curat)return false;
-		curat=p;
-	}
-}
+int pre[N],nxt[N];
+int cnt[N],lst[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("stamp.in","r",stdin);
@@ -76,18 +59,33 @@ int main(){
 	int m=ni,n=ni;
 	scanf("%s%s",t+1,s+1);
 	ext_kmp(n,m);
+	mset(cnt+1,0,n);
 	for(int i=1;i<=m;i++){
 		if(i+ext[i]>m){
 			ext[i]=n;
 		}
-	}
-	int cnt=0;
-	for(int i=1;i<=m;i++){
-		pv[i]=i;
+		++cnt[ext[i]];
 	}
 	for(int i=1;i<=n;i++){
-		cnt+=judge(m,i);
+		cnt[i]+=cnt[i-1];
 	}
-	printf("%d\n",cnt);
+	for(int i=1;i<=m;i++){
+		lst[cnt[ext[i]]--]=i;
+	}
+	nxt[0]=1,pre[n+1]=m;
+	for(int i=1;i<=m;i++){
+		pre[i]=i-1,nxt[i]=i+1;
+	}
+	int ans=0;
+	for(int i=1,j=1,gap=1;i<=n;i++){
+		for(;j<=m&&ext[lst[j]]<i;j++){
+			int x=lst[j];
+			pre[nxt[x]]=pre[x],nxt[pre[x]]=nxt[x];
+			apmax(gap,nxt[x]-pre[x]);
+		}
+		if(nxt[0]!=1)break;
+		ans+=gap<=i;
+	}
+	printf("%d\n",ans);
 	return 0;
 }
