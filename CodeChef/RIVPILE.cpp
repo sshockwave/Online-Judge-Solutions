@@ -24,16 +24,18 @@ template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
 const int N=260;
 const lint LINF=0x7f7f7f7f7f7f7f7fll;
 namespace G{
-	const int N=::N*::N,E=::N*::N*::N+::N*::N*2;
+	const int N=::N*::N,E=::N*::N*::N+::N*::N*2+::N*::N;
 	int to[E],bro[E],head[N],e,n;
 	lint val[E];
 	inline int nn(){
+		assert(n<N);
 		return ++n,head[n]=-1,n;
 	}
 	inline void init(){
 		e=n=0;
 	}
 	inline void ae(int u,int v,lint w){
+		assert(e<E);
 		to[e]=v,bro[e]=head[u],val[e]=w,head[u]=e++;
 	}
 	struct Stat{
@@ -44,7 +46,7 @@ namespace G{
 		}
 	};
 	lint dis[N];
-	inline void dij(int s){
+	inline bool dij(int s,int t){
 		memset(dis+1,127,n*sizeof(dis[0]));
 		priority_queue<Stat>q;
 		q.push((Stat){s,dis[s]=0});
@@ -53,12 +55,14 @@ namespace G{
 			lint d=q.top().d;
 			q.pop();
 			if(d>dis[x])continue;
+			if(x==t)return true;
 			for(int i=head[x],v;~i;i=bro[i]){
 				if(dis[v=to[i]]>dis[x]+val[i]){
 					q.push((Stat){v,dis[v]=dis[x]+val[i]});
 				}
 			}
 		}
+		return false;
 	}
 }
 struct Pt{
@@ -115,11 +119,10 @@ inline void Main(){
 			}
 		}
 	}
-	G::dij(s);
-	if(G::dis[t]==LINF){
-		puts("impossible");
-	}else{
+	if(G::dij(s,t)){
 		printf("%lld\n",G::dis[t]);
+	}else{
+		puts("impossible");
 	}
 }
 int main(){
