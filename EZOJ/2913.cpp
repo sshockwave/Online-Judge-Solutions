@@ -216,7 +216,7 @@ int main(){
 					if(t->fa!=null){
 						t->fa->spa();
 						assert(t->fa->col!=t->col);
-						t->fa->cnt[t->col]=t->val-pval;
+						t->fa->cnt[t->col]+=t->val-pval;
 						t->fa->up();
 					}
 				}else if(w->fa!=null){
@@ -228,11 +228,14 @@ int main(){
 					t->cnt[c]+=w->val;
 					int pval=t->val;
 					t->up();
-					if(pval!=t->val&&t->fa!=null){
-						assert(t->col==c);
-						t->fa->spa();
-						t->fa->cnt[c]+=t->val-pval;
-						t->fa->up();
+					if(pval!=t->val){
+						if(t->fa!=null){
+							assert(t->col==c);
+							t->fa->spa();
+							t->fa->cnt[c]+=t->val-pval;
+							t->fa->up();
+						}
+						acc_col(w);
 					}
 				}else{
 					w->putcol(c);
