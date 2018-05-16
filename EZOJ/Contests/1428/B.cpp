@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <cmath>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -18,47 +19,63 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
-const int N=100010;
 namespace sieve{
+	const int N=1000010;
 	bool np[N];
 	int pri[N],ps=0;
-	int phi[N];
+	int mu[N];
 	inline void main(int n){
-		phi[1]=1;
+		mu[1]=1;
 		for(int i=2;i<=n;i++){
 			if(!np[i]){
 				pri[ps++]=i;
-				phi[i]=i-1;
+				mu[i]=-1;
 			}
 			for(int j=0,p,t;j<ps&&(p=pri[j],t=i*p,t<=n);j++){
 				np[t]=true;
 				if(i%p){
-					phi[t]=phi[i]*phi[p];
+					mu[t]=-mu[i];
 				}else{
-					phi[t]=phi[i]*p;
+					mu[t]=0;
 					break;
 				}
 			}
 		}
 	}
 }
+inline lint Main(int n,int r){
+	lint ans=0;
+	using sieve::mu;
+	const static int denom=1000000;
+	const static lint denom2=(lint)denom*denom;
+	sieve::main(denom/r);
+	for(int i=1;i<=n&&(lint)i*r<=denom;i++){
+		if(mu[i]==0)continue;
+		lint cur=0;
+		lint lim2=denom2/((lint)r*r*i*i);
+		lint nlim=n/i;
+		for(lint a=1;a<=nlim&&a*a<=lim2;a++){
+			lint b=sqrt((long double)denom2/((lint)r*r*i*i)-(lint)a*a);
+			for(;b<=nlim&&a*a+b*b<=lim2;b++);
+			apmin(b,nlim);
+			for(;b>nlim||a*a+b*b>lim2;b--);
+			if(b==0)break;
+			cur+=b;
+		}
+		ans+=cur*mu[i];
+	}
+	return ans;
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("b.in","r",stdin);
 	freopen("b.out","w",stdout);
 #endif
-	int n=ni;
+	int n=ni,r=ni;
 	if(n==1){
 		puts("0");
 	}else{
-		--n;
-		sieve::main(n);
-		lint ans=0;
-		for(int i=2;i<=n;i++){
-			ans+=sieve::phi[i];
-		}
-		ans=ans*2+1;
-		printf("%lld\n",ans+2);
+		printf("%lld\n",Main(n-1,r)+2);
 	}
 	return 0;
 }
