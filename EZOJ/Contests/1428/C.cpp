@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -50,61 +51,10 @@ inline int calc(){
 	}
 	return ans;
 }
-int dfs(int x,int op,int beta){//op1:max op2:min
-	if(x>n)return calc();
-	int ans=op==1?-INF:INF;
-	for(int i=1;i<=n;i++){
-		if(col[i]==0){
-			col[i]=op;
-			int t=dfs(x+1,3-op,ans);
-			col[i]=0;
-			if(op==1){
-				apmax(ans,t);
-				if(ans>=beta)return ans;
-			}else{
-				apmin(ans,t);
-				if(ans<=beta)return ans;
-			}
-		}
-	}
-	return ans;
-}
 int deg[N];
-inline bool ischain(){
-	mset(deg+1,0,n);
-	for(int i=0;i<T::e;i++){
-		using namespace T;
-		int u=to[i];
-		if(++deg[u]>2)return false;
-	}
-	return true;
-}
-namespace solve2{
-	using namespace T;
-	int que[N];
-	inline int main(){
-		int qh=0,qt=0;
-		mset(deg+1,0,n);
-		for(int i=0;i<T::e;i++){
-			++deg[T::to[i]];
-		}
-		for(int i=1;i<=n;i++){
-			if(deg[i]==1){
-				que[qt++]=i;
-			}
-		}
-		int op=1;
-		while(qh<qt){
-			int x=que[qh++];
-			col[x]=op;
-			for(int i=head[x],v;~i;i=bro[i]){
-				if(--deg[v=to[i]]==1){
-					que[qt++]=v;
-				}
-			}
-		}
-		return calc();
-	}
+int lst[N];
+inline bool lcmp(int a,int b){
+	return deg[a]<deg[b];
 }
 int main(){
 #ifndef ONLINE_JUDGE
@@ -116,14 +66,17 @@ int main(){
 	for(int i=1;i<n;i++){
 		T::add(ni,ni);
 	}
-	if(n==1){
-		puts("1");
-	}else if(n<=15){
-		printf("%d\n",dfs(1,1,INF));
-	}else if(ischain()){
-		puts("0");
-	}else{
-		printf("%d\n",solve2::main());
+	mset(deg+1,0,n);
+	for(int i=0;i<T::e;i++){
+		deg[T::to[i]]++;
 	}
+	for(int i=1;i<=n;i++){
+		lst[i]=i;
+	}
+	sort(lst+1,lst+n+1,lcmp);
+	for(int i=1;i<=n;i++){
+		col[lst[i]]=(i&1)?1:2;
+	}
+	printf("%d\n",calc());
 	return 0;
 }
