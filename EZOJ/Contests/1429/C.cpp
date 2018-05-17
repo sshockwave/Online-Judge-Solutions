@@ -51,6 +51,12 @@ namespace seg{
 		}
 	}pool[N];
 	node build(int l,int r);
+	void dfs_up(node x){
+		if(x->l!=x->r){
+			dfs_up(x->lson),dfs_up(x->rson);
+			x->up();
+		}
+	}
 }
 namespace T{
 	const int E=::N;
@@ -71,8 +77,7 @@ namespace T{
 	priority_queue<state>q[N][L];
 	int qtag[N];
 	lint sumv[N];
-	void calc(seg::node x,int p){
-		if(x->l!=x->r)return calc(dfn[p]<=x->m?x->lson:x->rson,p),x->up();
+	void __calc(seg::node x,int p){
 		assert(x->l==dfn[p]);
 		lint (*const f)[L]=x->dis;
 		for(int i=0;i<len;i++){
@@ -98,6 +103,15 @@ namespace T{
 				}
 			}
 		}
+	}
+	void calc(seg::node x,int p,bool flag){
+		if(x->l!=x->r){
+			calc(dfn[p]<=x->m?x->lson:x->rson,p,flag);
+			if(flag){
+				x->up();
+			}
+		}
+		else return __calc(x,p);
 	}
 	lint prv[N];
 	inline void putque(int x){
@@ -150,14 +164,17 @@ namespace T{
 		mset(prv+1,0,n);
 		for(int x=n;x>=1;x--){
 			rt[x]=rt[top[x]];
-			calc(rt[x],x);
-			if(x==top[x]&&x!=1){
-				putque(x);
+			calc(rt[x],x,false);
+			if(x==top[x]){
+				seg::dfs_up(rt[x]);
+				if(x!=1){
+					putque(x);
+				}
 			}
 		}
 	}
 	void upd(int x){
-		calc(rt[x],x);
+		calc(rt[x],x,true);
 		x=top[x];
 		if(x!=1){
 			putque(x),upd(fa[x]);
