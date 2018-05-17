@@ -118,6 +118,8 @@ namespace T{
 		for(int i=2;i<=n;i++){
 			ae(fa[i]=ni,i);
 		}
+	}
+	inline void work(int n){
 		mset(size+1,0,n);
 		mset(son+1,0,n);
 		for(int i=n;i>=2;i--){
@@ -137,7 +139,7 @@ namespace T{
 				for(int i=head[x],v;~i;i=bro[i]){
 					if((v=to[i])!=son[x]){
 						dfn[v]=tim+1;
-						tim+=size[dfn[v]];
+						tim+=size[v];
 					}
 				}
 			}else{
@@ -185,10 +187,11 @@ int main(){
 			pval[i][j]=ni;
 		}
 	}
+	T::work(n);
 	for(int i=1;i<=q;i++){
 		int x=ni;
 		for(int j=0;j<len;j++){
-			pval[i][j]=ni;
+			pval[x][j]=ni;
 		}
 		T::upd(x);
 		printf("%lld\n",T::rt[1]->eval());
