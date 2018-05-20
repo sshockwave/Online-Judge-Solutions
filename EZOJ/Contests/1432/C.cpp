@@ -5,6 +5,7 @@
 #include <cctype>
 #include <cmath>
 #include <algorithm>
+#include <set>
 using namespace std;
 typedef long long lint;
 typedef long double db;
@@ -24,7 +25,7 @@ template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
 const int N=200010;
 int n;
 db a[N],b[N];
-namespace seg2{
+namespace seg{
 	const int N=::N*20;
 	struct Node;
 	typedef Node* node;
@@ -114,100 +115,88 @@ namespace seg2{
 	}
 }
 int rnk[N];
-namespace seg{
-	const int N=::N<<1;
-	struct Node;
-	typedef Node* node;
-	struct Node{
-		node lson,rson;
-		int l,m,r;
-		seg2::node rt;
-		db sum;
-		int d;
-		inline void dn(){
-			if(rt==seg2::null)return;
-			if(d){//inc
-				seg2::sp(rt,m-l+1,lson->rt,rson->rt);
-			}else{//dec
-				seg2::sp(rt,r-m,rson->rt,lson->rt);
-			}
-			rt=seg2::null;
-			lson->d=rson->d=d;
-			lson->sum=lson->rt->sum;
-			rson->sum=rson->rt->sum;
+namespace intv_set{
+	struct Block{
+		seg::node rt;
+		int lend,d;
+		db _sum;
+		inline friend bool operator < (const Block &a,const Block &b){
+			return a.lend<b.lend;
 		}
-		inline void up(){
-			assert(rt==seg2::null);
-			sum=lson->sum+rson->sum;
-		}
-	}pool[N];
-	node build(int l,int r){
-		static node n=pool;
-		node x=n++;
-		x->l=l,x->m=(l+r)>>1,x->r=r;
-		if(l==r){
-			x->rt=seg2::ins(seg2::null,rnk[x->m]);
-			x->sum=x->rt->sum;
-		}else{
-			x->rt=seg2::null;
-			x->lson=build(l,x->m);
-			x->rson=build(x->m+1,r);
-			x->up();
-		}
-		return x;
-	}
-	seg2::node get_intv(node x,int l,int r){
-		if(x->l==l&&x->r==r&&x->rt!=seg2::null)return x->rt;
-		x->dn();
-		if(r<=x->m)return get_intv(x->lson,l,r);
-		if(l>x->m)return get_intv(x->rson,l,r);
-		return seg2::mg(get_intv(x->lson,l,x->m),get_intv(x->rson,x->m+1,r));
-	}
-	void set_intv(node x,int l,int r,seg2::node rt,int d){
-		if(x->l==l&&x->r==r){
-			x->rt=rt,x->d=d,x->sum=rt->sum;
-			return;
-		}
-		assert(x->rt==seg2::null);
-		if(r<=x->m){
-			set_intv(x->lson,l,r,rt,d);
-		}else if(l>x->m){
-			set_intv(x->rson,l,r,rt,d);
-		}else{
-			seg2::node a,b;
-			if(d){
-				seg2::sp(rt,x->m-l+1,a,b);
-			}else{
-				seg2::sp(rt,r-x->m,b,a);
-			}
-			set_intv(x->lson,l,x->m,a,d);
-			set_intv(x->rson,x->m+1,r,b,d);
-		}
-		x->up();
-	}
-	db ask(node x,int l,int r){
-		if(x->l==l&&x->r==r)return x->sum;
-		if(x->rt!=seg2::null){
-			l-=x->l-1,r-=x->l-1;
-			if(x->d==0){
-				const int len=x->r-x->l+1;
+		inline db ask(int l,int r)const{
+			if(r-l+1==rt->cnt)return rt->sum;
+			l-=lend-1,r-=lend-1;
+			if(d==0){
+				const int len=rt->cnt;
 				l=len+1-l,r=len+1-r;
 				swap(l,r);
 			}
-			return seg2::ask(x->rt,r)-seg2::ask(x->rt,l-1);
+			return seg::ask(rt,r)-seg::ask(rt,l-1);
 		}
-		if(r<=x->m)return ask(x->lson,l,r);
-		if(l>x->m)return ask(x->rson,l,r);
-		return ask(x->lson,l,x->m)+ask(x->rson,x->m+1,r);
+		inline Block spawn(int k){
+			assert(k&&k<rt->cnt);
+			Block b=(Block){0,lend+k,d,_sum+ask(lend,lend+k-1)};
+			if(d){
+				seg::sp(rt,k,rt,b.rt);
+			}else{
+				seg::sp(rt,rt->cnt-k,b.rt,rt);
+			}
+			return b;
+		}
+	};
+	typedef set<Block>sb;
+	sb s;
+	inline void build(int n){
+		db sum=0;
+		for(int i=1;i<=n;i++){
+			s.insert(s.end(),(Block){seg::ins(seg::null,rnk[i]),i,0,sum});
+			sum+=a[i];
+		}
+		s.insert(s.end(),(Block){seg::null,n+1,0,sum});
 	}
-	void dfs_print(node x){
-		if(x->rt!=seg2::null){
-			cout<<"["<<x->l<<","<<x->r<<"] d="<<x->d<<" contains rank:";
-			seg2::dfs_print(x->rt);
+	inline void sort(int l,int r,int d){
+		seg::node rt=seg::null;
+		sb::iterator it=s.lower_bound((Block){0,l,0,0});
+		if(it->lend>l){
+			assert(it!=s.begin());
+			--it;
+			Block a=*it,b=a.spawn(l-a.lend);
+			s.erase(it);
+			it=s.insert(s.insert(a).first,b);
+		}
+		db _sum=0;
+		if(it!=s.begin()){
+			sb::iterator pr=it;
+			--pr;
+			_sum=pr->_sum+pr->rt->sum;
+		}
+		for(sb::iterator nxt;it->lend<=r;it=nxt){
+			nxt=it,++nxt;
+			if(nxt->lend>r+1){
+				Block a=*it,b=a.spawn(r-it->lend+1);
+				s.erase(it);
+				s.insert(it=s.insert(a).first,b);
+			}
+			rt=seg::mg(rt,it->rt);
+			s.erase(it);
+		}
+		s.insert((Block){rt,l,d,_sum});
+	}
+	inline db ask(int n){
+		if(n==0)return 0;
+		sb::iterator it=s.upper_bound((Block){0,n,0,0});
+		assert(it!=s.begin());
+		--it;
+		return it->_sum+it->ask(it->lend,n);
+	}
+	inline db ask(int l,int r){
+		return ask(r)-ask(l-1);
+	}
+	void travel_print(){
+		for(sb::iterator it=s.begin();it!=s.end();++it){
+			cout<<"["<<it->lend<<","<<it->lend+it->rt->cnt-1<<"],d="<<it->d<<",pre="<<it->_sum<<":";
+			seg::dfs_print(it->rt);
 			cout<<endl;
-		}else{
-			dfs_print(x->lson);
-			dfs_print(x->rson);
 		}
 	}
 }
@@ -235,14 +224,14 @@ int main(){
 	for(int i=1;i<=n;i++){
 		rnk[lst[i]]=i;
 	}
-	seg2::init();
-	seg::node rt=seg::build(1,n);
+	seg::init();
+	intv_set::build(n);
 	for(int tot=m;tot--;){
 		int op=ni,l=ni,r=ni;
 		if(op==1){//sort
-			seg::set_intv(rt,l,r,seg::get_intv(rt,l,r),ni);
+			intv_set::sort(l,r,ni);
 		}else{//ask
-			db ans=seg::ask(rt,l,r);
+			db ans=intv_set::ask(l,r);
 			ans-=floor(ans);
 			int d=9;
 			const static db EPS=1e-10;
