@@ -30,34 +30,6 @@ db ans=0;
 namespace calc{
 	int n,r[N],nxt[N];//to set
 	db nxtv[N];
-	inline void compensate(){
-		const static db circ=(db)M_PI*2;
-		db sum=0;
-		for(int i=1;i<=n;i++){
-			sum+=nxtv[i];
-		}
-		sum=(circ-sum)/n;
-		for(int i=1;i<=n;i++){
-			nxtv[i]+=sum;
-		}
-	}
-	inline void neutralize(int x){
-		int r1=r[x],r3=r[nxt[nxt[x]]];
-		db theta=nxtv[x]+nxtv[nxt[x]];
-		if(eq0(theta))return;
-		db up=r1-(db)r3*cos(theta),dn=(db)r3*sin(theta);
-		db alpha=atan(up/dn);//cout
-		if((db)r1*sin(alpha)+(db)r3*sin(theta-alpha)<0){
-			alpha+=M_PI;
-		}
-		apmax(alpha,0),apmin(alpha,theta);//cout
-		nxtv[x]=alpha,nxtv[nxt[x]]=theta-alpha;
-	}
-	inline void iterate(){
-		for(int i=1,t=1;t<=n;i=nxt[i],++t){
-			neutralize(i);
-		}
-	}
 	inline db calc(){
 		db sum=0;
 		for(int i=1;i<=n;i++){
@@ -65,20 +37,30 @@ namespace calc{
 		}
 		return sum/2;
 	}
+	inline db calc(db lambda){
+		db sum=0;
+		for(int i=1;i<=n;i++){
+			sum+=nxtv[i]=acos(lambda/(r[i]*r[nxt[i]]));
+		}
+		return sum;
+	}
 	inline db main(){
 		assert(n>=3);
-		const db eq=(db)M_PI*2/n;
+		db lend=0,rend=1e100;
 		for(int i=1;i<=n;i++){
-			nxtv[i]=eq;
+			apmin(rend,r[i]*r[nxt[i]]);
 		}
-		db last=calc();
-		for(db cur,dt;;compensate()){
-			iterate();
-			cur=calc(),dt=cur-last,last=cur;
-			if(eq0(dt)||eq0(dt/cur))break;
-			if(cur+dt*100<ans)break;//cout
+		lend=-rend;
+		if(calc(lend)<M_PI*2||calc(rend)>M_PI*2)return -1;
+		while(rend-lend>EPS){
+			db m=(lend+rend)/2;
+			if(calc(m)<M_PI*2){
+				rend=m;
+			}else{
+				lend=m;
+			}
 		}
-		return last;
+		return calc();
 	}
 }
 bool vis[N];
