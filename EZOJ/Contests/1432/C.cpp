@@ -55,7 +55,7 @@ namespace seg2{
 	node ins(node x,int p,int l=1,int r=n){
 		x=nn(x);
 		if(l==r){
-			x->sum=p,x->cnt=1;
+			x->sum=b[p],x->cnt=1;
 		}else{
 			int m=(l+r)>>1;
 			if(p<=m){
@@ -70,14 +70,15 @@ namespace seg2{
 	node mg(node u,node v,int l=1,int r=n){
 		if(u==null||v==null)return u!=null?u:v;
 		assert(l!=r);
-		u->lson=mg(u->lson,v->lson);
-		u->rson=mg(u->rson,v->rson);
+		int m=(l+r)>>1;
+		u->lson=mg(u->lson,v->lson,l,m);
+		u->rson=mg(u->rson,v->rson,m+1,r);
 		u->up();
 		del(v);
 		return u;
 	}
 	void sp(node x,int k,node &lhs,node &rhs,int l=1,int r=n){
-		if(k==0||k==x->cnt)return (k?lhs=x,rhs=null:lhs=null,rhs=x),void();
+		if(k==0||k==x->cnt)return (k?(lhs=x,rhs=null):(lhs=null,rhs=x)),void();
 		assert(x!=null);
 		assert(l<r);
 		node y=nn();
@@ -86,7 +87,7 @@ namespace seg2{
 			y->rson=x->rson,x->rson=null;
 			sp(x->lson,k,x->lson,y->lson,l,m);
 		}else{
-			sp(x->rson,k-x->lson->cnt,x->rson,y->rson);
+			sp(x->rson,k-x->lson->cnt,x->rson,y->rson,m+1,r);
 		}
 		x->up(),y->up();
 		lhs=x,rhs=y;
@@ -98,6 +99,18 @@ namespace seg2{
 		int m=(l+r)>>1;
 		if(k<=x->lson->cnt)return ask(x->lson,k,l,m);
 		return x->lson->sum+ask(x->rson,k-x->lson->cnt,m+1,r);
+	}
+	void dfs_print(node x,int l=1,int r=n){
+		if(x==null)return;
+		int m=(l+r)>>1;
+		if(l==r){
+			cout<<m<<" ";
+			return;
+		}
+		assert(x->cnt==x->lson->cnt+x->rson->cnt);
+		assert(x->sum==x->lson->sum+x->rson->sum);
+		dfs_print(x->lson,l,m);
+		dfs_print(x->rson,m+1,r);
 	}
 }
 int rnk[N];
@@ -144,7 +157,7 @@ namespace seg{
 		return x;
 	}
 	seg2::node get_intv(node x,int l,int r){
-		if(x->l==l&&x->r==r)return x->rt;
+		if(x->l==l&&x->r==r&&x->rt!=seg2::null)return x->rt;
 		x->dn();
 		if(r<=x->m)return get_intv(x->lson,l,r);
 		if(l>x->m)return get_intv(x->rson,l,r);
@@ -186,6 +199,16 @@ namespace seg{
 		if(r<=x->m)return ask(x->lson,l,r);
 		if(l>x->m)return ask(x->rson,l,r);
 		return ask(x->lson,l,x->m)+ask(x->rson,x->m+1,r);
+	}
+	void dfs_print(node x){
+		if(x->rt!=seg2::null){
+			cout<<"["<<x->l<<","<<x->r<<"] d="<<x->d<<" contains rank:";
+			seg2::dfs_print(x->rt);
+			cout<<endl;
+		}else{
+			dfs_print(x->lson);
+			dfs_print(x->rson);
+		}
 	}
 }
 db pwlst[11];
