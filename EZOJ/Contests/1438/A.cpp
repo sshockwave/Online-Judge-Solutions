@@ -18,33 +18,35 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
-int O;
-inline int fpow(int x,int n){
-	int a=1;
-	for(;n;n>>=1,x=(lint)x*x%O){
-		if(n&1){
-			a=(lint)a*x%O;
-		}
+struct Pt{//y/x
+	lint x,y;
+	bool tp;
+};
+template<>inline void apmin(Pt &a,const Pt &b){
+	const lint va=a.x*a.y;
+	if(b.x>va/b.y)return;
+	const lint vb=b.x*b.y;
+	if(vb<va||(vb==va&&b.x<a.x)){
+		a=b;
 	}
-	return a;
-}
-inline int inv_pow(int x){
-	return fpow(x,O-2);
 }
 inline void Main(){
-	int k=ni;
-	O=ni;
-	k=inv_pow(k);
-	int tx,ty;
-	lint tans=0x7f7f7f7f7f7f7f7fll;
-	for(int i=1;i<O;i++){
-		int nx=i,ny=(lint)nx*k%O;
-		lint nans=(lint)min(i,O-i)*ny;
-		if(nans<tans||(nans==tans&&ny<ty)){
-			tx=i<O-i?nx:-(O-i),ty=ny,tans=nans;
-		}
+	const lint k=next_num<lint>(),O=next_num<lint>();
+	Pt a=(Pt){1,k,0},b=(Pt){1,O-k,1};
+	if(a.y<b.y){
+		swap(a,b);
 	}
-	printf("%d %d\n",tx,ty);
+	Pt ansp=b;
+	for(;a.y!=b.y;swap(a,b)){//a.y>b.y
+		lint q=(a.y-1)/b.y;
+		a.x+=q*b.x;
+		a.y-=q*b.y;
+		apmin(ansp,a);
+	}
+	if(ansp.tp){
+		ansp.y=-ansp.y;
+	}
+	printf("%lld %lld\n",ansp.y,ansp.x);
 }
 int main(){
 #ifndef ONLINE_JUDGE
