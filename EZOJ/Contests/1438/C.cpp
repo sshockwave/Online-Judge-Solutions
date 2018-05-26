@@ -32,25 +32,6 @@ namespace gmath{
 		}
 	}
 }
-namespace mem{
-	si arr[N];
-	si* pt[N];
-	int n;
-	inline void init(){
-		n=0;
-		for(int i=0;i<N;i++){
-			pt[i]=arr+i;
-		}
-	}
-	inline si* New(){
-		pt[n]->clear();
-		return pt[n++];
-	}
-	inline void del(si* x){
-		pt[--n]=x;
-	}
-}
-int lst[N];
 namespace sieve{
 	bool np[N];
 	int pri[N],ps=0;
@@ -80,16 +61,7 @@ namespace sieve{
 			}
 		}
 	}
-	inline si* factorize(int n){
-		si* s=mem::New();
-		if(n==1){
-			s->insert(1);
-		}else for(;n!=1;n=nxt[n]){
-			s->insert(mnfact[n]);
-		}
-		return s;
-	}
-	inline int factorize_arr(int n){
+	inline int factorize_arr(int lst[],int n){
 		int ls=0;
 		if(n==1){
 			lst[++ls]=1;
@@ -99,69 +71,49 @@ namespace sieve{
 		return ls;
 	}
 }
-inline si* inters(si* a,si* b){
-	if(a->size()>b->size()){
-		swap(a,b);
-	}
-	si* c=mem::New();
-	for(si::iterator it=a->begin(),ti=a->end(),nxt;it!=ti;it=nxt){
-		nxt=it,++nxt;
-		si::iterator it2=b->find(*it);
-		if(it2!=b->end()){
-			c->insert(*it);
-			a->erase(it),b->erase(it2);
-		}
-	}
-	return c;
-}
+int lst[N],lst2[N];
 int a[N];
-si* bel[N];
+int isocnt[N];
+int mp[N];
+int bel[N];
+int belcnt[N];
 inline bool bel_cmp(int a,int b){
 	return bel[a]<bel[b];
 }
-int isocnt[N];
 inline int Main(){
-	mem::init();
 	int n=ni;
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
 	}
-	bel[1]=mem::New();
-	bel[1]->insert(1);
+	mset(belcnt+1,0,n);
+	bel[1]=1,++belcnt[1];
 	for(int i=0,cur,las=-1;i<sieve::ps&&sieve::pri[i]<=n;i++,las=cur){
 		const int p=sieve::pri[i];
 		cur=n/p;
 		if(cur==1){
-			bel[p]=bel[1];
+			bel[p]=1;
 		}else if(cur==las){
 			bel[p]=bel[sieve::pri[i-1]];
 		}else{
-			bel[p]=mem::New();
+			bel[p]=p;
 		}
-		bel[p]->insert(p);
+		++belcnt[bel[p]];
 	}
+	mset(mp+1,0,n);
 	for(int i=1;i<=n;i++){
 		if(a[i]==0)continue;
-		int ls=sieve::factorize_arr(i);
-		si* tmp=sieve::factorize(a[i]);
-		if(ls!=int(tmp->size()))return 0;
+		int ls=sieve::factorize_arr(lst,i);
+		int ls2=sieve::factorize_arr(lst2,a[i]);
+		if(ls!=ls2)return 0;
 		sort(lst+1,lst+ls+1,bel_cmp);
-		for(int l=1,r;l<=ls;l=r){
-			si * const org=bel[lst[l]];
-			for(r=l;r<=ls&&org==bel[lst[r]];r++);
-			//[l,r)
-			int len=r-l;
-			si * const nset=inters(org,tmp);
-			if(int(nset->size())!=len)return 0;
-			if(org->empty()){
-				mem::del(org);
-			}
-			if(tmp->empty()){
-				mem::del(tmp);
-			}
-			for(int j=l;j<r;j++){
-				bel[lst[j]]=nset;
-			}
+		sort(lst2+1,lst2+ls2+1,bel_cmp);
+		for(int j=1;j<=ls;j++){
+			int p=lst[j],p2=lst2[j];
+			if(bel[p]!=bel[p2])return 0;
+			if(mp[p]==0){
+				mp[p]=p2;
+				--belcnt[bel[p]];
+			}else if(mp[p]!=p2)return 0;
 		}
 	}
 	mset(isocnt+1,0,n);
@@ -169,7 +121,6 @@ inline int Main(){
 		++isocnt[sieve::iso[i]];
 	}
 	for(int i=1;i<=n;i++){
-		if(a[i]==0)continue;
 		--isocnt[sieve::iso[a[i]]];
 	}
 	int ans=1;
@@ -177,12 +128,10 @@ inline int Main(){
 		if(isocnt[i]){
 			ans=(lint)ans*gmath::fac[isocnt[i]]%O;
 		}
-	}
-	for(int i=1;i<=n;i++){
-		if(!(i==1||!sieve::np[i]))continue;
-		if(bel[i]->size()==0)continue;
-		ans=(lint)ans*gmath::fac[bel[i]->size()]%O;
-		bel[i]->clear();
+		if(belcnt[i]){
+			assert(belcnt[i]>0);
+			ans=(lint)ans*gmath::fac[belcnt[i]]%O;
+		}
 	}
 	return ans;
 }
