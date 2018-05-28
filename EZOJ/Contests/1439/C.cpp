@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -18,28 +19,40 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
-namespace solve2{
-	inline int ex_gcd(int _a,int _b,int &_x,int &_y){//ax+by=d
-		int d[2]={_a,_b};
-		int x[2]={1,0};
-		int y[2]={0,1};
-		for(;d[1];swap(d[0],d[1]),swap(x[0],x[1]),swap(y[0],y[1])){
-			const int q=d[0]/d[1];
-			d[0]-=d[1]*q;
-			x[0]-=x[1]*q;
-			y[0]-=y[1]*q;
-		}
-		_x=x[0],_y=y[0];
-		if(d[0]<0){
-			d[0]=-d[0],_x=-_x,_y=-_y;
-		}
-		return d[0];
+template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
+template<class T>inline T gcd(const T &a,const T &b){return b?gcd(b,a%b):a;}
+const int N=12;
+int a[N],n;
+int mat[N][N];
+void dfs(int l,int r,int sig){
+	if(cabs(a[l])<cabs(a[r])){
+		swap(l,r);
 	}
-	inline int main(){
-		int a=ni,b=ni,x,y;
-		ex_gcd(a,-b,x,y);
-		printf("%d %d\n%d %d\n",a,b,y,x);
-		return 0;
+	if(a[l]==0||a[r]==0){
+		if(l!=1){
+			int tmp=1;
+			int &x=r==1?r:tmp;
+			swap(x,l),swap(a[x],a[l]);
+			dfs(l,r,-sig);
+			for(int i=1;i<=n;i++){
+				swap(mat[i][l],mat[i][x]);
+			}
+			return;
+		}
+		memset(mat,0,sizeof(mat));
+		memcpy(mat[1]+1,a+1,n*sizeof(mat[1][0]));
+		sig*=a[1];
+		for(int i=2;i<n;i++){
+			mat[i][i]=1;
+		}
+		mat[n][n]=sig;
+		return;
+	}
+	const int q=a[l]/a[r];
+	a[l]-=q*a[r];
+	dfs(l,r,sig);
+	for(int i=1;i<=n;i++){
+		mat[i][l]+=mat[i][r]*q;
 	}
 }
 int main(){
@@ -47,7 +60,24 @@ int main(){
 	freopen("final.in","r",stdin);
 	freopen("final.out","w",stdout);
 #endif
-	int n=ni;
-	if(n==2)return solve2::main();
+	n=ni;
+	generate_n(a+1,n,next_num<int>);
+	int l=0,r=0;
+	for(int i=1;i<=n;i++){
+		for(int j=i+1;j<=n;j++){
+			if(gcd(a[i],a[j])==1){
+				l=i,r=j;
+				break;
+			}
+		}
+		if(l)break;
+	}
+	dfs(l,r,1);
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			printf("%d ",mat[i][j]);
+		}
+		putchar('\n');
+	}
 	return 0;
 }
