@@ -53,7 +53,7 @@ int main(){
 	pam::init();
 	int l=N,r=N-1;
 	pam::node lend=pam::rt->lnk,rend=pam::rt->lnk;
-	int cnt=0,uniqcnt=0;
+	lint cnt=0,uniqcnt=0;
 	memset(s,-1,sizeof(s));
 	for(int tot=ni;tot--;){
 		static char tmp[20];
@@ -98,7 +98,7 @@ int main(){
 				lend=rend;
 			}
 		}
-		printf("%d %d\n",cnt,uniqcnt);
+		printf("%lld %lld\n",cnt,uniqcnt);
 	}
 	return 0;
 }
