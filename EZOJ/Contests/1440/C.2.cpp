@@ -16,7 +16,7 @@ inline void upd_ans(const vector<int>&vec){
 	if(vec.size()>ans.size()){
 		ans=vec;
 		freopen(outputfilename.c_str(),"w",stdout);
-		cout<<"new!!!!!!!!!!! ans="<<ans.size()<<endl;
+		cout<<"new!!!!!!!!!!!!!!! ans="<<ans.size()<<endl;
 		printf("%d\n",int(ans.size()));
 		for(int i=0;i<ans.size();i++){
 			printf("%d ",ans[i]);
@@ -33,12 +33,10 @@ inline double unit(){
 }
 vector<int>cliq,unvis;
 bool vis[N];
-const int LIM=3000000;
+const int LIM=10000000;
 double expval[LIM+10];
-lint mvcnt[N],okcnt[N];
-double ucb[N];
 inline void Main(){
-	cout<<outputfilename<<"\tcurans="<<ans.size()<<"\r";
+	cout<<outputfilename<<"\tcur="<<cliq.size()<<"\topt="<<ans.size()<<"\r";
 	memset(vis+1,0,n);
 	for(vector<int>::iterator it=cliq.begin();it!=cliq.end();++it){
 		vis[*it]=true;
@@ -49,43 +47,17 @@ inline void Main(){
 			unvis.push_back(i);
 		}
 	}
-	vector<int>rej;
-	memset(mvcnt+1,0,n*sizeof(mvcnt[0]));
-	memset(okcnt+1,0,n*sizeof(okcnt[0]));
+	//vector<int>rej;
 	for(int tot=0;!unvis.empty()&&tot<=LIM;++tot){
-		int p;
-		if(tot==0){
-			p=gen(0,unvis.size()-1);
-		}else{
-			int len=unvis.size();
-			double lgg=log(tot),sum=0;
-			for(int i=0;i<len;i++){
-				int x=unvis[i];
-				if(mvcnt[x]==0){
-					ucb[i]=1;
-				}else{
-					ucb[i]=(double)okcnt[x]/mvcnt[x]+1.414*sqrt(lgg/mvcnt[x]);
-				}
-				sum+=ucb[i];
-			}
-			sum*=unit();
-			for(int &i=p=0;i<len;i++){
-				if(sum<=ucb[i])break;
-				sum-=ucb[i];
-			}
-			p=min(p,len-1);
-		}
-		swap(unvis.back(),unvis[p]);
+		swap(unvis.back(),unvis[gen(0,unvis.size()-1)]);
 		int x=unvis.back();
-		++mvcnt[x];
-		unvis.pop_back();
 		int cnt=0;
 		for(vector<int>::iterator it=cliq.begin(),ti=cliq.end();it!=ti;++it){
 			cnt+=!con[x][*it];
 		}
-		if(cnt<=1||unit()<=expval[tot]){//cout
-			++okcnt[cnt];
+		if(cnt<=1||unit()<=expval[tot]){
 			vector<int>tmp;
+			unvis.pop_back();
 			tmp.push_back(x);
 			for(vector<int>::iterator it=cliq.begin(),ti=cliq.end();it!=ti;++it){
 				if(con[x][*it]){
@@ -94,19 +66,20 @@ inline void Main(){
 					unvis.push_back(*it);
 				}
 			}
-			upd_ans(cliq=tmp);
+			upd_ans(cliq=tmp);/*
 			for(vector<int>::iterator it=rej.begin();it!=rej.end();++it){
 				unvis.push_back(*it);
 			}
 			rej.clear();
 		}else{
-			rej.push_back(x);
+			unvis.pop_back();
+			rej.push_back(x);*/
 		}
 	}
 }
 int main(int argc,char* args[]){
 	for(int tot=0;tot<=LIM;tot++){
-		expval[tot]=exp(-1e-5*tot);
+		expval[tot]=exp(-6e-6*tot);
 	}
 	assert(argc==2);
 	freopen((string("maxcliq")+args[1]+string(".in")).c_str(),"r",stdin);
@@ -134,6 +107,9 @@ int main(int argc,char* args[]){
 		con[v][u]=true;
 	}
 	for(;;){
-		Main();
+		cliq.clear();
+		for(int tot=20;tot--;){
+			Main();
+		}
 	}
 }

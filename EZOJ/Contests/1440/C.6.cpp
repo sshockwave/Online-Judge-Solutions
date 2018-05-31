@@ -32,60 +32,53 @@ inline double unit(){
 	return randdb(rand);
 }
 int blocksize,blockcnt;
-struct Node;
-typedef Node* node;
-int stk[N],ss;
-inline bool teststk(int x){
-	for(int i=0;i<ss;i++){
-		if(!con[stk[i]][x])return false;
+const int LIM=30000000;
+double expval[LIM+10];
+vector<int>cliq;
+inline void Main(){
+	int cnt=0;
+	for(int i=0;i<blockcnt;i++){
+		cnt+=cliq[i]!=0;
 	}
-	return true;
-}
-struct Node{
-	int tries;
-	lint sum;
-	Node* nxt[25];
-	bool valid[25];
-	Node(){
-		memset(nxt,0,sizeof(nxt));
-		for(int i=0;i<25;i++){
-			valid[i]=teststk(i+blocksize*ss+1);
-		}
-	}
-	inline int getnxt(){
-		static int lst[N];
-		int ls=0;
-		for(int i=0;i<25;i++){
-			if(valid[i]){
-				lst[++ls]=i;
+	cout<<outputfilename<<"\tcur="<<cnt<<"\topt="<<ans.size()<<"\r";
+	for(int tot=0;tot<=LIM;++tot){
+		vector<int>unvis;
+		for(int i=0;i<blockcnt;i++){
+			if(cliq[i]==0){
+				unvis.push_back(i);
 			}
 		}
-		if(ls==0)return -1;
-		return lst[gen(1,ls)];
-		static int ucb[N];
-		//cout ucb
-		for(int i=1;i<=ls;i++){
+		if(unvis.empty()){
+			upd_ans(cliq);
+			exit(0);
+		}
+		const int x=unvis[gen(0,unvis.size()-1)];
+		int dt=1;
+		const int v=blocksize*x+gen(1,blocksize);
+		for(int i=0;i<blockcnt;i++){
+			if(cliq[i]){
+				dt-=!con[cliq[i]][v];
+			}
+		}
+		if(dt>=0||unit()<=expval[tot]){
+			for(int i=0;i<blockcnt;i++){
+				if(cliq[i]&&!con[cliq[i]][v]){
+					cliq[i]=0;
+				}
+			}
+			cnt+=dt;
+			cliq[x]=v;
+			if(cnt>ans.size()){
+				vector<int>tmp;
+				for(vector<int>::iterator it=cliq.begin();it!=cliq.end();++it){
+					if(*it){
+						tmp.push_back(*it);
+					}
+				}
+				upd_ans(tmp);
+			}
 		}
 	}
-};
-node ndstk[N];
-void set_stk_top_invalid(){
-	if(ss==0)return;
-	//ndstk[ss] is invalid
-	const node tstk=ndstk[ss-1];
-	tstk->valid[(stk[ss-1]-1)%blocksize]=false;
-	ss--;
-	for(int i=0;i<25;i++){
-		if(tstk->valid[i])return;
-	}
-	set_stk_top_invalid();
-}
-inline void Main(){
-	static node rt=0;
-	ss=0;
-	if(rt==0){
-	}
-	ndstk[ss]=rt;
 }
 int main(int argc,char* args[]){
 	for(int tot=0;tot<=LIM;tot++){
@@ -130,6 +123,7 @@ int main(int argc,char* args[]){
 		assert(false);
 	}
 	blockcnt=n/blocksize;
+	cliq.resize(blockcnt);
 	for(;;){
 		Main();
 	}

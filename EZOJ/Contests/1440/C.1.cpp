@@ -2,15 +2,12 @@
 #define cout cerr
 using namespace std;
 typedef long long lint;
-const int N=3000;
+const int N=1410;
 int n,m;
 set<int>to[N];
 inline int gen(int l,int r){
 	static random_device rand;
 	return rand()%(r-l+1)+l;
-}
-inline bool test(int u,int v){
-	return to[u].find(v)!=to[u].end();
 }
 string outputfilename;
 vector<int>ans;
@@ -18,7 +15,7 @@ inline void upd_ans(const vector<int>&vec){
 	if(vec.size()>ans.size()){
 		ans=vec;
 		freopen(outputfilename.c_str(),"w",stdout);
-		cout<<"new ans="<<ans.size()<<endl;
+		cout<<outputfilename<<"\tnew ans="<<ans.size()<<endl;
 		printf("%d\n",int(ans.size()));
 		for(int i=0;i<ans.size();i++){
 			printf("%d ",ans[i]);
@@ -28,34 +25,40 @@ inline void upd_ans(const vector<int>&vec){
 		fclose(stdout);
 	}
 }
+vector<int>stk;
+inline vector<int>inters(const vector<int>&vec,const set<int>&s){
+	vector<int>ans;
+	for(vector<int>::const_iterator it=vec.begin();it!=vec.end();++it){
+		if(s.find(*it)!=s.end()){
+			ans.push_back(*it);
+		}
+	}
+	return ans;
+}
+void dfs(vector<int>vec){
+	if(stk.size()+vec.size()<=ans.size())return;
+	if(vec.empty())return upd_ans(stk);
+	set<int>vis;
+	//cout
+	int col=(vec.back()-1)/21;
+	for(;!vec.empty();){
+		//swap(vec.back(),vec[gen(0,vec.size()-1)]);
+		const int x=vec.back();
+		if((x-1)/21!=col)return;//cout
+		vec.pop_back();
+		stk.push_back(x);
+		dfs(inters(vec,to[x]));
+		stk.pop_back();
+		if(stk.size()+vec.size()<=ans.size())return;
+	}
+}
 inline void Main(){
-	//divide
 	vector<int>vec;
 	for(int i=1;i<=n;i++){
 		vec.push_back(i);
 	}
-	for(;!vec.empty();){
-		vector<int>tmpvec,cliq;
-		for(;!vec.empty();){
-			swap(vec[gen(0,vec.size()-1)],vec[vec.size()-1]);
-			const int x=vec.back();
-			vec.pop_back();
-			bool flag=true;
-			for(int i=0;i<cliq.size();i++){
-				if(!test(x,cliq[i])){
-					flag=false;
-					break;
-				}
-			}
-			if(flag){
-				cliq.push_back(x);
-			}else{
-				tmpvec.push_back(x);
-			}
-		}
-		upd_ans(cliq);
-		vec=tmpvec;
-	}
+	dfs(vec);
+	exit(0);
 }
 int main(int argc,char* args[]){
 	assert(argc==2);

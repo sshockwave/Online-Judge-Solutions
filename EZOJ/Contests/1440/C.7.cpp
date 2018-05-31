@@ -3,8 +3,8 @@
 using namespace std;
 typedef long long lint;
 const int N=1410;
-bool con[N][N];
 int n,m;
+int blocksize,blockcnt;
 set<int>to[N];
 inline int gen(int l,int r){
 	static random_device rand;
@@ -16,7 +16,7 @@ inline void upd_ans(const vector<int>&vec){
 	if(vec.size()>ans.size()){
 		ans=vec;
 		freopen(outputfilename.c_str(),"w",stdout);
-		cout<<"new!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ans="<<ans.size()<<endl;
+		cout<<outputfilename<<"\tnew ans="<<ans.size()<<endl;
 		printf("%d\n",int(ans.size()));
 		for(int i=0;i<ans.size();i++){
 			printf("%d ",ans[i]);
@@ -26,71 +26,48 @@ inline void upd_ans(const vector<int>&vec){
 		fclose(stdout);
 	}
 }
-inline double unit(){
-	static random_device rand;
-	static uniform_real_distribution<double>randdb(0.0,1.0);
-	return randdb(rand);
+vector<int>stk;
+inline vector<int>inters(const vector<int>&vec,const set<int>&s){
+	vector<int>ans;
+	for(vector<int>::const_iterator it=vec.begin();it!=vec.end();++it){
+		if(s.find(*it)!=s.end()){
+			ans.push_back(*it);
+		}
+	}
+	return ans;
 }
-int blocksize,blockcnt;
-struct Node;
-typedef Node* node;
-int stk[N],ss;
-inline bool teststk(int x){
-	for(int i=0;i<ss;i++){
-		if(!con[stk[i]][x])return false;
+bool vis[N];
+void dfs(vector<int>vec){
+	upd_ans(stk);
+	const int tcol=blockcnt-stk.size();
+	memset(vis,0,tcol);
+	for(vector<int>::iterator it=vec.begin();it!=vec.end();++it){
+		vis[(*it-1)/blocksize]=true;
 	}
-	return true;
-}
-struct Node{
-	int tries;
-	lint sum;
-	Node* nxt[25];
-	bool valid[25];
-	Node(){
-		memset(nxt,0,sizeof(nxt));
-		for(int i=0;i<25;i++){
-			valid[i]=teststk(i+blocksize*ss+1);
-		}
+	for(int i=0;i<tcol;i++){
+		if(!vis[i])return;
 	}
-	inline int getnxt(){
-		static int lst[N];
-		int ls=0;
-		for(int i=0;i<25;i++){
-			if(valid[i]){
-				lst[++ls]=i;
-			}
-		}
-		if(ls==0)return -1;
-		return lst[gen(1,ls)];
-		static int ucb[N];
-		//cout ucb
-		for(int i=1;i<=ls;i++){
-		}
+	const int col=(vec.back()-1)/blocksize;
+	vector<int>unvis;
+	for(;!vec.empty()&&(vec.back()-1)/blocksize==col;unvis.push_back(vec.back()),vec.pop_back());
+	for(;!unvis.empty();){
+		swap(unvis.back(),vec[gen(0,unvis.size()-1)]);
+		const int x=unvis.back();
+		stk.push_back(x);
+		dfs(inters(vec,to[x]));
+		stk.pop_back();
+		if(ans.size()==blockcnt)return;
 	}
-};
-node ndstk[N];
-void set_stk_top_invalid(){
-	if(ss==0)return;
-	//ndstk[ss] is invalid
-	const node tstk=ndstk[ss-1];
-	tstk->valid[(stk[ss-1]-1)%blocksize]=false;
-	ss--;
-	for(int i=0;i<25;i++){
-		if(tstk->valid[i])return;
-	}
-	set_stk_top_invalid();
 }
 inline void Main(){
-	static node rt=0;
-	ss=0;
-	if(rt==0){
+	vector<int>vec;
+	for(int i=1;i<=n;i++){
+		vec.push_back(i);
 	}
-	ndstk[ss]=rt;
+	dfs(vec);
+	exit(0);
 }
 int main(int argc,char* args[]){
-	for(int tot=0;tot<=LIM;tot++){
-		expval[tot]=exp(-1e-5*tot);
-	}
 	assert(argc==2);
 	freopen((string("maxcliq")+args[1]+string(".in")).c_str(),"r",stdin);
 	outputfilename=(string("maxcliq")+args[1]+string(".out"));
@@ -107,14 +84,11 @@ int main(int argc,char* args[]){
 	}
 	cout<<"cur ans="<<ans.size()<<endl;
 	scanf("%d%d",&n,&m);
-	memset(con,0,sizeof(con));
 	for(int i=1;i<=m;i++){
 		int u,v;
 		scanf("%d%d",&u,&v);
 		to[u].insert(v);
 		to[v].insert(u);
-		con[u][v]=true;
-		con[v][u]=true;
 	}
 	if(n==450){
 		blocksize=15;
