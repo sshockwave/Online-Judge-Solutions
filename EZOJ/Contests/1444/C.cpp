@@ -24,44 +24,85 @@ int tim;
 int dlen;
 int mat[N][N];
 inline void fill_mat(int x1,int x2,int y1,int y2){
-	for(;y2-y1+1>=dlen;){
+	const int d=dlen;
+	for(;y2-y1+1>=d*2;){
 		for(int i=x1;i<=x2;i++){
 			++tim;
-			for(int j=y1;j<=y1+dlen-1;j++){
+			for(int j=y1;j<=y1+d-1;j++){
 				mat[i][j]=tim;
 			}
 		}
-		y1+=dlen;
+		y1+=d;
 	}
-	for(;x2-x1+1>=dlen;){
+	for(;x2-x1+1>=d*2;){
 		for(int j=y1;j<=y2;j++){
 			++tim;
-			for(int i=x1;i<=x1+dlen-1;i++){
+			for(int i=x1;i<=x1+d-1;i++){
 				mat[i][j]=tim;
 			}
 		}
-		x1+=dlen;
+		x1+=d;
 	}
-	if(x2-x1<y2-y1){//flat
+	if(x2-x1+1<=d||y2-y1+1<=d){
+		for(;y2-y1+1>=d;){
+			for(int i=x1;i<=x2;i++){
+				++tim;
+				for(int j=y1;j<=y1+d-1;j++){
+					mat[i][j]=tim;
+				}
+			}
+			y1+=d;
+		}
+		for(;x2-x1+1>=d;){
+			for(int j=y1;j<=y2;j++){
+				++tim;
+				for(int i=x1;i<=x1+d-1;i++){
+					mat[i][j]=tim;
+				}
+			}
+			x1+=d;
+		}
+		if(x2-x1<y2-y1){//flat
+			for(int i=x1;i<=x2;i++){
+				++tim;
+				for(int j=y1;j<=y2;j++){
+					mat[i][j]=tim;
+				}
+			}
+		}else{//tall
+			for(int j=y1;j<=y2;j++){
+				++tim;
+				for(int i=x1;i<=x2;i++){
+					mat[i][j]=tim;
+				}
+			}
+		}
+	}else{
+		const int r=x2-x1+1,c=y2-y1+1;
+		const int v=(r*c+d-1)/d-r;
+		for(int j=0;j<v;j++){
+			++tim;
+			for(int i=j*d%r,t=0;t<d;t++,i=i+1<r?i+1:0){
+				mat[i+x1][j+y1]=tim;
+			}
+		}
 		for(int i=x1;i<=x2;i++){
 			++tim;
 			for(int j=y1;j<=y2;j++){
-				mat[i][j]=tim;
-			}
-		}
-	}else{//tall
-		for(int j=y1;j<=y2;j++){
-			++tim;
-			for(int i=x1;i<=x2;i++){
-				mat[i][j]=tim;
+				if(mat[i][j]==0){
+					mat[i][j]=tim;
+				}
 			}
 		}
 	}
 }
 inline void Main(){
-	int r=ni,c=ni,d=dlen=ni;
-	int lb;
+	int r=ni,c=ni;
+	dlen=ni;
 	tim=0;
+	for(int i=1;i<=r;i++){
+		mset(mat[i]+1,0,c);
+	}
 	fill_mat(1,r,1,c);
 	for(int i=1;i<=r;i++){
 		for(int j=1;j<=c;j++){
