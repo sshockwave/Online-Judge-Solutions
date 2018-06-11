@@ -91,8 +91,9 @@ struct Pt{
 	}
 }pt[N];
 inline int Main(){
-	const int p3=ni,p1=ni,p2=ni,n=p3;
+	const int p3=ni,p1=ni,p2=ni+p1,n=p3;
 	m=ni;
+	gmath::main();
 	for(int i=1;i<=n;i++){
 		pt[i]=(Pt){ni,ni};
 	}
@@ -121,7 +122,6 @@ inline int Main(){
 	if(!r2.ok())return 0;
 	if(!r3.ok())return 0;
 	lint a=0,b=0,c=0,ab=0,bc=0,ca=0,abc=0;
-	a%=O,b%=O,c%=O,ab%=O,bc%=O,ca%=O,abc%=O;
 	for(int i=mnx-m;i<=mxx+m;i++){
 		for(int j=mny-m;j<=mxy+m;j++){
 			lint cura=1;
@@ -157,7 +157,8 @@ inline int Main(){
 			abc+=(lint)cura*curb%O*curc%O;
 		}
 	}
-	lint ans=a*b%O*c%O-ab*c%O-bc*a%O-ca*b%O+abc;
+	a%=O,b%=O,c%=O,ab%=O,bc%=O,ca%=O,abc%=O;
+	lint ans=a*b%O*c%O-ab*c%O-bc*a%O-ca*b%O+2*abc;
 	return (ans%O+O)%O;
 }
 int main(){
@@ -165,7 +166,6 @@ int main(){
 	freopen("dark.in","r",stdin);
 	freopen("dark.out","w",stdout);
 #endif
-	gmath::main();
 	printf("%d\n",Main());
 	return 0;
 }
