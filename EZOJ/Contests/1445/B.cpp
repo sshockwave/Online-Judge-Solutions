@@ -18,9 +18,9 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
-template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
-const int N=1010,O=1000000007;
-int m;
+template<class T>inline void apabs(T &x){if(x<0)x=-x;}
+const int N=1010,O=1000000007,INF=0x7f7f7f7f;
+int n,m;
 namespace gmath{
 	inline int fpow(int x,int n){
 		int a=1;
@@ -35,7 +35,6 @@ namespace gmath{
 		return fpow(x,O-2);
 	}
 	int fac[N],invfac[N];
-	int _goC[N][N];
 	inline int C(int n,int k){
 		assert(k<=n);
 		return (lint)fac[n]*invfac[k]%O*invfac[n-k]%O;
@@ -49,116 +48,55 @@ namespace gmath{
 		for(int i=n;i>=1;i--){
 			invfac[i-1]=(lint)invfac[i]*i%O;
 		}
-		for(int i=0;i<=n;i++){
-			for(int j=0;j<=n;j++){
-				if(((i^j^m)&1)||i+j>m){
-					_goC[i][j]=0;
-					continue;
-				}
-				const int r=(m-i-j)>>1;
-				_goC[i][j]=(lint)C(m,r)*C(m,i+r)%O;
-			}
-		}
-	}
-	inline int goC(int x,int y){
-		return _goC[cabs(x)][cabs(y)];
 	}
 }
-struct Rng{
-	int a,b,c,d;
-	//y in x+[a,b]
-	//y in -x+[c,d]
-	inline friend Rng operator & (const Rng &a,const Rng &b){
-		return (Rng){max(a.a,b.a),min(a.b,b.b),max(a.c,b.c),min(a.d,b.d)};
+int coor[2][N],nxt[N];
+int f[N];
+inline int gf(int x){
+	apabs(x);
+	return x<=m?f[x]:0;
+}
+inline int calc2(int x[]){
+	int l=x[nxt[0]]-m,r=x[nxt[0]]+m;
+	for(int i=0;i=nxt[i],i<=n;){
+		apmax(l,x[i]-m),apmin(r,x[i]+m);
 	}
-	inline friend Rng operator | (const Rng &a,const Rng &b){
-		return (Rng){min(a.a,b.a),max(a.b,b.b),min(a.c,b.c),max(a.d,b.d)};
+	lint ans=0;
+	for(int i=l;i<=r;i++){
+		int cur=1;
+		for(int j=0;j=nxt[j],j<=n&&cur;){
+			cur=(lint)cur*gf(i-x[j])%O;
+		}
+		ans+=cur;
 	}
-	inline bool ok(){
-		return a<=b&&c<=d;
-	}
-};
-struct Pt{
-	int x,y;
-	inline int tp(){
-		return cabs(x+y)&1;
-	}
-	inline Rng rng(){
-		return (Rng){y-m-x,y+m-x,y-m+x,y+m+x};
-	}
-	inline bool in(const Rng &r)const{
-		return x+r.a<=y&&y<=x+r.b&&-x+r.c<=y&&y<=-x+r.d;
-	}
-}pt[N];
+	return ans%O;
+}
+inline int calc(){
+	return (lint)calc2(coor[0])*calc2(coor[1])%O;
+}
 inline int Main(){
-	const int p3=ni,p1=ni,p2=ni+p1,n=p3;
-	m=ni;
-	gmath::main();
+	n=ni;
+	const int p[4]={0,ni,p[1]+ni,n};
+	gmath::main(m=ni);
+	for(int i=0;i<=m;i++){
+		f[i]=(m-i)&1?0:gmath::C(m,(m-i)>>1);
+	}
 	for(int i=1;i<=n;i++){
-		pt[i]=(Pt){ni,ni};
+		const int x=ni,y=ni;
+		coor[0][i]=y+x,coor[1][i]=y-x;
+		nxt[i]=i+1;
 	}
-	int mxx=pt[1].x,mnx=pt[1].x;
-	int mxy=pt[1].y,mny=pt[1].y;
-	for(int i=1;i<=n;i++){
-		apmax(mxx,pt[i].x);
-		apmin(mnx,pt[i].x);
-		apmax(mxy,pt[i].y);
-		apmin(mny,pt[i].y);
-	}
-	Rng r1=pt[p1].rng(),r2=pt[p2].rng(),r3=pt[p3].rng();
-	for(int i=1;i<=p1;i++){
-		if(pt[p1].tp()^pt[i].tp())return 0;
-		r1=r1&pt[i].rng();
-	}
-	for(int i=p1+1;i<=p2;i++){
-		if(pt[p2].tp()^pt[i].tp())return 0;
-		r2=r2&pt[i].rng();
-	}
-	for(int i=p2+1;i<=p3;i++){
-		if(pt[p3].tp()^pt[i].tp())return 0;
-		r3=r3&pt[i].rng();
-	}
-	if(!r1.ok())return 0;
-	if(!r2.ok())return 0;
-	if(!r3.ok())return 0;
-	lint a=0,b=0,c=0,ab=0,bc=0,ca=0,abc=0;
-	for(int i=mnx-m;i<=mxx+m;i++){
-		for(int j=mny-m;j<=mxy+m;j++){
-			lint cura=1;
-			lint curb=1;
-			lint curc=1;
-			const Pt cur=(Pt){i,j};
-			const int tp=((Pt){i+m,j}).tp();
-			if(pt[p1].tp()==tp&&cur.in(r1)){
-				for(int k=1;k<=p1;k++){
-					cura=cura*gmath::goC(i-pt[k].x,j-pt[k].y)%O;
-				}
-			}else{
-				cura=0;
-			}
-			if(pt[p2].tp()==tp&&cur.in(r2)){
-				for(int k=p1+1;k<=p2;k++){
-					curb=curb*gmath::goC(i-pt[k].x,j-pt[k].y)%O;
-				}
-			}else{
-				curb=0;
-			}
-			if(pt[p3].tp()==tp&&cur.in(r3)){
-				for(int k=p2+1;k<=p3;k++){
-					curc=curc*gmath::goC(i-pt[k].x,j-pt[k].y)%O;
-				}
-			}else{
-				curc=0;
-			}
-			a+=cura,b+=curb,c+=curc;
-			ab+=(lint)cura*curb%O;
-			bc+=(lint)curb*curc%O;
-			ca+=(lint)curc*cura%O;
-			abc+=(lint)cura*curb%O*curc%O;
+	lint a[4],b[4];
+	lint ans=0;
+	for(int i=1;i<=3;i++){
+		a[i]=(nxt[0]=p[i-1]+1,nxt[p[i]]=n+1,calc)();
+		b[i]=(nxt[0]=1,nxt[p[i-1]]=p[i]+1,calc)();
+		ans-=a[i]*b[i]%O;
+		for(int j=0;j<=3;j++){
+			nxt[p[j]]=p[j]+1;
 		}
 	}
-	a%=O,b%=O,c%=O,ab%=O,bc%=O,ca%=O,abc%=O;
-	lint ans=a*b%O*c%O-ab*c%O-bc*a%O-ca*b%O+2*abc;
+	ans+=a[1]*a[2]%O*a[3]%O+calc()*2;
 	return (ans%O+O)%O;
 }
 int main(){
