@@ -31,24 +31,22 @@ inline int fpow(int x,int n){
 int ansa=0,ansb=0,ansf=0,ansn=0;
 inline void Main(const int n,const int a,const int b){
 	assert(a<=b);
-	int cnta=0,cntf=0,cntn=0;
+	int cntn=0,cnta=0,cntf=0,cntfa=0;
 	for(int i=1;i<=n;i++){
 		const int x=ni%(a+b);
-		++(x<a?cntn:x<b?cnta:cntf);
+		++(x<a?cntn:x<b?cnta:x<a*2?cntf:cntfa);
 	}
 	cntn=fpow(2,cntn);
-	//alice wins
-	ansa=(lint)(fpow(2,cnta)-1)*fpow(2,cntf)%O;
-	if(b-a>=a&&cntf>=2){
-		ansa=((lint)ansa+fpow(2,cntf)+O-1-cntf)%O;
-	}
-	ansa=(lint)ansa*cntn%O;
 	//bob wins
 	ansb=0;
-	//first wins: no alice win, first win is odd, alice don't get extra steps
-	ansf=(lint)(b-a<a?(cntf?fpow(2,cntf-1):0):cntf)*cntn%O;
-	//second wins: no alice win, first win is even, alice don't get extra steps
-	ansn=(lint)(b-a<a?(cntf?fpow(2,cntf-1):1):1)*cntn%O;
+	//first wins
+	const int odd=cntf?fpow(2,cntf-1):0;
+	const int eve=cntf?odd:1;
+	ansf=(odd+(lint)eve*cntfa)%O*cntn%O;
+	//second wins
+	ansn=(lint)eve*cntn%O;
+	//alice wins
+	ansa=((lint)fpow(2,n)+O-ansf+O-ansn)%O;
 }
 int main(){
 #ifndef ONLINE_JUDGE
