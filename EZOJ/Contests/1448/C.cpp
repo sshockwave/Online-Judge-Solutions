@@ -18,8 +18,8 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
-const int N=30010;
-int philst[200];
+const int N=30010,logN=50;
+int philst[logN];
 int phils=0;
 const int &O=philst[0];
 inline int care_mod(int x,int i){
@@ -34,6 +34,34 @@ inline int care_fpow(int x,int n,const int i){
 	}
 	return a;
 }
+struct Fpow{
+	int i,O,rt;
+	int **b,**g;
+	inline void init(int _i,int tpw){
+		i=_i,O=philst[i];
+		rt=1;
+		for(;rt*rt<=tpw;rt++);
+		int trt=tpw/rt+1;
+		int tO=O*2;
+		b=new int*[tO],g=new int*[tO];
+		for(int i=0;i<tO;i++){
+			int *B=b[i]=new int[rt];
+			int *G=g[i]=new int[trt];
+			B[0]=1;
+			for(int j=1;j<rt;j++){
+				B[j]=care_mod(B[j-1]*i,this->i);
+			}
+			G[0]=1;
+			const int w=care_mod(B[rt-1]*i,this->i);
+			for(int j=1;j<trt;j++){
+				G[j]=care_mod(G[j-1]*w,this->i);
+			}
+		}
+	}
+	inline int operator ()(int x,int n){
+		return care_mod(g[x][n/rt]*b[x][n%rt],i);
+	}
+}phipow[logN];
 inline void get_phi(int x){
 	for(philst[0]=x,phils=1;x!=1;x=philst[phils++]){
 		int &phi=philst[phils]=1;
@@ -46,6 +74,9 @@ inline void get_phi(int x){
 			phi*=x-1;
 		}
 	}
+	for(int i=0;i+1<phils;i++){
+		phipow[i].init(i,philst[i+1]*2-1);
+	}
 }
 namespace seg{
 	const int N=::N<<1;
@@ -56,13 +87,17 @@ namespace seg{
 		int l,m,r;
 		bool unifi;
 		int *pval,sum;
+		inline void calc_sum(){
+			sum=pval[0]*(r-l+1)%O;
+		}
 		inline void alt(int c){
 			assert(unifi);
 			for(int i=0;i+1<phils;i++){
-				pval[i]=care_fpow(care_mod(c,i),pval[i+1],i);
+				//pval[i]=care_fpow(care_mod(c,i),pval[i+1],i);
+				pval[i]=phipow[i](care_mod(c,i),pval[i+1]);
 			}
-			pval[phils-1]=c>0;
-			sum=pval[0]*(r-l+1)%O;
+			pval[phils-1]=c>0||pval[phils-1]==0;
+			calc_sum();
 		}
 		inline void up(){
 			assert(!unifi);
@@ -80,8 +115,8 @@ namespace seg{
 		}
 		inline void dn(){
 			if(unifi){
-				memcpy(lson->pval,pval,phils*sizeof(pval[0]));
-				memcpy(rson->pval,pval,phils*sizeof(pval[0]));
+				memcpy(lson->pval,pval,phils*sizeof(pval[0])),lson->calc_sum();
+				memcpy(rson->pval,pval,phils*sizeof(pval[0])),rson->calc_sum();
 				unifi=false;
 			}
 		}
