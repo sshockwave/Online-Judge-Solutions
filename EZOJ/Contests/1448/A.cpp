@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+//#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <cmath>
@@ -34,7 +35,7 @@ struct Pt{
 	inline db abs()const{return sqrt(d2());}
 	inline Pt operator * (const db &b)const{return Pt(x*b,y*b);}
 	inline friend db dist(const Pt &a,const Pt &b){return (a-b).abs();}
-	inline Pt operator - (){return Pt(-x,-y);}
+	inline Pt operator - ()const{return Pt(-x,-y);}
 	inline friend Pt operator + (const Pt &a,const Pt &b){return Pt(a.x+b.x,a.y+b.y);}
 	inline friend Pt operator - (const Pt &a,const Pt &b){return Pt(a.x-b.x,a.y-b.y);}
 	inline friend Pt operator * (const Pt &a,const Pt &b){return Pt(a.x*b.x-a.y*b.y,a.x*b.y+a.y*b.x);}
@@ -115,6 +116,19 @@ namespace circ{
 				alt(i,1);
 				continue;
 			}
+			if(rad==0){
+				Pt v=p-x;
+				if(inc(l,v,r)){
+					ev[++es]=(Ev){i,1,v};
+					ev[++es]=(Ev){i,-1,v};
+				}
+				v=(p-y)*I;
+				if(inc(l,v,r)){
+					ev[++es]=(Ev){i,1,v};
+					ev[++es]=(Ev){i,-1,v};
+				}
+				continue;
+			}
 			{//calc x
 				Pt s1,s2;
 				circ_ints((x+p)*0.5,dist(p,x)*0.5,p,rad,s1,s2);
@@ -148,10 +162,19 @@ namespace circ{
 				Pt A;
 				solve_eqn(v.x,v.y,dot(y,v),v.y,-v.x,crs(x,v),A.x,A.y);
 				const Pt iden=v*(1/v.abs());
-				Pt B=A+iden-iden*I;
+				Pt B=A+(iden-iden*I)*rad;
 				puts("OK");
 				printf("%.10lf %.10lf\n",A.x,A.y);
 				printf("%.10lf %.10lf\n",B.x,B.y);
+#ifndef NDEBUG
+				if(rad){
+					for(int i=1;i<=n;i++){
+						db p1=dot(iden,pt[i]-A);
+						db p2=dot(-iden*I,pt[i]-A);
+						assert(p1>=-EPS&&p2>=-EPS&&(p1<=rad+EPS||p2<=rad+EPS));
+					}
+				}
+#endif
 				return true;
 			}
 		}
