@@ -58,7 +58,7 @@ bool dfs(){
 		bool t=dfs();
 		assert(pt[0]==')');
 		++pt;
-		return t;
+		return !t;
 	}
 	bool a=dfs();
 	assert(pt[0]=='-');
@@ -114,11 +114,15 @@ int main(){
 		for(int i=0;i<2;i++){
 			Q=i;
 			for(int s=0;s<sk;s++){
+				for(int j=0;j<k;j++){
+					var[j]=(s>>j)&1;
+				}
 				pt=str,g[i][s]=dfs();
 			}
 		}
 		lint ans=0;
 		for(int i=0;i<ssk;i++){
+			if(f[i]==0)continue;
 			bool flag=true;
 			for(int j=0;j<sk;j++){
 				if(!g[(i>>j)&1][j]){
