@@ -3,11 +3,9 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <vector>
 #include <algorithm>
 using namespace std;
 typedef long long lint;
-typedef vector<int>vi;
 #define cout cerr
 #define ni (next_num<int>())
 template<class T>inline T next_num(){
@@ -23,24 +21,7 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
 const int N=73,K=4,O=1000000007;
 int k,sk,ssk;//count of variables
-inline ostream & operator << (ostream & out,const vi &b){
-	out<<"{";
-	for(int i=0;i<ssk;i++){
-		if(b[i]){
-			out<<i<<":"<<b[i]<<",";
-		}
-	}
-	out<<"}";
-	return out;
-}
-vi var[K];
-inline void initv(vi &v){
-	v.resize(0),v.resize(ssk);
-}
-inline void rev(vi &v){
-	reverse(v.begin(),v.end());
-}
-void fwt(vi &a,int sh=sk){
+void fwt(int a[],int sh=sk){
 	if(sh==0)return;
 	const int full=1<<sh,half=full>>1;
 	for(int i=0;i<ssk;i+=full){
@@ -50,7 +31,7 @@ void fwt(vi &a,int sh=sk){
 	}
 	fwt(a,sh-1);
 }
-void ifwt(vi &a,int sh=sk){
+void ifwt(int a[],int sh=sk){
 	if(sh==0)return;
 	const int full=1<<sh,half=full>>1;
 	for(int i=0;i<ssk;i+=full){
@@ -60,23 +41,9 @@ void ifwt(vi &a,int sh=sk){
 	}
 	ifwt(a,sh-1);
 }
-inline vi getconv(vi p,vi q){
-	rev(p),fwt(p),fwt(q);
-	for(int i=0;i<ssk;i++){
-		p[i]=(lint)p[i]*q[i]%O;
-	}
-	ifwt(p);
-	return p;
-}
-inline void join(vi &f,const vi &p,const vi &q){
-	vi tmp=getconv(p,q);
-	for(int i=0;i<ssk;i++){
-		f[i]=(f[i]+tmp[i])%O;
-	}
-}
-vi Q;
 char* pt;
-vi dfs(){
+bool var[K],Q;
+bool dfs(){
 	if(pt[0]=='x'){
 		++pt;
 		int i=pt[0]-'1';
@@ -88,24 +55,28 @@ vi dfs(){
 	++pt;
 	if(pt[0]=='~'){
 		++pt;
-		vi t=dfs();
+		bool t=dfs();
 		assert(pt[0]==')');
 		++pt;
-		rev(t);
 		return t;
 	}
-	vi a=dfs();
+	bool a=dfs();
 	assert(pt[0]=='-');
 	++pt;
 	assert(pt[0]=='>');
 	++pt;
-	vi b=dfs();
+	bool b=dfs();
 	assert(pt[0]==')');
 	++pt;
-	return getconv(a,b);
+	return b||!a;
 }
-vi f[N];
+int f[1<<(1<<K)],g[2][1<<K];
+int wf[N][2][1<<(1<<K)];
 char str[4010];
+inline void put_wf(int (*const wf)[1<<(1<<K)]){
+	memcpy(wf[0],f,ssk*sizeof(f[0])),fwt(wf[0]);
+	memcpy(wf[1],f,ssk*sizeof(f[0])),reverse(wf[1],wf[1]+ssk),fwt(wf[1]);
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("proposition.in","r",stdin);
@@ -113,33 +84,53 @@ int main(){
 #endif
 	const int n=ni;
 	k=ni,sk=1<<k,ssk=1<<sk;
-	initv(f[0]);
 	for(int i=0;i<k;i++){
-		initv(var[i]);
 		int btmsk=0;
 		for(int s=0;s<sk;s++){
 			if((s>>i)&1){
 				btmsk|=1<<s;
 			}
 		}
-		var[i][btmsk]=1;
-		f[0][btmsk]=1;
+		f[btmsk]=1;
 	}
+	put_wf(wf[0]);
 	for(int i=1;i<=n;i++){
-		f[i]=f[i-1],rev(f[i]);
+		reverse(f,f+ssk);
+		static int tmpf[1<<(1<<K)];
+		mset(tmpf,0,ssk);
 		for(int j=0;j<i;j++){
-			join(f[i],f[j],f[i-1-j]);
+			for(int k=0;k<ssk;k++){
+				tmpf[k]=(tmpf[k]+(lint)wf[j][1][k]*wf[i-1-j][0][k])%O;
+			}
 		}
-	}
-	Q=f[n];
-	for(int i=0;i<=n;i++){
-		f[i].clear();
+		ifwt(tmpf);
+		for(int j=0;j<ssk;j++){
+			f[j]=(f[j]+tmpf[j])%O;
+		}
+		put_wf(wf[i]);
 	}
 	for(int tot=ni;tot--;){
 		scanf("%s",str);
-		pt=str;
-		vi g=dfs();
-		printf("%d\n",g[ssk-1]);
+		for(int i=0;i<2;i++){
+			Q=i;
+			for(int s=0;s<sk;s++){
+				pt=str,g[i][s]=dfs();
+			}
+		}
+		lint ans=0;
+		for(int i=0;i<ssk;i++){
+			bool flag=true;
+			for(int j=0;j<sk;j++){
+				if(!g[(i>>j)&1][j]){
+					flag=false;
+					break;
+				}
+			}
+			if(flag){
+				ans+=f[i];
+			}
+		}
+		printf("%lld\n",ans%O);
 	}
 	return 0;
 }
