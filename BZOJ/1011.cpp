@@ -33,7 +33,7 @@ int main(){
 	for(int i=1;i<=n;i++){
 		scanf("%lf",mass+i);
 		sum[i]=sum[i-1]+mass[i];
-		const int m=i*p;
+		const int m=i*p+1e-8;
 		db ans=0;
 		for(int l=1,r;l<=m;l=r+1){
 			r=min<int>(m,i-(i-l)/1.04);
