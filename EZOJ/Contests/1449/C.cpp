@@ -43,6 +43,9 @@ namespace sieve{
 		}
 	}
 }
+inline int gcd(int a,int b){
+	return b?gcd(b,a%b):a;
+}
 inline lint Main(int n,int r){
 	lint ans=0;
 	using sieve::mu;
@@ -52,13 +55,13 @@ inline lint Main(int n,int r){
 	for(int i=1;i<=n&&(lint)i*r<=denom;i++){
 		if(mu[i]==0)continue;
 		lint cur=0;
-		lint lim2=denom2/((lint)r*r*i*i);
+		lint lim2=(denom2+(lint)r*r*i*i-1)/((lint)r*r*i*i);
 		lint nlim=n/i;
-		for(lint a=1;a<=nlim&&a*a<=lim2;a++){
+		for(lint a=1;a<=nlim&&a*a<lim2;a++){
 			lint b=sqrt((long double)denom2/((lint)r*r*i*i)-(lint)a*a);
-			for(;b<=nlim&&a*a+b*b<=lim2;b++);
+			for(;b<=nlim&&a*a+b*b<lim2;b++);
 			apmin(b,nlim);
-			for(;b>nlim||a*a+b*b>lim2;b--);
+			for(;b>nlim||a*a+b*b>=lim2;b--);
 			if(b==0)break;
 			cur+=b;
 		}
@@ -68,8 +71,8 @@ inline lint Main(int n,int r){
 }
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("b.in","r",stdin);
-	freopen("b.out","w",stdout);
+	freopen("round.in","r",stdin);
+	freopen("round.out","w",stdout);
 #endif
 	int n=ni,r=ni;
 	if(n==1){
