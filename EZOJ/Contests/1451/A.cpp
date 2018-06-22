@@ -19,7 +19,9 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
 const int N=1210,O=1000000007;
+const lint limO=0x7f7f7f7f7f7f7f7f-(lint)O*O;
 namespace gmath{
+	const int N=::N<<1;
 	int fac[N],ifac[N];
 	inline int fpow(int x,int n){
 		int a=1;
@@ -43,6 +45,9 @@ namespace gmath{
 			ifac[i-1]=(lint)ifac[i]*i%O;
 		}
 	}
+	inline int bio(int a,int b){
+		return (lint)fac[a+b]*ifac[a]%O*ifac[b]%O;
+	}
 }
 namespace newton{
 	int n;
@@ -50,9 +55,12 @@ namespace newton{
 	int a[N],b[N];
 	inline void init(int _n){
 		n=_n;
+		for(int i=0;i<=n;i++){
+			f[i]=(lint)f[i]*gmath::ifac[i]%O*gmath::ifac[n-i]%O;
+		}
 	}
-	inline int main(lint x){
-		x%=O;
+	inline int main(lint _x){
+		const int x=_x%O;
 		a[0]=1;
 		for(int i=1;i<=n;i++){
 			a[i]=(lint)a[i-1]*(x+O-i+1)%O;
@@ -63,25 +71,43 @@ namespace newton{
 		}
 		lint ans=0;
 		for(int i=0;i<=n;i++){
-			int cur=(lint)f[i]*a[i]%O*b[i]%O*gmath::ifac[i]%O*gmath::ifac[n-i]%O;
-			if((n-i)&1){
+			lint cur=(lint)f[i]*a[i]%O*b[i];
+			if(i&1){
 				ans-=cur;
+				if(ans<-limO){
+					ans%=O;
+				}
 			}else{
 				ans+=cur;
+				if(ans>limO){
+					ans%=O;
+				}
 			}
+		}
+		if(n&1){
+			ans=-ans;
 		}
 		return (ans%O+O)%O;
 	}
 }
 int ord=0;
+int k;
+int bioc[N];
 inline void dp(const lint d,const lint r){
 	static int f[N];
-	++ord;
+	ord+=k;
 	for(int i=0;i<=ord;i++){
 		f[i]=newton::main(i*d+r);
 	}
-	for(int i=0,sum=0;i<=ord;i++){
-		newton::f[i]=sum=(sum+f[i])%O;
+	for(int i=0;i<=ord;i++){
+		lint ans=0;
+		for(int j=0;j<=i;j++){
+			ans+=(lint)f[i-j]*bioc[j];
+			if(ans>limO){
+				ans%=O;
+			}
+		}
+		newton::f[i]=ans%O;
 	}
 	newton::init(ord);
 }
@@ -91,16 +117,16 @@ int main(){
 	freopen("split.out","w",stdout);
 #endif
 	const lint n=next_num<lint>(),m=next_num<lint>();
-	gmath::main(N-1);
-	const int k=ni;
+	gmath::main(gmath::N-1);
 	newton::f[0]=1;
 	newton::init(0);
 	lint las=1,pw=1;
+	k=ni;
+	for(int i=0;i<N;i++){
+		bioc[i]=gmath::bio(i,k-1);
+	}
 	for(;pw<=n;las=pw,pw*=m){
 		dp(pw/las,n%pw/las);
-		for(int i=1;i<k;i++){
-			dp(1,0);
-		}
 		if(pw>n/m)break;
 	}
 	printf("%d\n",newton::main(n/pw));
