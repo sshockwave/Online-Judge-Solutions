@@ -21,45 +21,47 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
+template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
 const int N=32010,INF=0x7f7f7f7f;
 vi opx,opy;
 int a[N];
 inline void psh(const int l,const int r){
 	if(l==r)return;
 	static int cnt=4000000;
-	if(cnt<r-l+1)throw "Not enough operations";
 	cnt-=r-l+1;
+	assert(cnt>=0);
 	opx.push_back(l),opy.push_back(r);
 	reverse(a+l,a+r+1);
 }
-void solve(int l,int r);
-void solve2(int l,int r){
+void solve2(int l,int r,int v){
 	if(l==r)return;
-	int mx=0;
-	for(int i=l;i<=r;i++){
-		apmax(mx,a[i]);
+	const int m=(l+r)>>1;
+	solve2(l,m,v),solve2(m+1,r,v);
+	int tl=l,tr=r;
+	for(;tl<=tr&&a[tl]<=v;tl++);
+	for(;tl<=tr&&a[tr]>v;tr--);
+	if(tl<=tr){
+		psh(tl,tr);
 	}
-	int i=r;
-	for(;a[i]!=mx;i--);
-	psh(i,r);
-	solve(l,r);
 }
-int mn_[N];
+int lst[N];
 void solve(int l,int r){
 	if(l==r)return;
-	int mn=INF;
-	for(int i=r;i>=l;i--){
-		mn_[i]=mn=min(a[i],mn);
-	}
-	int mx=0;
+	memcpy(lst+l,a+l,(r-l+1)*sizeof(a[0]));
+	sort(lst+l,lst+r+1);
+	if(lst[l]==lst[r])return;
+	int p=0;
+	const int m=(r+l)>>1;
 	for(int i=l;i<r;i++){
-		apmax(mx,a[i]);
-		if(mx<=mn_[i+1]){
-			solve2(l,i);
-			l=i+1;
+		if(lst[i]!=lst[i+1]){
+			if(p==0||cabs(i-m)<cabs(p-m)){
+				p=i;
+			}
 		}
 	}
-	solve2(l,r);
+	assert(p);
+	solve2(l,r,lst[p]);
+	solve(l,p),solve(p+1,r);
 }
 int main(){
 #ifndef ONLINE_JUDGE
@@ -70,11 +72,7 @@ int main(){
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
 	}
-	try{
-		solve(1,n);
-	}catch(const char* str){
-		//cout<<str<<endl;
-	}
+	solve(1,n);
 	printf("%d\n",(int)opx.size());
 	for(int i=0,tot=opx.size();i<tot;i++){
 		printf("%d %d\n",opx[i],opy[i]);
