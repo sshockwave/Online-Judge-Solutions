@@ -43,17 +43,40 @@ namespace gmath{
 struct Mat{
 	int a[N][N];
 	int n1,n2;
+	inline friend ostream & operator << (ostream & out,const Mat &b){
+		for(int i=1;i<=b.n1;i++){
+			out<<endl<<"[";
+			for(int j=1;j<=b.n2;j++){
+				out<<b.a[i][j];
+				if(j<b.n2){
+					out<<" ";
+				}
+			}
+			out<<"]";
+		}
+		return out;
+	}
 	inline void clr(const bool d=0){
 		for(int i=1;i<=n1;i++){
 			mset(a[i]+1,0,n2);
 			a[i][i]=d;
 		}
 	}
-	inline void operator = (const Mat &b){
+	inline void canon(){
+		for(int i=1;i<=n1;i++){
+			for(int j=1;j<=n2;j++){
+				if(a[i][j]<0){
+					a[i][j]=(a[i][j]%O+O)%O;
+				}
+			}
+		}
+	}
+	inline const Mat& operator = (const Mat &b){
 		n1=b.n1,n2=b.n2;
 		for(int i=1;i<=n1;i++){
 			memcpy(a[i]+1,b.a[i]+1,n2*sizeof(a[i][0]));
 		}
+		return *this;
 	}
 	inline void gmul(const Mat &x,const Mat &y){
 		assert(x.n2==y.n1);
@@ -84,7 +107,7 @@ struct Mat{
 		}
 	}
 	inline void lw_add(const int p,const int q,const int r){
-		if(r==0)return;
+		if(r==0||r==O)return;
 		for(int j=1;j<=n2;j++){
 			a[q][j]=(a[q][j]+(lint)a[p][j]*r)%O;
 		}
@@ -120,14 +143,12 @@ struct Mat{
 				ans=O-ans;
 				lw_swap(i,j);
 			}
-			if(ans!=1){
+			if(a[j][i]!=1){
 				ans=(lint)ans*a[j][i]%O;
 				lw_div(j,a[j][i]);
 			}
-			for(j=1;j<=n;j++){
-				if(i!=j&&a[j][i]){
-					lw_add(i,j,O-a[j][i]);
-				}
+			for(j=i+1;j<=n;j++){
+				lw_add(i,j,O-a[j][i]);
 			}
 		}
 		return ans;
@@ -155,6 +176,7 @@ int main(){
 		++oud[u];
 		++kir.a[u][u],--kir.a[u][v];
 	}
+	kir.canon();
 	{//get etcnt
 		static Mat tmp;
 		tmp=kir;
@@ -175,7 +197,7 @@ int main(){
 		for(int j=2;j<=n;j++){
 			v1.a[1][j]=0;
 		}
-		iv1=v1.inv();
+		iv1=v1,iv1=iv1.inv();
 	}
 	int ans=0;
 	for(int x=1;x<=n;x++){
@@ -203,14 +225,15 @@ int main(){
 		{//get vcur=A^{-1}+A^{-1}B(I-CA^{-1}B)^{-1}CA^{-1}
 			static Mat tmp1,tmp2;
 			{//tmp1=(I-CA^{-1}B)^{-1}
-				tmp1.gmul(c,iv1);
-				tmp2.gmul(tmp1,b);
-				assert(tmp2.n1==4&&tmp2.n2==4);
+				tmp2.gmul(c,iv1);
+				tmp1.gmul(tmp2,b);
+				assert(tmp1.n1==4&&tmp1.n2==4);
 				for(int i=1;i<=4;i++){
 					for(int j=1;j<=4;j++){
-						tmp1.a[i][j]=(O+(i==j)-tmp2.a[i][j])%O;
+						tmp1.a[i][j]=(O+(i==j)-tmp1.a[i][j])%O;
 					}
 				}
+				tmp1=tmp1.inv();
 			}
 			tmp2.gmul(b,tmp1);
 			tmp1.gmul(iv1,tmp2);
@@ -222,7 +245,7 @@ int main(){
 				}
 			}
 		}
-		int cnt=1;
+		int cnt=0;
 		lint sum=0;
 		for(int i=1;i<=n;i++){
 			if(colmat[i][x]==0)continue;
@@ -234,7 +257,7 @@ int main(){
 		if(oud[x]==1){
 			ans=(ans+(lint)spcnt*cnt%O*pdfac)%O;
 		}else{
-			ans=(ans+(lint)(spcnt*cnt+O-sum%O)%O*pdfac%O*inv_pow(oud[x]-1))%O;
+			ans=(ans+(lint)spcnt*(cnt+O-sum%O)%O*pdfac%O*inv_pow(oud[x]-1))%O;
 		}
 	}
 	printf("%d\n",ans);
