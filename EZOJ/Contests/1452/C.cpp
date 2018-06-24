@@ -19,6 +19,7 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
 const int N=310,logN=9,O=998244353;
+const lint OOmax=(1ll<<62)-(lint)O*O+(1ll<<62);
 inline int fpow(int x,int n){
 	int a=1;
 	for(;n;n>>=1,x=(lint)x*x%O){
@@ -83,10 +84,14 @@ struct Mat{
 		n1=x.n1,n2=y.n2;
 		for(int i=1;i<=n1;i++){
 			for(int j=1;j<=n2;j++){
-				int &ans=a[i][j]=0;
+				lint ans=0;
 				for(int k=1;k<=x.n2;k++){
-					ans=(ans+(lint)x.a[i][k]*y.a[k][j])%O;
+					ans+=(lint)x.a[i][k]*y.a[k][j];
+					if(ans>=OOmax){
+						ans%=O;
+					}
 				}
+				a[i][j]=ans%O;
 			}
 		}
 	}
@@ -157,7 +162,7 @@ struct Mat{
 int colmat[N][N];
 Mat kir;
 int oud[N];
-int spcnt,pdfac;
+int etcnt;
 inline int gkir(const int x,const int i,const int j){
 	return (i!=x)==(j!=x)?kir.a[i][j]:0;
 }
@@ -181,11 +186,10 @@ int main(){
 		static Mat tmp;
 		tmp=kir;
 		--tmp.n1,--tmp.n2;
-		spcnt=tmp.det();
+		etcnt=tmp.det();
 		gmath::main(n);
-		pdfac=1;
 		for(int i=1;i<=n;i++){
-			pdfac=(lint)pdfac*gmath::fac[oud[i]-1]%O;
+			etcnt=(lint)etcnt*gmath::fac[oud[i]-1]%O;
 		}
 	}
 	static Mat v1,iv1;
@@ -255,9 +259,9 @@ int main(){
 			}
 		}
 		if(oud[x]==1){
-			ans=(ans+(lint)spcnt*cnt%O*pdfac)%O;
+			ans=(ans+(lint)etcnt*cnt%O)%O;
 		}else{
-			ans=(ans+(lint)spcnt*(cnt+O-sum%O)%O*pdfac%O*inv_pow(oud[x]-1))%O;
+			ans=(ans+(lint)etcnt*(cnt+O-sum%O)%O*inv_pow(oud[x]-1))%O;
 		}
 	}
 	printf("%d\n",ans);
