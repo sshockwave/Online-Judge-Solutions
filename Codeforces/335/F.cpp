@@ -42,23 +42,22 @@ int main(){
 		const int v=a[i];
 		for(;j>=1&&a[j]==v;j--);
 		int cnt=i-j,ls=0;
-		for(;cnt&&sing;cnt--,sing--){
-			lst[ls++]=v;
-		}
-		if(cnt){
-			multiset<int>::iterator it=s.end();
-			for(;cnt>=2&&it!=s.begin();cnt-=2){
-				lst[ls++]=v*2-*--it;
+		for(;cnt;){
+			if(sing==0){
+				if(!s.empty()&&v>*s.begin()){
+					s.erase(s.begin()),sing+=2;
+				}else break;
 			}
-			if(cnt){
-				sing+=cnt;
-				assert(it==s.begin()||cnt==1);
-				if(it!=s.begin()&&v>*--it){
-					s.erase(it);
-					s.insert(v);
-				}
+			for(;cnt&&sing;cnt--,sing--){
+				lst[ls++]=v;
 			}
 		}
+		multiset<int>::iterator it=s.begin();
+		const multiset<int>::iterator ti=s.end();
+		for(;cnt>=2&&it!=ti;cnt-=2,++it){
+			lst[ls++]=v*2-*it;
+		}
+		sing+=cnt;
 		s.insert(lst,lst+ls);
 	}
 	for(multiset<int>::iterator it=s.begin(),ti=s.end();it!=ti;++it){
