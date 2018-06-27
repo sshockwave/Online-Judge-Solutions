@@ -29,17 +29,17 @@ namespace lb{
 		memset(a,0,sizeof(a));
 		ls=0;
 		for(int i=logN-1;i>=0;i--){
-			if((s>>i)&1){
-				blst[ls++]=i;
-			}
-		}
-		for(int i=logN-1;i>=0;i--){
 			if(((s>>i)&1)==0){
 				blst[ls++]=i;
 			}
 		}
+		for(int i=logN-1;i>=0;i--){
+			if((s>>i)&1){
+				blst[ls++]=i;
+			}
+		}
 	}
-	inline void ins(lint x){
+	inline void ins(ull x){
 		for(int p=0;p<ls;p++){
 			int i=blst[p];
 			if((x>>i)&1){
