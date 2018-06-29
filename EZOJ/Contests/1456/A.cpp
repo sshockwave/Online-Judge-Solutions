@@ -10,7 +10,6 @@ typedef long long lint;
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
-const int N=1000010;
 namespace io {
 	const int SIZE = (1 << 21) + 1;
 	char ibuf[SIZE], *iS, *iT, obuf[SIZE], *oS = obuf, *oT = oS + SIZE - 1, c, qu[55]; int qr;
@@ -40,6 +39,7 @@ namespace io {
 			while (qr) putc (qu[qr --]);
 		}
 }
+const int N=1000010;
 namespace bit_util{
 	const int SH=16,N=1<<SH;
 	int cc[N];
@@ -54,34 +54,6 @@ namespace bit_util{
 		return x>>SH?cc[x>>SH]+SH:cc[x];
 	}
 }
-namespace lb{
-	const int logN=32;
-	unsigned a[logN];
-	inline void init(){
-		mset(a,0,logN);
-	}
-	inline bool ins(unsigned x){
-		for(int i;x;){
-			i=bit_util::hb(x);
-			if(a[i]){
-				x^=a[i];
-			}else{
-				a[i]=x;
-				return true;
-			}
-		}
-		return false;
-	}
-	inline unsigned ask(unsigned x){
-		for(int i=logN-1;i>=0;i--){
-			if(((x>>i)&1)==0&&a[i]){
-				x^=a[i];
-			}
-		}
-		return x;
-	}
-}
-int a[N];
 struct Query{
 	int id,l,r;
 	unsigned d;
@@ -89,8 +61,37 @@ struct Query{
 		return a.l!=b.l?a.l>b.l:a.r<b.r;
 	}
 }qry[N];
+unsigned a[N];
 int ans[N];
-int nx[N];
+namespace lb{
+	const int logN=32;
+	int b[N];
+	inline void init(){
+		mset(b,0,logN);
+	}
+	inline void ins(int x){
+		for(int i=logN-1;i>=0&&a[x];i--){
+			if(((a[x]>>i)&1)==0)continue;
+			if(b[i]){
+				if(x<b[i]){
+					swap(x,b[i]);
+				}
+				a[x]^=a[b[i]];
+			}else{
+				b[i]=x;
+				return;
+			}
+		}
+	}
+	inline unsigned ask(unsigned x,const int r){
+		for(int i=logN-1;i>=0;i--){
+			if(((x>>i)&1)==0&&b[i]&&b[i]<=r){
+				x^=a[b[i]];
+			}
+		}
+		return x;
+	}
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("xor.in","r",stdin);
@@ -99,10 +100,8 @@ int main(){
 	bit_util::init();
 	int n;
 	io::gi(n);
-	nx[0]=1;
 	for(int i=1;i<=n;i++){
 		io::gi(a[i]);
-		nx[i]=i+1;
 	}
 	int q;
 	io::gi(q);
@@ -113,12 +112,11 @@ int main(){
 		io::gi(qry[i].d);
 	}
 	sort(qry+1,qry+q+1);
+	lb::init();
 	for(int i=n,j=1;i>=1;i--){
-		int *pt=nx+i-1;
-		lb::init();
+		lb::ins(i);
 		for(;j<=q&&qry[j].l==i;j++){
-			for(;qry[j].r>=*pt;lb::ins(a[*pt])?*(pt=nx+*pt):(*pt=nx[*pt]));
-			ans[qry[j].id]=lb::ask(qry[j].d);
+			ans[qry[j].id]=lb::ask(qry[j].d,qry[j].r);
 		}
 	}
 	for(int i=1;i<=q;i++){
