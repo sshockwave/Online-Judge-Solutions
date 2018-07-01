@@ -26,58 +26,6 @@ struct Val{
 		return a.v!=b.v?a.v<b.v:a.cnt<b.cnt;
 	}
 };
-namespace seg{
-	const int N=::N<<1;
-	struct Node;
-	typedef Node* node;
-	struct Node{
-		node lson,rson;
-		int l,m,r;
-		Val v;
-		int dt;
-		inline void addv(int x){
-			v.v+=x,dt+=x;
-		}
-		inline void up(){
-			v=max(lson->v,rson->v);
-			v.v+=dt;
-		}
-	}pool[N];
-	node npt=pool;
-	node build(int l,int r){
-		const node x=npt++;
-		x->l=l,x->m=(l+r)>>1,x->r=r;
-		if(l!=r){
-			x->lson=build(l,x->m);
-			x->rson=build(x->m+1,r);
-		}
-		return x;
-	}
-	void set(node x,int p,const Val &v){
-		if(x->l==x->r){
-			x->v=v;
-			x->dt=0;
-		}else{
-			set(p<=x->m?x->lson:x->rson,p,v);
-			x->up();
-		}
-	}
-	void add(node x,int r,int v){
-		if(x->r==r)return x->addv(v);
-		if(r<=x->m){
-			add(x->lson,r,v);
-		}else{
-			x->lson->addv(v);
-			add(x->rson,r,v);
-		}
-		x->up();
-	}
-	inline void clr(){
-		for(node i=pool;i<npt;i++){
-			i->v=(Val){0,0},i->dt=0;
-		}
-	}
-}
 struct Event{
 	int x,r,v;
 	inline friend bool operator < (const Event &a,const Event &b){
@@ -85,16 +33,44 @@ struct Event{
 	}
 }ev[N<<1];
 int es=0;
-inline Val calc(const seg::node rt,int v){
-	seg::clr();
+Val f[N];
+int pr[N],nx[N];
+int gnx(int x){
+	return ~nx[x]?nx[x]=gnx(nx[x]):x;
+}
+inline void mgpre(const int v){
+	for(;pr[v]!=-1&&f[v].v>=0;mgpre(v)){
+		const int u=pr[v];
+		assert(f[u].cnt<=f[v].cnt);
+		assert(nx[u]==-1&&nx[v]==-1);
+		pr[v]=pr[u],nx[u]=v;
+		f[v].v+=f[u].v;
+	}
+}
+inline Val calc(const int n,const int v){
 	Val ans=(Val){0,0};
-	for(int i=1,j=1;i<=rt->r;i++){
+	int las=0;
+	nx[0]=pr[0]=-1;
+	f[0]=(Val){0,0};
+	for(int i=1,j=1;i<=n;i++){
 		for(;j<=es&&ev[j].x==i;j++){
-			seg::add(rt,ev[j].r,ev[j].v);
+			if(ev[j].v==0)continue;
+			f[gnx(0)].v+=ev[j].v;
+			if(ev[j].v>0){
+				assert(ev[j].r==i-1);
+				las+=ev[j].v;
+			}else{
+				assert(ev[j].r<i-1);
+				const int x=gnx(ev[j].r+1);
+				f[x].v-=ev[j].v;
+				mgpre(x);
+			}
 		}
-		const Val cur=(Val){rt->v.v-v,rt->v.cnt+1};
-		apmax(ans,cur);
-		seg::set(rt,i,cur);
+		f[i]=f[gnx(0)],f[i].v-=v,++f[i].cnt;
+		apmax(ans,f[i]);
+		swap(las,f[i].v),f[i].v=las-f[i].v;
+		pr[i]=i-1,nx[i]=-1;
+		mgpre(i);
 	}
 	return ans;
 }
@@ -112,17 +88,16 @@ int main(){
 		ev[++es]=(Event){r,l-1,-c};
 	}
 	sort(ev+1,ev+es+1);
-	const seg::node rt=seg::build(0,mxr);
 	int l=0,r=sum;
 	for(;l<r;){
 		const int mid=((l+r)>>1)+1;
-		if(calc(rt,mid).cnt<m){
+		if(calc(mxr,mid).cnt<m){
 			r=mid-1;
 		}else{
 			l=mid;
 		}
 	}
-	const Val ans=calc(rt,l);
+	const Val ans=calc(mxr,l);
 	assert(ans.v+(lint)min(ans.cnt,m)*l<=sum);
 	printf("%d\n",ans.v+min(ans.cnt,m)*l);
 	return 0;
