@@ -39,7 +39,7 @@ namespace gmath{
 	int inv[N];
 	inline void main(int n=N-1){
 		inv[1]=1;
-		for(int i=1;i<=n;i++){
+		for(int i=2;i<=n;i++){
 			inv[i]=O-(lint)O/i*inv[O%i]%O;
 			assert((lint)inv[i]*i%O==1);
 		}
@@ -49,6 +49,7 @@ struct poly{
 	int a[N],n;//x^[0,n)
 	inline poly& operator = (const poly &b){
 		n=b.n,copy(b.a,b.a+n,a);
+		assert(a[n-1]);
 		return *this;
 	}
 	inline int& operator [] (int i){
@@ -58,6 +59,15 @@ struct poly{
 	inline int operator [] (int i)const{
 		assert(i<n);
 		return a[i];
+	}
+	inline friend ostream& operator << (ostream& out,const poly &b){
+		for(int i=b.n-1;i>=0;i--){
+			out<<b[i]<<"x^"<<i;
+			if(i){
+				out<<"+";
+			}
+		}
+		return out;
 	}
 	inline int operator () (int x)const{
 		int f=0;
@@ -69,6 +79,7 @@ struct poly{
 	}
 	inline poly& operator += (int b){
 		a[0]=(a[0]+b)%O;
+		assert(a[n-1]);
 		return *this;
 	}
 	inline poly& operator += (const poly &b){
@@ -78,6 +89,8 @@ struct poly{
 		for(;n<b.n;n++){
 			a[n]=b[n];
 		}
+		for(;n>=2&&a[n-1]==0;n--);
+		assert(a[n-1]);
 		return *this;
 	}
 	inline poly& operator *= (int b){
@@ -86,6 +99,7 @@ struct poly{
 		for(int i=0;i<n;i++){
 			a[i]=(lint)a[i]*b;
 		}
+		assert(a[n-1]);
 		return *this;
 	}
 	inline poly& operator *= (const poly &b){
@@ -96,26 +110,32 @@ struct poly{
 		mset(tmp,0,n+b.n-1);
 		for(int i=0;i<n;i++){
 			for(int j=0;j<b.n;j++){
-				tmp[i+j]=(tmp[i+j]+(lint)a[n]*b[n])%O;
+				tmp[i+j]=(tmp[i+j]+(lint)a[i]*b[j])%O;
 			}
 		}
 		n+=b.n-1;
 		copy(tmp,tmp+n,a);
+		assert(a[n-1]);
 		return *this;
 	}
 	inline poly& operator /= (const poly &b){
 		const int r=inv_pow(b[b.n-1]);
 		assert(n>=b.n);
 		static int tmp[N];
-		for(int i=n-1;i>=b.n;i++){
-			if(a[i]==0)continue;
-			const lint p=tmp[i-b.n]=(lint)(O-a[i])*r%O;
+		for(int i=n-1;i>=b.n-1;i--){
+			if(a[i]==0){
+				tmp[i-b.n+1]=0;
+				continue;
+			}
+			tmp[i-b.n+1]=(lint)a[i]*r%O;
+			const lint p=O-tmp[i-b.n+1];
 			for(int j=0;j<b.n;j++){
-				a[i-j]=(a[i-j]+p*b[n-1-j])%O;
+				a[i-j]=(a[i-j]+p*b[b.n-1-j])%O;
 			}
 		}
 		n-=b.n-1;
 		copy(tmp,tmp+n,a);
+		assert(a[n-1]);
 		return *this;
 	}
 	inline void mul_x(int e){
@@ -131,6 +151,7 @@ struct poly{
 			a[i-1]=(lint)a[i]*i%O;
 		}
 		--n;
+		assert(a[n-1]);
 	}
 	inline void intg(){
 		n++;
@@ -138,18 +159,20 @@ struct poly{
 			a[i]=(lint)a[i-1]*gmath::inv[i]%O;
 		}
 		a[0]=0;
+		assert(a[n-1]);
 	}
-	inline const poly& move_r(int x){
+	inline const poly& move_r(int x)const{
 		assert(x==1);
 		static poly b;
 		b.n=0;
 		for(int i=n-1;i>=0;i--){
 			b[b.n++]=0;
 			for(int j=b.n-1;j;j--){
-				b[j]=(b[j]+b[j-1])%O;
+				b[j]=(b[j-1]+O-b[j])%O;
 			}
-			b+=a[i];
+			b[0]=(a[i]+O-b[0])%O;
 		}
+		assert(b[b.n-1]);
 		return b;
 	}
 };
@@ -163,6 +186,14 @@ struct funcset{
 	inline poly operator [] (int i)const{
 		assert(i<n);
 		return f[i];
+	}
+	inline friend ostream& operator << (ostream& out,const funcset &f){
+		out<<"(";
+		for(int i=0;i<f.n;i++){
+			out<<f[i]<<",";
+		}
+		out<<"..."<<f.aft<<")";
+		return out;
 	}
 	inline int operator () (int i)const{
 		return n?f[i](i):aft;
@@ -223,9 +254,9 @@ struct funcset{
 	}
 	inline void disc_deri(){
 		assert(aft);
-		aft=0;
 		f[n].n=1,f[n][0]=aft,n++;
-		for(int i=n-1;i>1;i--){
+		aft=0;
+		for(int i=n-1;i>0;i--){
 			static poly tmp;
 			tmp=f[i-1].move_r(1);
 			for(int j=0;j<tmp.n;j++){
@@ -257,10 +288,10 @@ inline const funcset& exp_len2(const funcset &g){
 	static poly a2=(a2.n=2,a2[0]=1,a2[1]=1,a2);
 	static poly a3=(a3.n=1,a3[0]=inv2,a3);
 	if(g.n==0)return f.n=1,f.aft=0,f[0]=a1,f;
-	t2=f,t2.deri(),t3=t2;
+	t2=g,t2.deri(),t3=t2;
 	f=g,f.disc_deri();
 	t2.mul_x(1),t2.intg(),t2.disc_deri();
-	t3.mul_x(2),t3.intg(),t2.disc_deri();
+	t3.mul_x(2),t3.intg(),t3.disc_deri();
 	assert(f.n==t2.n&&f.n==t3.n);
 	for(int i=0;i<f.n;i++){
 		f[i]*=a1,t2[i]*=a2,t3[i]*=a3;
@@ -315,6 +346,10 @@ int main(){
 	freopen("farmer.out","w",stdout);
 #endif
 	const int n=ni;
+	if(n==2){
+		printf("%d\n",inv_pow(2));
+		return 0;
+	}
 	gmath::main(n);
 	T::init(n);
 	for(int i=1;i<n;i++){
