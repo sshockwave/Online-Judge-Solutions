@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cctype>
 #include <set>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -19,7 +20,8 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
-const int N=410;
+const int N=410,T=1;
+int n;
 struct Pt{
 #define Pt(x,y) ((Pt){x,y})
 	int x,y;
@@ -27,84 +29,124 @@ struct Pt{
 	inline friend Pt operator + (const Pt &a,const Pt &b){return Pt(a.x+b.x,a.y+b.y);}
 	inline friend Pt operator - (const Pt &a,const Pt &b){return Pt(a.x-b.x,a.y-b.y);}
 }pt[N];
-inline int d2(int a,int b){
-	return (pt[a]-pt[b]).d2();
+int d2[N][N];
+struct Edge{
+	int u,v,w;
+	inline friend bool operator < (const Edge &a,const Edge &b){
+		return a.w<b.w;
+	}
+}edg[N*N],edglst[T][N*N];
+bool deci[N*N];
+namespace djset{
+	int fa[N];
+	inline int grt(int x){
+		return fa[x]?fa[x]=grt(fa[x]):x;
+	}
 }
-set<int>to[N];
-inline void lnk(int u,int v){
-	to[u].insert(v),to[v].insert(u);
-}
-inline void cut(int u,int v){
-	to[u].erase(v),to[v].erase(u);
-}
-int dis[N];
-bool vis[N];
-int dfs(int x,int t){
-	int ans=x;
-	vis[x]=true;
-	for(set<int>::iterator it=to[x].begin(),ti=to[x].end();it!=ti;++it){
-		const int v=*it;
-		if(vis[v])continue;
-		const int b=dfs(v,t);
-		if(d2(b,t)<d2(ans,t)){
-			ans=b;
+int dislst[N][N],dispt[N];
+int aff[N];
+inline bool check(const int mx){
+	const int es=n*(n-1)/2;
+	for(int tt=0;tt<=T;tt++){
+		Edge *edg;
+		if(tt==0){
+			edg=::edg;
+			sort(edg+1,edg+es+1);
+		}else{
+			edg=::edglst[tt-1];
 		}
-	}
-	vis[x]=false;
-	return ans;
-}
-inline void Main(const int n){
-	for(int i=1;i<=n;i++){
-		pt[i]=Pt(ni,ni);
-		to[i].clear();
-	}
-	//input complete
-	for(int i=1;i<n;i++){
-		lnk(i,i+1);
-	}
-	if(n==1)return;
-	for(int tot=50;tot--;){
-		static int cnt[N],aff[N];
-		mset(cnt+1,0,n);
-		mset(aff+1,0,n);
 		for(int i=1;i<=n;i++){
-			dis[i]=0;
-			for(set<int>::iterator it=to[i].begin(),ti=to[i].end();it!=ti;++it){
-				apmax(dis[i],d2(i,*it));
-			}
-			for(int j=1;j<=n;j++){
-				if(d2(i,j)<=dis[i]){
-					++cnt[j],++aff[i];
+			djset::fa[i]=0;
+			aff[i]=1;
+			for(int &j=dispt[i]=1;j<=n&&d2[i][dislst[i][j]]<=0;j++);
+		}
+		int cnt=0;
+		for(int i=1;i<es;i++){
+			deci[i]=false;
+			const int u=edg[i].u,v=edg[i].v,w=edg[i].w;
+			using djset::grt;
+			if(grt(u)==grt(v))continue;
+			bool flag=true;
+			int tj1,tj2;
+			for(int &j=tj1=dispt[u];j<=n&&d2[u][dislst[u][j]]<=w;j++){
+				if(++aff[dislst[u][j]]>mx){
+					flag=false;
+					for(;j>=dispt[u];j--){
+						--aff[dislst[u][j]];
+					}
+					break;
 				}
 			}
-		}
-		int mxp=1;
-		for(int i=2;i<=n;i++){
-			if(cnt[i]>cnt[mxp]){
-				mxp=i;
+			if(!flag)continue;
+			for(int &j=tj2=dispt[v];j<=n&&d2[v][dislst[v][j]]<=w;j++){
+				if(++aff[dislst[v][j]]>mx){
+					flag=false;
+					for(;j>=dispt[v];j--){
+						--aff[dislst[v][j]];
+					}
+					break;
+				}
 			}
-		}
-		int mxd=mxp!=1?1:2;
-		for(int i=1;i<=n;i++){
-			if(i==mxp)continue;
-			if(aff[i]>aff[mxd]){
-				mxd=i;
+			if(!flag){
+				for(int j=dispt[u];j<=n&&d2[u][dislst[u][j]]<=w;j++){
+					--aff[dislst[u][j]];
+				}
+				continue;
 			}
+			++cnt;
+			deci[i]=true;
+			djset::fa[grt(u)]=grt(v);
+			dispt[u]=tj1,dispt[v]=tj2;
 		}
-		int v;
-		for(set<int>::iterator it=to[mxd].begin(),ti=to[mxd].end();it!=ti;++it){
-			if(dis[mxd]==d2(mxd,*it)){
-				v=*it;
-			}
-		}
-		cut(mxd,v);
-		lnk(mxd,dfs(v,mxd));
+		if(cnt==n-1)return true;
 	}
-	for(int i=1;i<=n;i++){//output
-		for(set<int>::iterator it=to[i].begin(),ti=to[i].end();it!=ti;++it){
-			if(i<*it){
-				printf("%d %d\n",i,*it);
-			}
+	return false;
+}
+int base;
+inline bool discmp(int a,int b){
+	return d2[base][a]<d2[base][b];
+}
+inline void Main(const int n){
+	::n=n;
+	int es=0;
+	for(int i=1;i<=n;i++){
+		pt[i]=Pt(ni,ni);
+		d2[i][i]=0;
+		for(int j=1;j<i;j++){
+			d2[j][i]=d2[i][j]=(pt[i]-pt[j]).d2();
+			edg[++es]=(Edge){i,j,d2[i][j]};
+		}
+	}
+	//input complete
+	if(n==1)return;
+	sort(edg+1,edg+es+1);
+	for(int i=0;i<T;i++){
+		for(int j=1;j<=es;j++){
+			edglst[i][j]=edg[j];
+		}
+		random_shuffle(edglst[i]+1,edglst[i]+es+1);
+	}
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			dislst[i][j]=j;
+		}
+		base=i;
+		sort(dislst[i]+1,dislst[i]+n+1,discmp);
+	}
+	int l=2,r=min(n,8);
+	while(l<r){
+		const int m=(l+r)>>1;
+		if(check(m)){
+			r=m;
+		}else{
+			l=m+1;
+		}
+	}
+	bool flag=check(l);
+	assert(flag);
+	for(int i=1;i<=n*(n-1)/2;i++){
+		if(deci[i]){
+			printf("%d %d\n",edg[i].u,edg[i].v);
 		}
 	}
 }
@@ -113,6 +155,7 @@ int main(){
 	freopen("chaw.in","r",stdin);
 	freopen("chaw.out","w",stdout);
 #endif
+	srand(time(0));
 	int n;
 	for(;scanf("%d",&n)!=EOF;){
 		Main(n);
