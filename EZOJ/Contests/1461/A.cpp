@@ -33,90 +33,43 @@ inline int inv_pow(int x){
 	assert(x);
 	return fpow(x,O-2);
 }
-namespace lagrange{
-	int x[N],y[N];
-	int a[N],f[N];
-	inline void main(){
-		a[0]=1,mset(a+1,0,n+1);
-		for(int i=0;i<=n;i++){
-			const int r=(O-x[i])%O;
-			for(int j=i;j>=0;j--){
-				a[j+1]=(a[j+1]+a[j])%O;
-				a[j]=(lint)a[j]*r%O;
-			}
-		}
-		mset(f,0,n+1);
-		for(int i=0;i<=n;i++){
-			int k=1;
-			for(int j=0;j<=n;j++){
-				if(j!=i){
-					k=(lint)k*(x[i]+O-x[j])%O;
-				}
-			}
-			k=(lint)y[i]*inv_pow(k)%O;
-			int r=0;
-			for(int j=n+1;j>=0;j--){
-				f[j]=(f[j]+(lint)r*k)%O;
-				r=(a[j]+(lint)r*x[i])%O;
-			}
-			assert(r==0);
-		}
-	}
-}
-int a[N][N];
+int eqn[N*N][N],f[N];
 inline int gauss(){
-	int ans=1;
-	for(int i=1;i<=n;i++){
+	int i;
+	for(i=0;;i++){
 		int j=i;
-		for(;j<=n&&a[j][i]==0;j++);
-		if(j>n)return 0;
+		for(;j<=n*n&&eqn[j][i]==0;j++);
+		if(j>n*n)break;
 		if(i!=j){
-			ans=O-ans;
 			for(int k=i;k<=n;k++){
-				swap(a[i][k],a[j][k]);
+				swap(eqn[i][k],eqn[j][k]);
 			}
 		}
-		int r=a[i][i];
+		int r=eqn[i][i];
 		if(r!=1){
-			ans=(lint)ans*r%O;
 			r=inv_pow(r);
 			for(int k=i;k<=n;k++){
-				a[i][k]=(lint)a[i][k]*r%O;
+				eqn[i][k]=(lint)eqn[i][k]*r%O;
 			}
 		}
-		for(j=i+1;j<=n;j++){
-			r=O-a[j][i];
+		for(j=0;j<=n*n;j++){
+			if(i==j)continue;
+			r=O-eqn[j][i];
 			if(r==O)continue;
 			for(int k=i;k<=n;k++){
-				a[j][k]=(a[j][k]+(lint)a[i][k]*r)%O;
+				eqn[j][k]=(eqn[j][k]+(lint)eqn[i][k]*r)%O;
 			}
 		}
 	}
-	return ans;
-}
-int mat[N][N];
-inline int calc(const int lam){
-	for(int i=1;i<=n;i++){
-		for(int j=1;j<=n;j++){
-			a[i][j]=(O-mat[i][j])%O;
-		}
-		a[i][i]=(a[i][i]+lam)%O;
+	memset(f,0,sizeof(f));
+	assert(i<=n);
+	f[i]=1;
+	for(int j=0;j<i;j++){
+		f[j]=(O-eqn[j][i])%O;
 	}
-	return gauss();
+	return i;
 }
-inline void add_I(int v){
-	for(int i=1;i<=n;i++){
-		a[i][i]=(a[i][i]+v)%O;
-	}
-}
-inline bool isz(){
-	for(int i=1;i<=n;i++){
-		for(int j=1;j<=n;j++){
-			if(a[i][j])return false;
-		}
-	}
-	return true;
-}
+int mat[N][N],a[N][N];
 inline void mulmat(){
 	static int b[N][N];
 	for(int i=1;i<=n;i++){
@@ -143,21 +96,21 @@ int main(){
 	for(int i=1;i<=n;i++){
 		for(int j=1;j<=n;j++){
 			mat[i][j]=ni;
+			a[i][j]=i==j;
 		}
 	}
-	for(int i=0;i<=n;i++){
-		lagrange::x[i]=i;
-		lagrange::y[i]=calc(i);
+	for(int t=0;t<=n;t++,mulmat()){
+		int ps=0;
+		for(int i=1;i<=n;i++){
+			for(int j=1;j<=n;j++){
+				eqn[ps++][t]=a[i][j];
+			}
+		}
 	}
-	lagrange::main();
-	using lagrange::f;
-	assert(f[n]==1);
-	int t=0,p=n;
-	memset(a,0,sizeof(a));
-	for(;add_I(f[p]),!isz();t++,p--,mulmat());
-	printf("%d\n",t);
-	for(;p<=n;p++){
-		printf("%d ",f[p]);
+	const int tn=gauss();
+	printf("%d\n",tn);
+	for(int i=0;i<=tn;i++){
+		printf("%d ",f[i]);
 	}
 	putchar('\n');
 	return 0;
