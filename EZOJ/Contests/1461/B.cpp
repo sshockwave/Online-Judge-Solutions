@@ -7,13 +7,22 @@ using namespace std;
 typedef long long lint;
 #define cout cerr
 #define ni (next_num<int>())
+namespace IO{
+	const int N=10000000;
+	char s[N],*t=s,*tt=s+N;
+	inline char getchar(){
+		if(t==tt){
+			fread(s,1,N,stdin);
+			t=s;
+		}
+		return t++[0];
+	}
+}
 template<class T>inline T next_num(){
 	T i=0;char c;
-	while(!isdigit(c=getchar())&&c!='-');
-	bool neg=c=='-';
-	neg?c=getchar():0;
-	while(i=i*10-'0'+c,isdigit(c=getchar()));
-	return neg?-i:i;
+	while(!isdigit(c=IO::getchar()));
+	while(i=i*10-'0'+c,isdigit(c=IO::getchar()));
+	return i;
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
@@ -25,17 +34,14 @@ struct Intv{
 	int l,r;
 }intv[N*2];
 int vlst[N*2][T+1],vcnt[N*2];
-int f(int,int);
-inline bool calc(int m,int d){
-	const int l=intv[m].l,r=intv[m].r;
-	return !f(l-d+1,r+d)||!f(l-d,r+d-1);
-}
-int f(const int l,const int r){
+inline int f(const int l,const int r){
 	const int m=l+r;
 	int t=max(0,min(r-intv[m].r,T));
-	for(int &d=vcnt[m];d<t;d++,vlst[m][d]=calc(m,d));
+	assert(t<=vcnt[m]);
 	return vlst[m][t];
 }
+Intv intlst[N*2*2],intst[N*2*2];
+int bcnt[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("gameb.in","r",stdin);
@@ -54,17 +60,29 @@ int main(){
 			apmax(ext[i],ext_dec[i]);
 		}
 	}
+	int ls=0;
+	memset(bcnt,0,sizeof(bcnt));
 	for(int l=1,r=1;l+r<=n*2;r<ext[l]?++r:++l){
 		intv[l+r]=(Intv){l,r};
 		vlst[l+r][vcnt[l+r]=0]=0;
-	}
-	for(int i=1;i<=n*2;i++){
-		for(int j=1;j<=T;j++){
-			if(intv[i].l-j<1||intv[i].r+j>n)break;
-			f(intv[i].l-j,intv[i].r+j);
+		for(int j=1;j<=T&&l-j>=1&&r+j<=n;j++){
+			intlst[++ls]=(Intv){l-j,r+j};
+			++bcnt[r-l+j+j];
 		}
 	}
-	for(int tot=ni;tot--;){
+	for(int i=1;i<=n;i++){
+		bcnt[i]+=bcnt[i-1];
+	}
+	for(int i=1;i<=ls;i++){
+		intst[bcnt[intlst[i].r-intlst[i].l]--]=intlst[i];
+	}
+	for(int i=1;i<=ls;i++){
+		const int l=intst[i].l,r=intst[i].r;
+		const int m=l+r;
+		vlst[m][vcnt[m]+1]=!f(l+1,r)||!f(l,r-1);
+		++vcnt[m];
+	}
+	for(int i=1,tot=ni;i<=tot;i++){
 		const int l=ni,r=ni;
 		puts(f(l,r)?"se":"liulei");
 	}
