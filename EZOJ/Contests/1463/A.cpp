@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cctype>
 #include <cstdlib>
+#include <set>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -19,73 +20,84 @@ template<class T>inline T next_num(){
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a[],int v,int n){memset(a,v,sizeof(a[0])*n);}
+template<class T>T gcd(const T &a,const T &b){return b?gcd(b,a%b):a;}
+template<class T>inline T sqr(const T &x){return x*x;}
 const int N=510,A=2333333;
-int k;
-inline bool attempt1(){
-	if(k>500)return false;
-	printf("%d\n",k);
-	for(int i=1;i<=k;i++){
-		printf("%d ",i);
-	}
-	putchar('\n');
-	return true;
-}
-inline bool attempt2(){
-	for(int i=1;i<=500&&i<=k;i++){
-		int base=i*(i-1)/2+1;
-		if(base>k)break;
-		if((k-base)%i==0&&i+(k-base)/i<=500){
-			//...random... 1 1 1 1
-			printf("%d\n",i+(k-base)/i);
-			for(int j=1;j<=i;j++){
-				printf("%d ",j&1?j+10000:(A-j));
-			}
-			for(int j=1;j<=(k-base)/i;j++){
-				putchar('1');
-				putchar(' ');
-			}
-			putchar('\n');
-			return true;
+namespace getans{
+	struct frac{
+		int a,b;
+		frac(int _a,int _b){
+			const int g=gcd(_a,_b);
+			a=_a/g,b=_b/g;
 		}
-	}
-	return false;
-}
-inline bool attempt3(){
-	for(int i=1;i<=500&&i<=k;i++){
-		int base=i*(i-1)/2+1;
-		if(base>k)break;
-		//the first time is +i
-		//and then +(i+1)
-		int t=k-base;
-		if(t==0||(t>=i&&(t-i)%(i+1)==0)){
-			int stepcnt=i;
-			if(t>=i){
-				stepcnt+=(t-i)/(i+1)+1;
-			}
-			if(stepcnt<=500){
-				//...random... 1 2 3 4 5
-				printf("%d\n",stepcnt);
-				for(int j=1;j<=i;j++){
-					printf("%d ",j&1?j+10000:(A-j));
-				}
-				for(int j=1;j<=(k-base)/(i+1);j++){
-					printf("%d ",j);
-				}
-				putchar('\n');
-				return true;
+		inline friend bool operator < (const frac &a,const frac &b){
+			return a.a!=b.a?a.a<b.a:a.b<b.b;
+		}
+	};
+	set<frac>s;
+	lint _a[N],_a2[N];
+	inline int main(const int a[],const int n){
+		s.clear();
+		_a[0]=_a2[0]=0;
+		for(int i=1;i<=n;i++){
+			_a[i]=_a[i-1]+a[i];
+			_a2[i]=_a2[i-1]+sqr<lint>(a[i]);
+		}
+		for(int i=1;i<=n;i++){
+			for(int j=i;j<=n;j++){
+				const int len=j-i+1;
+				lint up=_a2[j]-_a2[i-1];
+				up*=len;
+				up-=sqr(_a[j]-_a[i-1]);
+				s.insert(frac(up,sqr<lint>(len)));
 			}
 		}
+		return s.size();
 	}
-	return false;
+}
+int a[N],n;
+inline int gen(){
+	return rand()%A;
+}
+inline int f(int n){
+	return (n*(n-1)>>1)+1;
+}
+inline void Main(const int k){
+	if(k<=500){
+		n=k;
+		for(int i=1;i<=n;i++){
+			a[i]=i;
+		}
+		return;
+	}
+	for(int &i=n=1;f(i)<k;i++);
+	int ls=0;
+	int cur=f(n);
+	for(int len=n;len>=2;len--){
+		const int dt=len*(len-1)>>1;
+		for(;k<=cur-dt;cur-=dt){
+			const int v=gen();
+			for(int tot=len;tot--;){
+				a[++ls]=v;
+			}
+			a[++ls]=gen();
+		}
+	}
+	assert(ls<=n);
+	for(int &i=ls;i<n;a[++i]=gen());
 }
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("var.in","r",stdin);
 	freopen("var.out","w",stdout);
 #endif
-	k=ni;
-	if(attempt1())return 0;
-	if(attempt2())return 0;
-	if(attempt3())return 0;
+	srand(26126);
+	const int k=ni;
+	for(;Main(k),getans::main(a,n)!=k;);
+	printf("%d\n",n);
+	for(int i=1;i<=n;i++){
+		printf("%d ",a[i]);
+	}
+	putchar('\n');
 	return 0;
 }
