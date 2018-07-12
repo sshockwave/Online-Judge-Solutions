@@ -60,8 +60,8 @@ namespace T{
 		ans+=g[0];
 		for(int i=head[x],v;~i;i=bro[i]){
 			if((v=to[i])==fa||v==son[x])continue;
-			lint *ng=new lint[(hei[v]-dep[x])<<1];
-			mset(ng,0,(hei[v]-dep[x])<<1);
+			lint *ng=new lint[((hei[v]-dep[x])<<1)|1];
+			mset(ng,0,((hei[v]-dep[x])<<1)|1);
 			ng+=hei[v]-dep[x];
 			lint *const nf=T::f+tim;
 			dfs2(v,x,ng-1);
@@ -87,8 +87,8 @@ int main(){
 	}
 	T::dfs1(1,0);
 	{
-		lint *ng=new lint[T::hei[1]<<1];
-		mset(ng,0,T::hei[1]<<1);
+		lint *ng=new lint[(T::hei[1]<<1)|1];
+		mset(ng,0,(T::hei[1]<<1)|1);
 		ng+=T::hei[1];
 		T::dfs2(1,0,ng-1);
 		delete (ng-T::hei[1]);
