@@ -35,6 +35,7 @@ struct Item{
 inline bool s_cmp(const Item &a,const Item &b){
 	return a.s<b.s;
 }
+int nx[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("pigeon.in","r",stdin);
@@ -46,12 +47,24 @@ int main(){
 	}
 	sort(a+1,a+n+1,s_cmp);
 	lint ans=0;
-	for(int i=1;i<=n;i++){
+	for(int i=0;i<=n;i++){
+		nx[i]=i+1;
+	}
+	for(int i=n;i>=1;i--){
 		priority_queue<int,vector<int>,greater<int> >q;
 		lint sum=0;
-		for(int j=i;j<=n;j++){
+		int *pt=nx+i-1;
+		for(int j=i;j<=n;pt=nx+j,j=*pt){
+			if(q.size()==(size_t)m){
+				if(a[j].v<=q.top()){
+					*pt=nx[j];
+					continue;
+				}else if(q.top()==a[i].v)break;
+				else{
+					sum-=q.top(),q.pop();
+				}
+			}
 			q.push(a[j].v),sum+=a[j].v;
-			for(;q.size()>(size_t)m;sum-=q.top(),q.pop());
 			apmax(ans,getv(sum,ev)-getv(a[j].s-a[i].s,es));
 		}
 	}
