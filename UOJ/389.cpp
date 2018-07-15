@@ -1,10 +1,10 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <cmath>
+#include <queue>
 using namespace std;
 typedef double db;
 typedef long long lint;
@@ -67,29 +67,25 @@ namespace G2{
 	}
 	lint dis[N];
 	int pr_e[N];
-	int que[N];
-	bool inque[N];
-	inline void spfa(){
-		int qh=0,qt=0;
-		mset(inque+1,0,n);
+	struct Node{
+		int x;
+		lint d;
+		inline friend bool operator < (const Node &a,const Node &b){
+			return a.d>b.d;
+		}
+	};
+	inline void dij(){
+		priority_queue<Node>q;
 		mset(dis+1,127,n);
-		dis[s]=0,pr_e[s]=-1;
-		que[qt++]=s,inque[s]=true;
-		for(;qh!=qt;){
-			const int x=que[qh++];
-			if(qh==N){
-				qh=0;
-			}
-			inque[x]=false;
+		q.push((Node){s,dis[s]=0}),pr_e[s]=-1;
+		for(;!q.empty();){
+			const int x=q.top().x;
+			const lint d=q.top().d;
+			q.pop();
+			if(d>dis[x])continue;
 			for(int i=head[x],v;~i;i=bro[i]){
 				if(cap[i]&&dis[v=to[i]]>dis[x]+val[i]){
-					dis[v]=dis[x]+val[i],pr_e[v]=i;
-					if(!inque[v]){
-						que[qt++]=v,inque[v]=true;
-						if(qt==N){
-							qt=0;
-						}
-					}
+					q.push((Node){v,dis[v]=dis[x]+val[i]}),pr_e[v]=i;
 				}
 			}
 		}
@@ -98,7 +94,7 @@ namespace G2{
 	lint cost;
 	inline void mcmf(){
 		flow=0,cost=0;
-		for(;spfa(),dis[t]<LINF;){
+		for(;dij(),dis[t]<LINF;){
 			int dt=INF;
 			for(int i=pr_e[t];~i;i=pr_e[to[i^1]]){
 				apmin(dt,cap[i]);
@@ -120,6 +116,14 @@ struct Pt{
 	inline friend lint dot(const Pt &a,const Pt &b){return (lint)a.x*b.x+(lint)a.y*b.y;}
 }pt[N];
 int deg[N],ind[N];
+inline db trim(db x){
+	return min<db>(1,max<db>(-1,x));
+}
+inline db trimang(db x){
+	for(;x<0;x+=M_PI*2);
+	for(;x>M_PI;x-=M_PI*2);
+	return x;
+}
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("white.in","r",stdin);
@@ -145,7 +149,9 @@ int main(){
 		}
 		//force v->u
 		++ind[u],--ind[v];
-		const db ang=acos((db)dot(pt[u],pt[v])/pt[u].len()/pt[v].len());
+		const db ang=acos(trim((db)dot(pt[u],pt[v])/(pt[u].len()*pt[v].len())));
+		const db ang2=trimang(atan2(pt[v].y,pt[v].x)-atan2(pt[u].y,pt[u].x));
+		assert(fabs(ang-ang2)<1e-6);
 		sum+=ang;
 		G2::add(u,v,1,ang*2*ratio);
 	}
