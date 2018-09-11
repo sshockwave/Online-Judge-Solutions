@@ -21,12 +21,6 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a[],int v,int n){memset(a,v,n*sizeof(T));}
 template<class T>inline void mcpy(T a[],const T b[],int n){memcpy(a,b,n*sizeof(T));}
 const int O=998244353;
-inline int add(const int a,const int b){
-	return a+b>=O?a+b-O:(a+b);
-}
-inline int sub(const int a,const int b){
-	return a<b?a+O-b:a-b;
-}
 namespace poly{
 	const int SH=18,N=1<<SH;
 	int sh,n,invn,o[N],r[N];
@@ -67,8 +61,8 @@ namespace poly{
 			for(int k=0;k<n;k+=full){
 				for(int j=0;j<half;j++){
 					const int p=a[k+j],q=(lint)a[k+j+half]*o[j<<(SH-i)]%O;
-					a[k+j]=add(p,q);
-					a[k+j+half]=sub(p,q);
+					a[k+j]=(p+q)%O;
+					a[k+j+half]=(p+O-q)%O;
 				}
 			}
 		}
@@ -104,7 +98,7 @@ void solve(const int l,const int r,const int c[],int prod[],int pool[]){
 	//cout
 	{
 		using namespace poly;
-		init((len+1)+(lenl+1));
+		init(len+1);
 		mcpy(ta,c,len+1),clr(ta,len+1),ntt(ta);
 		clr(tb,0);
 		tb[0]=prod[0];
