@@ -50,7 +50,7 @@ int main(){
 	for(int i=1;i<=m;i++){
 		y[i]=ni;
 	}
-	int ans=0;
+	int ans=2;
 	for(int i=0;i<=30;i++){
 		apmax(ans,work(1ll<<i));
 	}
