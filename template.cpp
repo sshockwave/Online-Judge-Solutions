@@ -17,11 +17,12 @@ template<class T>inline T next_num(){
 }
 template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
-template<class T>inline void mset(T a,int v,int n){memset(a,v,n*sizeof(a[0]));}
+template<class T>inline void mset(T a[],int v,int n){memset(a,v,n*sizeof(a[0]));}
+template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(a[0]));}
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("template.in","r",stdin);
-	freopen("template.out","w",stdout);
+	freopen("model.in","r",stdin);
+	freopen("model.out","w",stdout);
 #endif
 	return 0;
 }
