@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cctype>
 #include <algorithm>
+#include <vector>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -24,135 +25,158 @@ template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
 const int N=100,INF=0x7f7f7f7f;
 bool con[N][N];
 int lim;
-namespace solve1{
-	int cnt[N];
-	bool vis[N];
-	bool main(int n,int m){
-		int rest=lim;
-		mset(vis+1,0,m);
-		for(;;){
-			mset(cnt+1,0,n);
-			for(int i=1;i<=m;i++){
-				if(vis[i])continue;
-				for(int j=1;j<=n;j++){
-					cnt[j]+=con[i][j];
-				}
-			}
-			int mxp=1;
-			for(int j=2;j<=n;j++){
-				if(cnt[j]>cnt[mxp]){
-					mxp=j;
-				}
-			}
-			if(cnt[mxp]==0)return false;
-			if(rest==0)return false;
-			--rest;
-			bool okay=true;
-			for(int i=1;i<=m;i++){
-				vis[i]|=con[i][mxp];
-				okay&=vis[i];
-			}
-			if(okay)return true;
+void getcon(){
+	cout<<endl;
+	for(int i=1;i<=2;i++){
+		for(int j=1;j<=4;j++){
+			cout<<con[i][j];
 		}
+		cout<<endl;
+	}
+}
+namespace dlx{
+	const int N2=::N*::N;
+	struct Pt{
+		int l,r,u,d;
+		int row,col;
+	}pt[N2];
+	int n,m;
+	int ncnt;
+	inline int nn(int r,int c){
+		++ncnt;
+		pt[ncnt].row=r;
+		pt[ncnt].col=c;
+		return ncnt;
+	}
+	int nd[N][N];
+	int vis[N];
+	inline void del_h(int x){
+		if(vis[x]++==0){
+			x=nd[0][x];
+			pt[pt[x].l].r=pt[x].r;
+			pt[pt[x].r].l=pt[x].l;
+		}
+	}
+	inline void ins_h(int x){
+		if(--vis[x]==0){
+			x=nd[0][x];
+			pt[pt[x].l].r=x;
+			pt[pt[x].r].l=x;
+		}
+	}
+	inline void del_v(int x){
+		pt[pt[x].d].u=pt[x].u;
+		pt[pt[x].u].d=pt[x].d;
+	}
+	inline void ins_v(int x){
+		pt[pt[x].d].u=x;
+		pt[pt[x].u].d=x;
+	}
+	inline int est(){
+		static bool cov[N];
+		mset(cov+1,0,m);
+		int ans=0;
+		for(int i=pt[nd[0][0]].r;i!=nd[0][0];i=pt[i].r){
+			if(!cov[pt[i].col]){
+				++ans;
+				cov[pt[i].col]=true;
+				for(int j=pt[i].d;j!=i;j=pt[j].d){
+					for(int k=pt[j].r;k!=j;k=pt[k].r){
+						cov[pt[k].col]=true;
+					}
+				}
+			}
+		}
+		return ans;
+	}
+	inline int getrt(){
+		int p=-1,ps=INF;
+		for(int i=pt[nd[0][0]].r;i!=nd[0][0];i=pt[i].r){
+			int cnt=0;
+			for(int j=pt[i].d;j!=i;j=pt[j].d){
+				++cnt;
+			}
+			if(cnt<ps){
+				p=i,ps=cnt;
+			}
+		}
+		return p;
+	}
+	int ccnt=0;
+	bool dfs(){
+		if(pt[nd[0][0]].r==nd[0][0])return true;
+		if(ccnt==lim)return false;
+		if(ccnt+est()>lim)return false;
+		++ccnt;
+		int rt=getrt();
+		vector<int>stk;
+		for(int i=pt[rt].d;i!=rt;i=pt[i].d){
+			stk.push_back(i);
+			int j=i;
+			do{
+				del_h(pt[j].col);
+				del_v(j);
+			}while(j=pt[j].r,j!=i);
+			if(dfs())return true;
+			j=i;
+			do{
+				ins_h(pt[j].col);
+			}while(j=pt[j].r,j!=i);
+		}
+		for(;!stk.empty();stk.pop_back()){
+			const int i=stk.back();
+			int j=i;
+			do{
+				ins_v(j);
+			}while(j=pt[j].r,j!=i);
+		}
+		--ccnt;
 		return false;
 	}
-}
-namespace solve2{
-	int cnt[N];
-	bool vis[N];
-	int perm[N];
-	bool main(int n,int m){
-		for(int i=1;i<=m;i++){
-			perm[i]=i;
+	bool main(int _n,int _m){
+		n=_n,m=_m;
+		ncnt=0;
+		for(int j=0;j<=m;j++){
+			nd[0][j]=nn(0,j);
 		}
-		random_shuffle(perm+1,perm+m+1);
-		int rest=lim;
+		for(int j=0;j<=m;j++){
+			pt[nd[0][j]].l=nd[0][j>0?j-1:m];
+			pt[nd[0][j]].r=nd[0][j<m?j+1:0];
+		}
+		for(int i=1;i<=n;i++){
+			int fir=0,last=0;
+			for(int j=1;j<=m;j++){
+				nd[i][j]=con[i][j]?nn(i,j):0;
+				if(nd[i][j]){
+					if(last){
+						pt[last].r=nd[i][j];
+						pt[nd[i][j]].l=last;
+					}else{
+						fir=nd[i][j];
+					}
+					last=nd[i][j];
+				}
+			}
+			if(fir){
+				pt[last].r=fir;
+				pt[fir].l=last;
+			}
+		}
+		for(int j=1;j<=m;j++){
+			int last=nd[0][j];
+			for(int i=1;i<=n;i++){
+				if(nd[i][j]==0)continue;
+				pt[last].d=nd[i][j];
+				pt[nd[i][j]].u=last;
+				last=nd[i][j];
+			}
+			pt[last].d=nd[0][j];
+			pt[nd[0][j]].u=last;
+		}
 		mset(vis+1,0,m);
-		for(int tt=1;tt<=m;tt++){
-			if(vis[perm[tt]])continue;
-			if(rest==0)return false;
-			mset(cnt+1,0,n);
-			for(int i=1;i<=m;i++){
-				if(vis[i])continue;
-				for(int j=1;j<=n;j++){
-					cnt[j]+=con[i][j];
-				}
-			}
-			int mxp=-1;
-			for(int j=2;j<=n;j++){
-				if(con[perm[tt]][j]){
-					if(mxp==-1||cnt[j]>cnt[mxp]){
-						mxp=j;
-					}
-				}
-			}
-			if(mxp==-1||cnt[mxp]==0)return false;
-			--rest;
-			for(int i=1;i<=m;i++){
-				vis[i]|=con[i][mxp];
-			}
-		}
-		return true;
+		ccnt=0;
+		return dfs();
 	}
-}
-namespace solve3{
-	int nn,mm;
-	int cnt[N];
-	int perm[N];
-	int vis[N];
-	bool dfs(int x,int ccnt){
-		if(x>nn){
-			for(int i=1;i<=mm;i++){
-				if(vis[i]==0)return false;
-			}
-			return true;
-		}
-		if(ccnt<lim&&cnt[x]){
-			for(int j=1;j<=mm;j++){
-				if(con[j][x]){
-					if(vis[j]==0){
-						for(int p=1;p<=nn;p++){
-							if(con[j][p]){
-								--cnt[p];
-							}
-						}
-					}
-					vis[j]+=1;
-				}
-			}
-			if(dfs(x+1,ccnt+1))return true;
-			for(int j=1;j<=mm;j++){
-				if(con[j][x]){
-					vis[j]-=1;
-					if(vis[j]==0){
-						for(int p=1;p<=nn;p++){
-							if(con[j][p]){
-								++cnt[p];
-							}
-						}
-					}
-				}
-			}
-		}
-		return dfs(x+1,ccnt);
-	}
-	bool main(int n,int m){
-		nn=n,mm=m;
-		mset(cnt+1,0,n);
-		mset(vis+1,0,n);
-		for(int i=1;i<=m;i++){
-			for(int j=1;j<=n;j++){
-				cnt[j]+=con[i][j];
-			}
-		}
-		return dfs(1,0);
-	}
-}
-inline bool solve(int n,int m){
-	if(solve1::main(n,m))return true;
-	if(solve2::main(n,m))return true;
-	if(solve2::main(n,m))return true;//cout
-	return false;
 }
 int val[N];
 char s1[N],s2[N],t[N];
@@ -160,47 +184,6 @@ inline int calc(char s[],int i,int j){
 	return cabs(s[i]-t[j])+val[cabs(i-j)];
 }
 int n;
-namespace brute{
-	bool dci[N];
-	inline int calc2(char s[],int i){
-		int ans=INF;
-		for(int j=1;j<=n;j++){
-			if(dci[j]){
-				apmin(ans,calc(s,i,j));
-			}
-		}
-		return ans;
-	}
-	int ans;
-	inline void calc(){
-		int cur=0;
-		for(int i=1;i<=n;i++){
-			apmax(cur,calc2(s1,i));
-			apmax(cur,calc2(s2,i));
-		}
-		apmin(ans,cur);
-	}
-	void dfs(int x,int ccnt){
-		if(x>n){
-			if(ccnt!=lim)return;
-			calc();
-			return;
-		}
-		if(ccnt<lim){
-			dci[x]=true;
-			dfs(x+1,ccnt+1);
-		}
-		if((n-x)+ccnt>=lim){
-			dci[x]=false;
-			dfs(x+1,ccnt);
-		}
-	}
-	inline int main(){
-		ans=INF;
-		dfs(1,0);
-		return ans;
-	}
-}
 inline int Main(){
 	n=ni;
 	lim=ni;
@@ -208,7 +191,6 @@ inline int Main(){
 		val[i]=ni;
 	}
 	scanf("%s%s%s",s1+1,s2+1,t+1);
-	if(n<=20)return brute::main();//cout
 	int l=0,r=0;
 	for(int i=1;i<=n;i++){
 		for(int j=1;j<=n;j++){
@@ -218,13 +200,13 @@ inline int Main(){
 	}
 	for(;l<r;){
 		const int m=(l+r)>>1;
-		for(int i=1;i<=n;i++){
-			for(int j=1;j<=n;j++){
-				con[i][j]=calc(s1,i,j)<=m;
-				con[i+n][j]=calc(s2,i,j)<=m;
+		for(int j=1;j<=n;j++){
+			for(int i=1;i<=n;i++){
+				con[j][i]=calc(s1,i,j)<=m;
+				con[j][i+n]=calc(s2,i,j)<=m;
 			}
 		}
-		if(solve(n,n<<1)){
+		if(dlx::main(n,n<<1)){
 			r=m;
 		}else{
 			l=m+1;
