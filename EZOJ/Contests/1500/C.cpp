@@ -67,32 +67,33 @@ namespace T{
 		vis[x]=false;
 	}
 	bool solve(int x,int n){
-		ls=0,gcen(x,n);
+		ls=0,lst[2]=0,gcen(x,n);
 		if(!has(x))return false;
-		x=get_p();
 		vis[x]=true;
 		for(int i=head[x],v;~i;i=bro[i]){
 			if(vis[v=to[i]])continue;
-			if(!solve(v,size[v]>size[x]?n-size[x]:size[v]))return false;
+			if(!solve(v,size[v]))return false;
 		}
+		vis[x]=false;
 		return true;
 	}
 }
 int n;
-inline const char* Main(){
+inline bool Main(){
 	T::init(n);
 	for(int i=1;i<n;i++){
 		T::add(ni,ni);
 	}
-	ls=0,T::gcen(1,n);
-	return T::solve(get_p(),n)?"Yes":"No";
+	ls=0,lst[2]=0,T::gcen(1,n);
+	int a=lst[1],b=lst[2];
+	return T::solve(a,n)||T::solve(b,n);
 }
 int main(){
 	//freopen("tree.in","r",stdin);
 	int tot=ni;
 	n=ni;
 	for(;tot--;){
-		puts(Main());
+		puts(Main()?"Yes":"No");
 	}
 	return 0;
 }
