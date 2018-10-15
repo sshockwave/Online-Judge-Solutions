@@ -22,14 +22,15 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a[],int v,int n){memset(a,v,n*sizeof(T));}
 template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(T));}
-const int N=40010,logN=16;
+template<class T>inline T sqr(const T &x){return x*x;}
+const int N=40010,logN=18;
 const db DINF=1e100L,EPS=1e-4;
 struct Pt{
-	int x,y;
-	inline lint d2()const{return (lint)x*x+(lint)y*y;}
+	db x,y;
+	inline db d2()const{return sqr(x)+sqr(y);}
 	inline friend Pt operator + (const Pt &a,const Pt &b){return (Pt){a.x+b.x,a.y+b.y};}
 	inline friend Pt operator - (const Pt &a,const Pt &b){return (Pt){a.x-b.x,a.y-b.y};}
-	inline friend lint crs(const Pt &a,const Pt &b){return (lint)a.x*b.y-(lint)a.y*b.x;}
+	inline friend db crs(const Pt &a,const Pt &b){return a.x*b.y-a.y*b.x;}
 	inline friend bool turn_left(const Pt &a,const Pt &b,const Pt &c){
 		return crs(b-a,c-b)>0;
 	}
@@ -41,25 +42,33 @@ struct Pt{
 		assert(x==0&&y==0);
 		return 0;
 	}
-}pt[N],que[N];
+}pt[N],cut[N];
 inline bool polar_cmp(const Pt &a,const Pt &b){
 	const int qa=a.quad(),qb=b.quad();
 	if(qa!=qb)return qa<qb;
-	const lint c=crs(a,b);
+	const db c=crs(a,b);
 	if(c)return c>0;
 	return a.d2()<b.d2();
 }
 int f[N][logN];
+int lst[N];
+inline bool lst_cmp(int a,int b){
+	return polar_cmp(cut[a],cut[b]);
+}
 inline int calc(const int n,const db r){
-	for(int i=0,j=1;i<n;i++){
+	for(int i=0;i<n;i++){
 		const db d=sqrtl(pt[i].d2());
 		const db a=r/d*r;
 		const db b=sqrtl(r*r-a*a);
-		Pt unit=pt[i];
-		unit.x/=d,unit.y/=d;
-		const db cx=unit.x*a+-unit.y*b;
-		const db cy=unit.y*a+unit.x*b;
-		for(int t;t=j%n,t!=i&&(pt[i].x-cx)*(pt[t].y-cy)-(pt[i].y-cy)*(pt[t].x-cx)>=0;j++);
+		const db ux=pt[i].x/d,uy=pt[i].y/d;
+		cut[i]=(Pt){ux*a-uy*b,uy*a+ux*b};
+	}
+	sort(lst,lst+n,lst_cmp);
+	for(int i=0,j=0;i<n;i++){
+		const Pt &p=pt[lst[i]];
+		const Pt &c=cut[lst[i]];
+		apmax(j,i+1);
+		for(int t;t=lst[j%n],t!=lst[i]&&crs(p-c,pt[t]-c)>=0;j++);
 		f[i][0]=j-i;
 	}
 	int hb=0;
@@ -79,6 +88,7 @@ inline int calc(const int n,const db r){
 				x+=f[x%n][j];
 			}
 		}
+		assert(x+f[x%n][0]>=t);
 		apmin(ans,cur+1);
 	}
 	return ans;
@@ -86,31 +96,15 @@ inline int calc(const int n,const db r){
 inline db Main(){
 	const int n=ni,lim=ni;
 	db l=0,r=DINF;
-	for(int i=1;i<=n;i++){
-		pt[i]=(Pt){ni,ni};
+	for(int i=0;i<n;i++){
+		pt[i]=(Pt){(db)ni,(db)ni};
 		apmin(r,sqrtl(pt[i].d2()));
+		lst[i]=i;
 	}
 	if(lim>=n)return r;
-	sort(pt+1,pt+n+1,polar_cmp);
-	int qh=0,qt=0;
-	for(int i=1;i<=n;i++){
-		for(;qh+2<=qt&&!turn_left(que[qt-2],que[qt-1],pt[i]);qt--);
-		que[qt++]=pt[i];
-	}
-	for(;qh+3<=qt;){
-		if(!turn_left(que[qt-2],que[qt-1],que[qh])){
-			qt--;
-		}else if(!turn_left(que[qt-1],que[qh],que[qh+1])){
-			qh++;
-		}else break;
-	}
-	if(lim>=qt-qh)return r;
-	for(int i=0;i<qt-qh;i++){
-		pt[i]=que[qh+i];
-	}
 	for(;r-l>EPS;){
 		const db m=(l+r)/2;
-		(calc(qt-qh,m)<=lim?l:r)=m;
+		(calc(n,m)<=lim?l:r)=m;
 	}
 	return (l+r)/2;
 }
