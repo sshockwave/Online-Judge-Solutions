@@ -55,7 +55,7 @@ namespace G{
 		}
 	}
 	int sg[N],f[1<<D],vl[1<<D],bcnt[1<<D];
-	int tag[N],tim=0;
+	int tag[(1<<D)+10],tim=0;
 	inline void dp(const int n){
 		for(int t=1;t<=n;t++){
 			const int x=que[t];
