@@ -64,9 +64,9 @@ namespace poly{
 			const int half=1<<i,full=half<<1;
 			for(int k=0,k1=k+half;k<n;k+=full,k1+=full){
 				for(int j=k;j<k1;j++){
-					int p=a[j],q=(lint)a[j+half]*w[j-k]%O;
+					lint p=a[j],q=(lint)a[j+half]*w[j-k];
 					a[j]=(p+q)%O;
-					a[j+half]=(p+O-q)%O;
+					a[j+half]=(p-q)%O;
 				}
 			}
 		}
@@ -124,11 +124,10 @@ namespace poly{
 		mset(b,0,_n<<1),b[0]=1;
 		for(int n=2;n<=_n;n<<=1){
 			log(b,ta,n);
-			for(int i=0;i<n;i++){
-				ta[i]=(a[i]+O-ta[i])%O;
+			for(int i=n>>1;i<n;i++){
+				b[i]=(a[i]-ta[i])%O;
 			}
-			ta[0]=(ta[0]+1)%O;
-			mul(b,ta,n);
+			mul(b+(n>>1),b,n>>1);
 		}
 	}
 }
@@ -145,9 +144,9 @@ void solve(const int n){
 	//h=exp(f0)*a
 	exp(f,h,n),mul(h,a,n);
 	//c=b-(f0-1)*h
-	mcpy(c,f,n<<1),c[0]=(c[0]+O-1)%O,mul(c,h,n);
+	mcpy(c,f,n<<1),c[0]=(c[0]-1)%O,mul(c,h,n);
 	for(int i=0;i<n;i++){
-		c[i]=(b[i]+O-c[i])%O;
+		c[i]=(b[i]-c[i])%O;
 	}
 	//f'=h*f+c
 	intg(h,n),exp(h,f,n),inv(f,h,n),mul(c,h,n),intg(c,n),mul(f,c,n);
@@ -178,13 +177,13 @@ int main(){
 	gmath::main(n);
 	b[0]=0;
 	for(int i=0;i<n;i++){
-		b[i]=(lint)(b[i]+O-a[i])*gmath::ifac[i]%O;
+		b[i]=(lint)(b[i]-a[i])*gmath::ifac[i]%O;
 		a[i]=(lint)a[i]*gmath::ifac[i]%O;
 	}
 	int sn=1;
 	for(;sn<=n;sn<<=1);
 	solve(sn);
 	f[1]=1;
-	printf("%lld\n",(lint)f[n]*gmath::fac[n]%O);
+	printf("%lld\n",((lint)f[n]*gmath::fac[n]%O+O)%O);
 	return 0;
 }
