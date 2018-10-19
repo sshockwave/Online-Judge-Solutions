@@ -34,7 +34,7 @@ inline int inv_pow(int x){
 	return fpow(x,O-2);
 }
 namespace poly{
-	const int SH=19,N=1<<SH;
+	const int SH=18,N=1<<SH;
 	int o[SH][N>>1],w[N],r[N],invnum[N+1];
 	inline void init(){
 		w[0]=1,r[0]=0;
@@ -53,7 +53,6 @@ namespace poly{
 		}
 	}
 	inline void ntt(int a[],int n,int d=1){
-		assert(n==(n&-n));
 		for(int i=1;i<n;i++){
 			r[i]=(r[i>>1]>>1)|(i&1?n>>1:0);
 			if(r[i]<i){
@@ -63,8 +62,8 @@ namespace poly{
 		for(int i=0;(1<<i)<n;i++){
 			const int *const w=o[i];
 			const int half=1<<i,full=half<<1;
-			for(int k=0;k<n;k+=full){
-				for(int j=k;j<k+half;j++){
+			for(int k=0,k1=k+half;k<n;k+=full,k1+=full){
+				for(int j=k;j<k1;j++){
 					int p=a[j],q=(lint)a[j+half]*w[j-k]%O;
 					a[j]=(p+q)%O;
 					a[j+half]=(p+O-q)%O;
@@ -79,10 +78,31 @@ namespace poly{
 			reverse(a+1,a+n);
 		}
 	}
+	inline void derv(int a[],int n){
+		for(int i=1;i<n;i++){
+			a[i-1]=(lint)a[i]*i%O;
+		}
+		a[n-1]=0;
+	}
+	inline void intg(int a[],int n){
+		for(int i=n-1;i>=1;i--){
+			a[i]=(lint)a[i-1]*invnum[i]%O;
+		}
+		a[0]=0;
+	}
+	inline void pmul(int a[],int b[],const int n){
+		for(int i=0;i<n;i++){
+			a[i]=(lint)a[i]*b[i]%O;
+		}
+	}
+	inline void mul(int a[],const int b[],const int n){
+		static int ta[N];
+		const int n2=n<<1;
+		mcpy(ta,b,n),mset(ta+n,0,n),ntt(ta,n2);
+		ntt(a,n2),pmul(a,ta,n2),ntt(a,n2,-1),mset(a+n,0,n);
+	}
 	inline void inv(const int a[],int b[],int _n){
 		static int ta[N];
-		assert(_n==(_n&-_n));
-		assert(a!=b);
 		mset(b,0,_n<<1);
 		b[0]=a[0]!=1?inv_pow(a[0]):1;
 		for(int n=2;n<=_n;n<<=1){
@@ -95,45 +115,20 @@ namespace poly{
 			ntt(b,n2,-1),mset(b+n,0,n);
 		}
 	}
-	inline void derv(const int a[],int b[],int n){
-		for(int i=1;i<n;i++){
-			b[i-1]=(lint)a[i]*i%O;
-		}
-		b[n-1]=0;
-	}
-	inline void intg(const int a[],int b[],int n){
-		for(int i=n-1;i>=1;i--){
-			b[i]=(lint)a[i-1]*invnum[i]%O;
-		}
-		b[0]=0;
-	}
-	inline void pmul(int a[],int b[],const int n){
-		for(int i=0;i<n;i++){
-			a[i]=(lint)a[i]*b[i]%O;
-		}
-	}
 	inline void log(const int a[],int b[],const int n){
 		static int ta[N];
-		const int n2=n<<1;
-		assert(n==(n&-n));
-		assert(a[0]==1);
-		derv(a,ta,n),mset(ta+n,0,n),ntt(ta,n2);
-		inv(a,b,n),ntt(b,n2),pmul(b,ta,n2),ntt(b,n2,-1),intg(b,b,n),mset(b+n,0,n);
+		mcpy(ta,a,n),derv(ta,n),inv(a,b,n),mul(b,ta,n),intg(b,n);
 	}
 	inline void exp(const int a[],int b[],const int _n){
 		static int ta[N];
-		assert(_n==(_n&-_n));
-		assert(a!=b);
-		assert(a[0]==0);
 		mset(b,0,_n<<1),b[0]=1;
 		for(int n=2;n<=_n;n<<=1){
-			const int n2=n<<1;
 			log(b,ta,n);
 			for(int i=0;i<n;i++){
 				ta[i]=(a[i]+O-ta[i])%O;
 			}
-			ta[0]=(ta[0]+1)%O,ntt(ta,n2);
-			ntt(b,n2),pmul(b,ta,n2),ntt(b,n2,-1),mset(b+n,0,n);
+			ta[0]=(ta[0]+1)%O;
+			mul(b,ta,n);
 		}
 	}
 }
@@ -144,26 +139,18 @@ void solve(const int n){
 		f[0]=0;
 		return;
 	}
-	const int n2=n<<1;
 	solve(n>>1);
-	static int ta[N],h[N],c[N];
+	static int h[N],c[N];
 	using namespace poly;
 	//h=exp(f0)*a
-	exp(f,h,n),ntt(h,n2);
-	mcpy(ta,a,n),mset(ta+n,0,n),ntt(ta,n2);
-	pmul(h,ta,n2),ntt(h,n2,-1),mset(h+n,0,n);
+	exp(f,h,n),mul(h,a,n);
 	//c=b-(f0-1)*h
-	mcpy(ta,f,n2),ta[0]=(ta[0]+O-1)%O,ntt(ta,n2);
-	mcpy(c,h,n2),ntt(c,n2),pmul(c,ta,n2),ntt(c,n2,-1),mset(c+n,0,n);
+	mcpy(c,f,n<<1),c[0]=(c[0]+O-1)%O,mul(c,h,n);
 	for(int i=0;i<n;i++){
 		c[i]=(b[i]+O-c[i])%O;
 	}
-	//f=exp(intg(h)),h=inv(f)
-	intg(h,h,n),exp(h,f,n),inv(f,h,n);
-	//c*=h
-	ntt(c,n2),ntt(h,n2),pmul(c,h,n2),ntt(c,n2,-1),mset(c+n,0,n);
-	//f=f*intg(c)
-	intg(c,c,n),ntt(c,n2),ntt(f,n2),pmul(f,c,n2),ntt(f,n2,-1),mset(f+n,0,n);
+	//f'=h*f+c
+	intg(h,n),exp(h,f,n),inv(f,h,n),mul(c,h,n),intg(c,n),mul(f,c,n);
 }
 namespace gmath{
 	int fac[N],ifac[N];
@@ -197,7 +184,6 @@ int main(){
 	int sn=1;
 	for(;sn<=n;sn<<=1);
 	solve(sn);
-	assert(f[1]==0);
 	f[1]=1;
 	printf("%lld\n",(lint)f[n]*gmath::fac[n]%O);
 	return 0;
