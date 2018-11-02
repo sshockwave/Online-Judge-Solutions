@@ -21,108 +21,100 @@ template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a[],int v,int n){memset(a,v,n*sizeof(T));}
 template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(T));}
 const int N=260,E=N*N/2,INF=0x7f7f7f7f;
-int curmx;
-bool vis[N];
 namespace G{
-	const int E=::E<<1;
-	int to[E],bro[E],val[E],head[N],e=0;
+	const int N=::N<<1,E=::N*::N;
+	int to[E],bro[E],head[N],e;
 	inline void init(int n){
 		mset(head+1,-1,n);
 		e=0;
 	}
-	inline void ae(int u,int v,int w){
-		to[e]=v,bro[e]=head[u],val[e]=w,head[u]=e++;
+	inline void ae(int u,int v){
+		to[e]=v,bro[e]=head[u],head[u]=e++;
 	}
-	inline void add(int u,int v,int w){
-		ae(u,v,w),ae(v,u,w);
-	}
+	int dfn[N],low[N],bln[N],tim=0;
+	int stk[N],ss=0;
+	bool instk[N];
 	void dfs(int x){
-		if(vis[x])return;
-		vis[x]=true;
-		for(int i=head[x];~i;i=bro[i]){
-			apmax(curmx,val[i]);
-			dfs(to[i]);
+		dfn[x]=low[x]=++tim;
+		stk[ss++]=x,instk[x]=true;
+		for(int i=head[x],v;~i;i=bro[i]){
+			if(dfn[v=to[i]]==0){
+				dfs(v);
+				apmin(low[x],low[v]);
+			}else if(instk[v]){
+				apmin(low[x],dfn[v]);
+			}
 		}
+		if(low[x]==dfn[x]){
+			int v;
+			do{
+				v=stk[--ss],instk[v]=false;
+				bln[v]=x;
+			}while(x!=v);
+		}
+	}
+	bool twosat(int n){
+		mset(dfn+1,0,n);
+		tim=0;
+		for(int i=1;i<=n;i++){
+			if(dfn[i]==0){
+				dfs(i);
+			}
+		}
+		for(int i=1;i<=n;i+=2){
+			if(bln[i]==bln[i+1])return false;
+		}
+		return true;
 	}
 }
 struct Edge{
 	int u,v,w;
-}edg[E];
-inline bool ecmp(const Edge &a,const Edge &b){
+}e[E];
+inline bool cmp_w(const Edge &a,const Edge &b){
 	return a.w<b.w;
 }
-int fa[N],oppo[N];
-int grt(int x){
+int fa[N<<1];
+inline int grt(int x){
 	return fa[x]!=x?fa[x]=grt(fa[x]):x;
 }
-inline void mg(int u,int v){
-	if(u==0||v==0)return;
-	fa[grt(u)]=grt(v);
+int nd(int x,int d){
+	return grt((x<<1)-d);
 }
-inline void t_mg(int u,int v){
-	u=grt(u),v=grt(v);
-	int u1=oppo[u],v1=oppo[v];
-	mg(u,v1),mg(v,u1);
-	u=grt(u),v=grt(v);
-	oppo[u]=v,oppo[v]=u;
-}
-namespace brute{
-	const int N=20,INF=0x7f7f7f7f;
-	int f[1<<N];
-	int mat[N+2][N+2];
-	inline int Main(const int n){
-		const int sn=1<<n;
-		for(int i=1;i<=n;i++){
-			for(int j=i+1;j<=n;j++){
-				mat[i][j]=mat[j][i]=ni;
-			}
-		}
-		f[0]=0;
-		for(int s=1;s<sn;s++){
-			int x=1;
-			for(;((s>>(x-1))&1)==0;x++);
-			assert((1<<(x-1))==(s&-s));
-			f[s]=f[s^(1<<(x-1))];
-			for(int i=x+1;x<=n;x++){
-				if((s>>(x-1))&1){
-					apmax(f[s],mat[x][i]);
-				}
-			}
-		}
-		int ans=INF;
-		for(int s=0;s<sn;s++){
-			apmin(ans,f[s]+f[s^(sn-1)]);
-		}
-		return ans;
-	}
-}
-inline int Main(const int n){
-	if(n<=20)return brute::Main(n);
+inline int Main(int n){
 	int es=0;
 	for(int i=1;i<=n;i++){
 		for(int j=i+1;j<=n;j++){
-			edg[++es]=(Edge){i,j,ni};
+			e[++es]=(Edge){i,j,ni};
 		}
 	}
-	sort(edg+1,edg+es+1,ecmp);
+	sort(e+1,e+es+1,cmp_w);
 	int ans=INF;
-	edg[0].w=edg[es+1].w=0;
-	curmx=0;
-	mset(vis+1,0,n);
-	for(int i=1;i<=n;i++){
+	for(int i=1;i<=(n<<1);i++){
 		fa[i]=i;
 	}
-	mset(oppo+1,0,n);
-	G::init(n);
-	for(int i=es;i>=1;i--){
-		apmin(ans,edg[i].w+edg[max(curmx,i)].w);
-		const int u=edg[i].u,v=edg[i].v;
-		t_mg(u,v);
-		G::add(u,v,i);
-		if(oppo[grt(u)]==grt(u)){
-			apmax(curmx,i);
-			G::dfs(u);
-			G::dfs(v);
+	e[0].w=0;
+	for(int i=es,l=0,r=es;i>=1;i--){
+		apmin(l,i),apmin(r,i);
+		for(;l<r;){
+			const int m=(l+r)>>1;
+			G::init(n<<1);
+			for(int j=m+1;j<=i;j++){
+				G::ae(nd(e[j].u,0),nd(e[j].v,1));
+				G::ae(nd(e[j].v,0),nd(e[j].u,1));
+			}
+			if(G::twosat(n<<1)){
+				r=m;
+			}else{
+				l=m+1;
+			}
+		}
+		apmin(ans,e[i].w+e[l].w);
+		const int u=e[i].u,v=e[i].v;
+		if(nd(u,0)!=nd(v,1)){
+			fa[nd(u,0)]=nd(v,1);
+			fa[nd(u,1)]=nd(v,0);
+			if(nd(u,0)==nd(v,0))break;
+			l=0,r=es;
 		}
 	}
 	return ans;
