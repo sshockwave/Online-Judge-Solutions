@@ -65,7 +65,7 @@ int main(){
 		pw[0].a[v][u]=1;
 	}
 	for(int i=1;i<logA;i++){
-		pw[i].getmul(pw[i-1],pw[0]);
+		pw[i].getmul(pw[i-1],pw[i-1]);
 	}
 	for(int tot=ni;tot--;){
 		mset(vec+1,0,n);
