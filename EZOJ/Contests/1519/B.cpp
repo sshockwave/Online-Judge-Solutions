@@ -3,7 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <cctype>
-#include <set>
+#include <algorithm>
 using namespace std;
 typedef long long lint;
 #define cout cerr
@@ -20,45 +20,49 @@ template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
 template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
 template<class T>inline void mset(T a[],int v,int n){memset(a,v,n*sizeof(T));}
 template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(T));}
-const int N=30;
-int pri[N];
-lint *idx,*mx,*size;
+const int N=30,L=1.1e7+10;
+int *pri,pri1[N],pri2[N],ps1=0,ps2=0;
+lint *lst,lst1[L],lst2[L];
+lint lim;
+int ls,ls1,ls2;
+void dfs(int x,lint num){
+	if(x==0){
+		lst[++ls]=num;
+		return;
+	}
+	const int p=pri[x];
+	for(const lint t=lim/p;;num*=p){
+		dfs(x-1,num);
+		if(num>t)break;
+	}
+}
+int ppr[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("h.in","r",stdin);
 	freopen("h.out","w",stdout);
 #endif
-	set<lint>s;
-	const int ps=ni;
-	s.insert(next_num<lint>());
+	int ps=ni;
+	lim=next_num<lint>();
 	for(int i=1;i<=ps;i++){
-		const int p=pri[i]=ni;
-		for(set<lint>::reverse_iterator it=s.rbegin();it!=s.rend();++it){
-			s.insert(*it/p);
+		ppr[i]=ni;
+	}
+	random_shuffle(ppr+1,ppr+ps+1);
+	for(int i=1,j=ps;i<=j;i++,j--){
+		pri1[++ps1]=ppr[i];
+		if(i<j){
+			pri2[++ps2]=ppr[j];
 		}
 	}
-	const int len=s.size();
-	idx=new lint[len];
-	size=new lint[len];
-	mx=new lint[len];
-	{
-		set<lint>::iterator it=s.begin();
-		for(int i=0;i<len;i++,++it){
-			idx[i]=*it;
-			size[i]=i>0;
-			mx[i]=i>0;
-		}
+	ls=0,pri=pri1,lst=lst1,dfs(ps1,1),ls1=ls;
+	ls=0,pri=pri2,lst=lst2,dfs(ps2,1),ls2=ls;
+	sort(lst1+1,lst1+ls1+1);
+	sort(lst2+1,lst2+ls2+1);
+	lint mx=0,cnt=0;
+	for(int i=1,j=ls2;i<=ls1;i++){
+		for(lint t=lim/lst1[i];j>=1&&lst2[j]>t;j--);
+		apmax(mx,lst1[i]*lst2[j]),cnt+=j;
 	}
-	for(int i=1;i<=ps;i++){
-		const int p=pri[i];
-		for(int j=1,k=0;j<len;j++){
-			lint tval=idx[j]/p;
-			for(;idx[k]<tval;k++);
-			assert(idx[k]==tval);
-			size[j]+=size[k];
-			apmax(mx[j],mx[k]*p);
-		}
-	}
-	printf("%lld\n%lld\n",mx[len-1],size[len-1]);
+	printf("%lld\n%lld\n",mx,cnt);
 	return 0;
 }
