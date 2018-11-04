@@ -82,7 +82,8 @@ int main(){
 			s.erase(it);
 		}
 		curd=0,s.insert(cur);
-		printf("%d\n",s.rbegin()->size);
+		printf("%d ",s.rbegin()->size);
 	}
+	putchar('\n');
 	return 0;
 }
