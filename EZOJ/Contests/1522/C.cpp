@@ -24,6 +24,7 @@ const int N=40010;
 namespace T{
 	const int E=::N<<1;
 	int to[E],bro[E],head[N],e=0;
+	int fa[N],son[N],size[N],dep[N],top[N];
 	inline void init(int n){
 		mset(head+1,-1,n);
 	}
@@ -33,14 +34,36 @@ namespace T{
 	inline void add(int u,int v){
 		ae(u,v),ae(v,u);
 	}
-	int dfn[N],dfe[N],tim=0;
-	void dfs(int x,int fa){
-		dfn[x]=++tim;
+	int dfn[N],dfe[N],idx[N],tim=0;
+	void dfs(int x){
+		dep[x]=dep[fa[x]]+1;
+		size[x]=1;
+		son[x]=0;
 		for(int i=head[x],v;~i;i=bro[i]){
-			if((v=to[i])==fa)continue;
-			dfs(v,x);
+			if((v=to[i])==fa[x])continue;
+			fa[v]=x;
+			dfs(v);
+			size[x]+=size[v];
+			if(size[v]>size[son[x]]){
+				son[x]=v;
+			}
+		}
+	}
+	void dfs2(int x){
+		top[x]=son[fa[x]]==x?top[fa[x]]:x;
+		idx[dfn[x]=++tim]=x;
+		if(son[x]){
+			dfs2(son[x]);
+			for(int i=head[x],v;~i;i=bro[i]){
+				if((v=to[i])==fa[x]||v==son[x])continue;
+				dfs2(v);
+			}
 		}
 		dfe[x]=tim;
+	}
+	inline int fly(int x,int n){
+		for(int d;d=dep[x]-dep[fa[top[x]]],d<=n;x=fa[top[x]],n-=d);
+		return idx[dfn[x]-n];
 	}
 }
 int ans[N];
@@ -101,8 +124,8 @@ void solve(int p1,int p2,int q1,int q2){
 		const int u=rut[i].u,v=rut[i].v;
 		assert(dfn[u]<=dfn[v]);
 		if(dfn[v]<=dfe[u]){
-			addsq(1,dfn[u],dfn[v],dfe[v],es);
-			addsq(dfn[v],dfe[v],dfe[u],T::tim,es);
+			addsq(1,dfn[u]-1,dfn[v],dfe[v],es);
+			addsq(dfn[v],dfe[v],dfe[u]+1,T::tim,es);
 		}else{
 			addsq(dfn[u],dfe[u],dfn[v],dfe[v],es);
 		}
@@ -140,12 +163,16 @@ int main(){
 	for(int i=1;i<n;i++){
 		T::add(ni,ni);
 	}
-	T::dfs(1,0);
+	T::dfs(1),T::dfs2(1);
 	using T::dfn;
+	using T::dfe;
 	for(int i=1;i<=tot1;i++){
 		rut[i]=(Path){ni,ni,ni,i};
 		if(dfn[rut[i].u]>dfn[rut[i].v]){
 			swap(rut[i].u,rut[i].v);
+		}
+		if(dfn[rut[i].v]<=dfe[rut[i].u]){
+			rut[i].u=T::fly(rut[i].v,T::dep[rut[i].v]-T::dep[rut[i].u]-1);
 		}
 	}
 	sort(rut+1,rut+tot1+1,w_cmp);
