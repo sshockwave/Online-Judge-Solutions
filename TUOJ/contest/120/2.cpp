@@ -26,17 +26,19 @@ int cnt[N],sa2[N],tmp[N];
 struct SA{
 	int sa[N],rnk[N],f[logN][N];
 	inline bool step(int a,int b,int j){
-		return sa2[a]<sa[b]||(b+j<=n&&(a+j>n||sa2[a+j]<sa2[b+j]));
+		return sa2[a]<sa2[b]||(b+j<=n&&(a+j>n||sa2[a+j]<sa2[b+j]));
 	}
 	inline void main(){
 		int m=D;
 		mset(cnt,0,m+1);
 		mcpy(tmp+1,rnk+1,n);
 		for(int i=1;i<=n;i++)++cnt[rnk[i]];
-		for(int i=1;i<D;i++)cnt[i]+=cnt[i-1];
+		for(int i=1;i<=m;i++)cnt[i]+=cnt[i-1];
 		for(int i=n;i>=1;i--)sa[cnt[rnk[i]]--]=i;
 		m=0;
-		for(int i=1;i<n;i++)m+=rnk[sa[i]]<rnk[sa[i+1]];
+		for(int i=1,v=0;i<=n;i++){
+			rnk[sa[i]]=v<rnk[sa[i]]?v=rnk[sa[i]],++m:m;
+		}
 		for(int j=1;m<n;j<<=1){
 			for(int i=1,p=0;i<=n;i++)if(sa[i]+j>n)sa2[++p]=sa[i];
 			for(int i=n,p=n;i>=1;i--)if(sa[i]>j)sa2[p--]=sa[i]-j;
@@ -44,13 +46,18 @@ struct SA{
 			for(int i=1;i<=n;i++)++cnt[rnk[i]];
 			for(int i=1;i<=m;i++)cnt[i]+=cnt[i-1];
 			for(int i=n;i>=1;i--)sa[cnt[rnk[sa2[i]]]--]=sa2[i];
-			mcpy(sa2+1,rnk+1,m);
+			mcpy(sa2+1,rnk+1,n);
 			rnk[sa[1]]=m=1;
 			for(int i=2;i<=n;i++)rnk[sa[i]]=step(sa[i-1],sa[i],j)?++m:m;
 		}
 		int * const hei=f[0];
-		for(int i=n;i>=1;i--){
-			hei[rnk[i]]=rnk[i]<n&&tmp[i]==tmp[sa[rnk[i]+1]]?hei[rnk[i+1]]+1:0;
+		for(int i=1,j=0;i<=n;i++){
+			int &k=hei[rnk[i]]=max(j-1,0);
+			if(rnk[i]<n){
+				int t=sa[rnk[i]+1];
+				for(;i+k<=n&&t+k<=n&&tmp[i+k]==tmp[t+k];k++);
+			}
+			j=k;
 		}
 		for(int j=0;(1<<(j+1))<=n;j++){
 			for(int i=1;i+(1<<(j+1))-1<=n;i++){
@@ -98,13 +105,13 @@ int main(){
 	}
 	for(int i=1;i<=n;i++){
 		for(int j=0;j<len[i];j++){
-			if(ban[j])continue;
+			if(ban[i][j])continue;
 			const int a=j*i+1,b=a+i;
-			const int p1=a>1?bakw.lcp(n+1-(a-1),n+1-(b-1)):0;
+			const int p1=bakw.lcp(n+1-a,n+1-b)-1;
 			const int p2=forw.lcp(a,b);
 			assert(p1<i);
 			const int l=a-p1,r=b+p2-1;
-			for(int k=l+i*2;k<l+i*2+i*2&&k<=r;k++){
+			for(int k=l+i*2-1;k<l+i*2-1+i*2&&k<=r;k++){
 				vec[k].push_back((Trans){i*2,0,r});
 			}
 			for(int k=i;k*2<=r-l+1;k+=i){
@@ -125,7 +132,7 @@ int main(){
 			}
 		}
 		vec[i].clear();
-		f[i]=(sum+(O-2ll)*cur)%O;
+		f[i]=(sum+(O-2ll)*(cur%O))%O;
 		sum=(f[i]+sum)%O;
 	}
 	printf("%d\n",f[n]);
