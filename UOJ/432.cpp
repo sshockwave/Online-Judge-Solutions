@@ -159,11 +159,11 @@ class cmd{
 };
 class var:public expr{
 	private:
-		expr addr;
 		inline void operator = (var){
 			assert(false);
 		}
 	public:
+		expr addr;
 		explicit var(expr ad):expr(op(ad.inst,'<')),addr(ad){}
 		var():expr(op()),addr(mem++){
 			inst=op(addr.inst,'<');
@@ -191,9 +191,8 @@ class var:public expr{
 		}
 };
 class arr{
-	private:
-		expr addr;
 	public:
+		expr addr;
 		arr(int len):addr(mem){
 			mem+=len;
 		}
@@ -202,7 +201,6 @@ class arr{
 		}
 };
 class ptr{
-	private:
 	public:
 		var pt;
 		inline cmd alloc(int size){
@@ -218,8 +216,11 @@ class ptr{
 		inline expr eval(){
 			return expr(op(pt.inst,'<'));
 		}
-		inline cmd pset(expr b){
+		inline cmd vset(expr b){
 			return cmd(op(b.inst+pt.inst,'>'));
+		}
+		inline cmd pset(expr b){
+			return pt.set(b);
 		}
 		inline var operator [] (expr i){
 			return var(pt+i);
@@ -406,6 +407,7 @@ namespace task8{
 		putcode(29,cmd(op("g")));
 		cmd ans;
 		var pc;
+		ptr i;
 		ptr css,mem;
 		var s0,s1;
 		var gap,bstep;//constant
@@ -421,22 +423,28 @@ namespace task8{
 			}
 			reg('g',s0.setpop()+(pc+=s0));
 			reg('?',s0.setpop()+s1.setpop()+ifs(s1==0,pc+=s0));
-			reg('c',css.pset(pc)+css.mvr()+pc.setpop());
+			reg('c',css.vset(pc)+css.mvr()+pc.setpop());
 			reg('$',css.mvl()+pc.set(css.eval()));
 			reg('<',s0.setpop()+cmd(mem[s0].inst));
 			reg('>',s0.setpop()+s1.setpop()+mem[s0].set(s1));
 			reg('^'),reg('v'),reg('d'),reg('!');
 		}
-		ans+=pc.set(-1);
-		ans+=dowh((pc+=1)+src[pc].set(expr(op("R"))),src[pc]!=-1);
+		{
+			//ans+=dowh(i.mvr()+i.vset(expr(op("R"))),i.eval()!=-1);
+			ans+=i.pset(src.addr-1);
+			cmd cont;
+			cont+=i.mvr();
+			cont+=cmd(op("R0^")+i.pt.inst+op(">1+3?")+bstep.inst+"g");
+			ans+=bstep.set(-cont.len())+cont;
+		}
 		ans+=pc.set(0);
 		{
 			ans+=gap.set(FL);
 			cmd cont;
 			cont+=cmd((src[pc++]*gap).inst+op("c"));
-			ans+=bstep.set(-(cont.len()+3));
+			cont+=cmd(op(bstep.inst,'g'));
+			ans+=bstep.set(-cont.len())+cont;
 			assert(bstep.inst.len()==2);
-			ans+=cont+cmd(op(bstep.inst,'g'));
 		}
 		return cmd(op(finans))+ans;
 	}
