@@ -157,30 +157,22 @@ class cmd{
 			return cont+loop(cond,cont);
 		}
 };
-class var;
-class arr{
-	private:
-		expr addr;
-	public:
-		arr(int len):addr(mem){
-			mem+=len;
-		}
-		inline var operator [] (expr i);
-};
 class var:public expr{
 	private:
 		expr addr;
 		inline void operator = (var){
 			assert(false);
 		}
-		explicit var(expr ad):expr(op(ad.inst,'<')),addr(ad){}
 	public:
-		inline friend var arr::operator [] (expr i);
+		explicit var(expr ad):expr(op(ad.inst,'<')),addr(ad){}
 		var():expr(op()),addr(mem++){
 			inst=op(addr.inst,'<');
 		}
 		inline cmd set(expr b){
 			return cmd(op(b.inst+addr.inst,'>'));
+		}
+		inline cmd setpop(){
+			return cmd(op(addr.inst,'>'));
 		}
 		inline cmd operator += (expr b){
 			return set(*this+b);
@@ -198,9 +190,41 @@ class var:public expr{
 			return (*this+=1)+(*this-1);
 		}
 };
-inline var arr::operator [] (expr i){
-	return var(addr+i);
-}
+class arr{
+	private:
+		expr addr;
+	public:
+		arr(int len):addr(mem){
+			mem+=len;
+		}
+		inline var operator [] (expr i){
+			return var(addr+i);
+		}
+};
+class ptr{
+	private:
+	public:
+		var pt;
+		inline cmd alloc(int size){
+			mem+=size;
+			return pt.set(mem-size);
+		}
+		inline cmd mvl(){
+			return pt-=1;
+		}
+		inline cmd mvr(){
+			return pt+=1;
+		}
+		inline expr eval(){
+			return expr(op(pt.inst,'<'));
+		}
+		inline cmd pset(expr b){
+			return cmd(op(b.inst+pt.inst,'>'));
+		}
+		inline var operator [] (expr i){
+			return var(pt+i);
+		}
+};
 inline cmd print(expr e){
 	return cmd(op(e.inst,'p'));
 }
@@ -357,8 +381,8 @@ namespace task7{//quine
 	}
 }
 namespace task8{
-	const int N=60010,MEM=65536;
-	const int FL=100;
+	const int N=60010,MEM=65540;
+	const int FL=25;
 	const int L=128*FL;
 	char finans[L+1];
 	inline void putcode(int i,cmd w){
@@ -371,48 +395,49 @@ namespace task8{
 		assert(w.len()<FL);
 		putcode(c*FL,w);
 	}
+	inline void reg(char c){
+		char s[2];
+		s[0]=c,s[1]=0;
+		reg(c,cmd(op(s)));
+	}
 	inline cmd main(){
 		memset(finans,' ',L),finans[L]=0;
-		putcode(0,cmd(expr(L-50).inst));
-		putcode(49,cmd(op("g")));
-		cmd ans,w;
-		var c,pc;
-		var ss,css;
-		var i,tmp;
-		arr stk(N),callstk(N);
-		arr mem(N);
-		arr src(0);//WARNING!!! end of declaration
+		putcode(0,cmd(expr(L-30).inst));
+		putcode(29,cmd(op("g")));
+		cmd ans;
+		var pc;
+		ptr css,mem;
+		var s0,s1;
+		var gap,bstep;//constant
+		arr src(N*10);
+		ans+=css.alloc(N);
+		ans+=mem.alloc(N);
 		{//get w
 			reg(' ',cmd());
 			reg('\n',cmd());
-			reg('p',print(stk[--ss]));
-			reg('+',(ss-=1)+(stk[ss-1]+=stk[ss]));
-			reg('-',(ss-=1)+(stk[ss-1]-=stk[ss]));
-			reg('*',(ss-=1)+stk[ss-1].set(stk[ss-1]*stk[ss]));
-			reg('/',(ss-=1)+stk[ss-1].set(stk[ss-1]/stk[ss]));
-			reg(':',(ss-=1)+stk[ss-1].set(expr(op(stk[ss-1].inst+stk[ss].inst,':'))));
-			reg('g',(ss-=1)+(pc+=stk[ss]));
-			reg('?',(ss-=2)+ifs(stk[ss]==0,pc+=stk[ss+1]));
-			reg('c',callstk[css++].set(pc)+pc.set(stk[--ss]));
-			reg('$',pc.set(callstk[--css]));
-			reg('<',stk[ss-1].set(mem[stk[ss-1]]));
-			reg('>',(ss-=2)+mem[stk[ss+1]].set(stk[ss]));
-			reg('^',stk[ss-1].set(stk[ss-stk[ss-1]-2]));
-			reg('v',
-					(ss-=1)+
-					tmp.set(stk[ss-stk[ss]-1])+
-					rep(i,ss-stk[ss]-1,ss-2,stk[i].set(stk[i+1]))+
-					stk[ss-1].set(tmp));
-			reg('d',ss-=1);
+			reg('p'),reg('P'),reg('+'),reg('-'),reg('*'),reg('/'),reg(':');
+			for(char c='0';c<='9';c++){
+				reg(c);
+			}
+			reg('g',s0.setpop()+(pc+=s0));
+			reg('?',s0.setpop()+s1.setpop()+ifs(s1==0,pc+=s0));
+			reg('c',css.pset(pc)+css.mvr()+pc.setpop());
+			reg('$',css.mvl()+pc.set(css.eval()));
+			reg('<',s0.setpop()+cmd(mem[s0].inst));
+			reg('>',s0.setpop()+s1.setpop()+mem[s0].set(s1));
+			reg('^'),reg('v'),reg('d'),reg('!');
 		}
 		ans+=pc.set(-1);
 		ans+=dowh((pc+=1)+src[pc].set(expr(op("R"))),src[pc]!=-1);
 		ans+=pc.set(0);
-		ans+=loop(c.set(src[pc])+((c!='!')*(c!=-1)),
-				(pc+=1)+
-				ife((c>='0')*(c<='9'),
-					stk[ss++].set(c-'0'),
-					cmd((c*FL).inst+op("c"))));
+		{
+			ans+=gap.set(FL);
+			cmd cont;
+			cont+=cmd((src[pc++]*gap).inst+op("c"));
+			ans+=bstep.set(-(cont.len()+3));
+			assert(bstep.inst.len()==2);
+			ans+=cont+cmd(op(bstep.inst,'g'));
+		}
 		return cmd(op(finans))+ans;
 	}
 }
