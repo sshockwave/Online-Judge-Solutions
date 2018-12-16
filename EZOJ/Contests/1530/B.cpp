@@ -23,6 +23,118 @@ template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(T));}
 template<class T>inline T gcd(const T &a,const T &b){return b?gcd(b,a%b):a;}
 const int N=1000010;
 char s[N];
+namespace bsgs3{
+	const int O=1000000007,M=100007;
+	const int rt=31622;
+	map<int,int>mp[M];
+	inline int fpow(int x,int n){
+		int a=1;
+		for(;n;n>>=1,x=(lint)x*x%O){
+			if(n&1){
+				a=(lint)a*x%O;
+			}
+		}
+		return a;
+	}
+	inline int inv_pow(int x){
+		return fpow(x,O-2);
+	}
+	inline void ins(int x,int v){
+		int t=x;
+		t^=234123445;
+		t%=M;
+		mp[t][x]=v;
+	}
+	inline int ask(int x){
+		int t=x;
+		t^=234123445;
+		t%=M;
+		map<int,int>::iterator it=mp[t].find(x);
+		if(it==mp[t].end())return -1;
+		return it->second;
+	}
+	inline int main(int b){
+		for(int i=0;i<M;i++){
+			mp[i].clear();
+		}
+		int g=5,ig=inv_pow(g);
+		assert((lint)g*ig%O==1);
+		int pwg=1;
+		for(int i=0,pw=b;i<rt;i++){
+			ins(pw,i);
+			pw=(lint)pw*ig%O;
+			pwg=(lint)pwg*g%O;
+		}
+		int ppw=1;
+		int ans;
+		for(int i=0;i*rt<O;i++){
+			int t=ask(ppw);
+			if(t!=-1){
+				ans=(i*rt+t)%(O-1);
+				break;
+			}
+			ppw=(lint)ppw*pwg%O;
+		}
+		assert(fpow(g,ans)==b);
+		return ans;
+	}
+}
+namespace bsgs2{
+	const int O=998244353,M=100007;
+	const int rt=31622;
+	map<int,int>mp[M];
+	inline int fpow(int x,int n){
+		int a=1;
+		for(;n;n>>=1,x=(lint)x*x%O){
+			if(n&1){
+				a=(lint)a*x%O;
+			}
+		}
+		return a;
+	}
+	inline int inv_pow(int x){
+		return fpow(x,O-2);
+	}
+	inline void ins(int x,int v){
+		int t=x;
+		t^=234123445;
+		t%=M;
+		mp[t][x]=v;
+	}
+	inline int ask(int x){
+		int t=x;
+		t^=234123445;
+		t%=M;
+		map<int,int>::iterator it=mp[t].find(x);
+		if(it==mp[t].end())return -1;
+		return it->second;
+	}
+	inline int main(int b){
+		for(int i=0;i<M;i++){
+			mp[i].clear();
+		}
+		int g=3,ig=inv_pow(g);
+		assert((lint)g*ig%O==1);
+		int pwg=1;
+		for(int i=0,pw=b;i<rt;i++){
+			ins(pw,i);
+			pw=(lint)pw*ig%O;
+			pwg=(lint)pwg*g%O;
+		}
+		int ppw=1;
+		int ans;
+		for(int i=0;i*rt<O;i++){
+			int t=ask(ppw);
+			if(t!=-1){
+				ans=(i*rt+t)%(O-1);
+				break;
+			}
+			ppw=(lint)ppw*pwg%O;
+		}
+		assert(fpow(g,ans)==b);
+		return ans;
+	}
+}
 namespace bsgs{
 	const int O=1000000009,M=100007;
 	const int rt=31622;
@@ -59,8 +171,8 @@ namespace bsgs{
 		}
 		int g=29,ig=inv_pow(g);
 		assert((lint)g*ig%O==1);
-		int pwg=b;
-		for(int i=0,pw=1;i<rt;i++){
+		int pwg=1;
+		for(int i=0,pw=b;i<rt;i++){
 			ins(pw,i);
 			pw=(lint)pw*ig%O;
 			pwg=(lint)pwg*g%O;
@@ -71,42 +183,57 @@ namespace bsgs{
 			int t=ask(ppw);
 			if(t!=-1){
 				ans=(i*rt+t)%(O-1);
+				break;
 			}
 			ppw=(lint)ppw*pwg%O;
 		}
+		assert(fpow(g,ans)==b);
 		return ans;
 	}
 }
 inline bool Main(){
 	scanf("%s",s);
 	const int k=ni;
-	int num=0;
+	int num;
+	num=0;
 	for(int i=0;s[i];i++){
 		num=(num*10ll+s[i]-'0')%bsgs::O;
 	}
-	int b=bsgs::main(num);
-	return b%gcd(k,bsgs::O-1)==0;
+	if(bsgs::main(num)%gcd(k,bsgs::O-1))return false;
+	num=0;
+	for(int i=0;s[i];i++){
+		num=(num*10ll+s[i]-'0')%bsgs2::O;
+	}
+	if(bsgs2::main(num)%gcd(k,bsgs2::O-1))return false;
+	num=0;
+	for(int i=0;s[i];i++){
+		num=(num*10ll+s[i]-'0')%bsgs3::O;
+	}
+	if(bsgs3::main(num)%gcd(k,bsgs3::O-1))return false;
+	return true;
 }
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("math.in","r",stdin);
 	freopen("math.out","w",stdout);
 #endif
-	/*for(int g=2;;g++){
-	  int w=1;
-	  bool flag=true;
-	  for(int i=1;i<bsgs::O-1;i++){
-	  w=(lint)w*g%bsgs::O;
-	  if(w==1){
-	  cout<<"g="<<g<<"\tfail on "<<i<<endl;
-	  flag=false;
-	  break;
-	  }
-	  }
-	  if(flag){
-	  cout<<"g="<<g<<" "<<"ok!!!!!"<<endl;
-	  }
-	  }*/
+	/*
+	for(int g=2;;g++){
+		int w=1;
+		bool flag=true;
+		int O=bsgs3::O;
+		for(int i=1;i<O-1;i++){
+			w=(lint)w*g%O;
+			if(w==1){
+				cout<<"g="<<g<<"\tfail on "<<i<<endl;
+				flag=false;
+				break;
+			}
+		}
+		if(flag){
+			cout<<"g="<<g<<" "<<"ok!!!!!"<<endl;
+		}
+	}*/
 	for(int tot=ni;tot--;){
 		puts(Main()?"Y":"N");
 	}
