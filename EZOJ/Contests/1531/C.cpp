@@ -31,7 +31,7 @@ inline bool valid(int x,int y){
 	return x>=1&&x<=n&&y>=1&&y<=n;
 }
 inline bool check(){
-	//if(mat[3][5]+1!=mat[5][3])return false;
+	if(mat[3][5]+1!=mat[5][3])return false;
 	if(mat[1][3]+1!=mat[3][5])return false;
 	if(mat[3][3]!=n*n)return false;
 	for(int d=0;d<8;d++){
@@ -76,25 +76,18 @@ int main(){
 }
 #else
 int A[5][5]={
-	1,14,6,9,15,
-	21,11,3,18,23,
-	5,8,25,13,7,
-	2,17,22,10,16,
-	20,12,4,19,24
-};
-int B[5][5]={
-	1,11,18,4,10,
-	16,22,8,13,23,
-	19,5,25,20,6,
-	2,12,17,3,9,
-	15,21,7,14,24
+	1,23,18,11,24,
+	7,13,3,6,16,
+	21,10,25,22,19,
+	2,5,17,12,4,
+	8,14,20,9,15,
 };
 int mat[N][N];
-inline void putmat(int (*A)[5],int dx,int dy,int px,int py){
-	py-=6;
+inline void putmat(int dv,int dx,int dy,int px,int py){
+	py-=dv;
 	for(int i=1;i<=5;i++){
 		for(int j=1;j<=5;j++){
-			mat[i+dx][j+dy]=A[i-1][j-1]+(A[i-1][j-1]<=6?px:py);
+			mat[i+dx][j+dy]=A[i-1][j-1]+(A[i-1][j-1]<=dv?px:py);
 		}
 	}
 }
@@ -107,9 +100,9 @@ int main(){
 	const int tn=n/5;
 	for(int i=1;i<=tn;i++){
 		for(int j=1;j<=tn;j++){
-			const int dt1=((i-1)*tn+(j-1))*6;
-			const int dt2=((tn-i)*tn+(tn-j))*19;
-			putmat(j<tn?A:B,(i-1)*5,(j-1)*5,dt1,tn*tn*6+dt2);
+			const int dt1=(i-1)*(tn*18+1)+(j-1)*18;
+			const int dt2=(tn-i)*(tn*7-1)+(tn-j)*7-(j<tn);
+			putmat(18+(j==tn),(i-1)*5,(j-1)*5,dt1,tn*(tn*18+1)+dt2);
 		}
 	}
 	for(int i=2;i<=tn;i+=2){
