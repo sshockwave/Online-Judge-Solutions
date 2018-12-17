@@ -22,6 +22,7 @@ template<class T>inline void mset(T a[],int v,int n){memset(a,v,n*sizeof(T));}
 template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(T));}
 const int N=1000010;
 int a[N];
+int cnt[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("game.in","r",stdin);
@@ -29,27 +30,38 @@ int main(){
 #endif
 	const int n=ni;
 	int tot=ni;
+	mset(cnt+1,0,n);
 	for(int i=1;i<=n;i++){
 		a[i]=ni;
 	}
 	for(;tot--;){
-		priority_queue<int>q;
 		int p=ni;
 		for(int i=1;i<=p;i++){
-			q.push(a[i]);
+			++cnt[a[i]];
 		}
+		int mxp=n;
 		bool r=false;
+		int tmpmx=-1;
 		lint ans=0;
-		for(;!q.empty();){
+		for(int tt=n;tt--;){
+			if(tmpmx==-1){
+				for(;cnt[mxp]==0;mxp--);
+				--cnt[mxp],tmpmx=mxp;
+			}
 			if(r){
-				ans-=q.top();
+				ans-=tmpmx;
 			}else{
-				ans+=q.top();
+				ans+=tmpmx;
 			}
 			r^=1;
-			q.pop();
+			tmpmx=-1;
 			if(p<n){
-				q.push(a[++p]);
+				++p;
+				if(a[p]<=mxp){
+					++cnt[a[p]];
+				}else{
+					tmpmx=a[p];
+				}
 			}
 		}
 		printf("%lld\n",ans);
