@@ -6,7 +6,7 @@ inline auto getseed(){
 	random_device dev;
 	auto t=dev();
 	srand(t);
-	ofstream fout("seed");
+	ofstream fout("seed.txt");
 	fout<<t<<endl;
 	return t;
 }
