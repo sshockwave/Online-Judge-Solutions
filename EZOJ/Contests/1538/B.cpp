@@ -4,7 +4,9 @@
 #include <cassert>
 #include <cctype>
 #include <set>
+#include <vector>
 using namespace std;
+typedef vector<int>vi;
 typedef long long lint;
 #define cout cerr
 #define ni (next_num<int>())
@@ -78,7 +80,12 @@ struct Seats{
 		return true;
 	}
 };
-bool calc[N];
+struct Query{
+	int len;
+	vector<int>ext;
+};
+typedef vector<Query>vq;
+vq qry[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("b.in","r",stdin);
@@ -87,41 +94,60 @@ int main(){
 	memset(vis,0,sizeof(vis));
 	n=ni,m=ni;
 	lint k=next_num<lint>();
+	lint ans=0;
 	{
 		const int x1=ni,a1=ni,b1=ni;
 		const int x2=ni,a2=ni,b2=ni;
 		a.init(x1,a1,b1,n);
-		b.init(x2,a2,b2,m);
-	}
-	mset(calc,0,n);
-	lint ans=0;
-	for(int i=1;i<=k&&i<=a.ls;i++){
-		if(i<a.st){
-			int p=b.at(i);
-			ans+=c2(p)+c2(m-p-1);
-			calc[a.lst[i]]=true;
-		}else if(!calc[a.lst[i]]){
-			Seats seat;
-			int step=a.len%b.len;
-			for(lint l=i,r=i;l<=k&&!calc[a.at(l)];){
-				for(;r<=k&&!seat.has(b.at(r));r+=a.len){
-					seat.ins(b.at(r));
-				}
-				ans+=seat.ans;
-				calc[a.at(l)]=true;
-				seat.del(b.at(l));
-				l+=step;
-				r-=a.len-step;
-				for(;l>a.ls;){
-					l-=a.len;
-					seat.ins(b.at(l));
-				}
+		for(int i=0;i<n;i++){
+			if(vis[i]<tim){
+				ans+=c2(m);
 			}
 		}
+		b.init(x2,a2,b2,m);
 	}
-	for(int i=0;i<n;i++){
-		if(!calc[i]){
-			ans+=c2(m);
+	for(int i=1;i<=a.ls;i++){
+		if(i<a.st){
+			int p=b.at(i);
+			if(i<=k){
+				ans+=c2(p)+c2(m-p-1);
+			}else{
+				ans+=c2(m);
+			}
+		}else{
+			int p=i;
+			Query q;
+			q.len=max((k-p+a.len)/a.len,0ll);
+			for(;p<b.st;p+=a.len){
+				if(q.len>0){
+					--q.len,q.ext.push_back(b.lst[p]);
+				}
+			}
+			qry[(p-b.st)%b.len+b.st].push_back(q);
+		}
+	}
+	int step=a.len%b.len;
+	++tim;
+	int ringlen=b.len/gcd(a.len,b.len);
+	for(int i=b.st,ti=i+gcd(a.len,b.len);i<ti;i++){
+		Seats seat;
+		for(int p=i,len=0;vis[p]<tim;p=(p+step-b.st)%b.len+b.st){
+			vis[p]=tim;
+			for(vq::iterator it1=qry[p].begin(),ti1=qry[p].end();it1!=ti1;++it1){
+				int tlen=it1->len;
+				for(;len<ringlen&&len<tlen;seat.ins(b.at(p+step*len++)));
+				for(;len>tlen;seat.del(b.at(p+step*--len)));
+				for(vi::iterator it2=it1->ext.begin(),ti2=it1->ext.end();it2!=ti2;++it2){
+					seat.ins(*it2);
+				}
+				ans+=seat.ans;
+				for(vi::iterator it2=it1->ext.begin(),ti2=it1->ext.end();it2!=ti2;++it2){
+					seat.del(*it2);
+				}
+			}
+			if(len){
+				--len,seat.del(b.lst[p]);
+			}
 		}
 	}
 	printf("%lld\n",ans);
