@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cctype>
 #include <algorithm>
-#include <cmath>
 using namespace std;
 typedef long double db;
 typedef long long lint;
@@ -26,34 +25,28 @@ template<class T>inline T sqr(const T &x){return x*x;}
 template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
 template<class T>inline T gcd(const T &a,const T &b){return b?gcd(b,a%b):a;}
 const int N=1010;
-const db EPS=1e-9;
-inline bool isz(db x){
-	return x>=-EPS&&x<=EPS;
-}
 struct Pt{
 	lint x,y;
-	inline lint d2()const{return sqr(x)+sqr(y);}
+	inline int quad()const{
+		if(x>0&&y>=0)return 1;
+		if(x<=0&&y>0)return 2;
+		if(x<0&&y<=0)return 3;
+		if(x>=0&&y<0)return 4;
+		return 0;
+	}
+	inline friend bool polarcmp(const Pt &a,const Pt &b){
+		const int qa=a.quad(),qb=b.quad();
+		return qa!=qb?qa<qb:crs(a,b)>0;
+	}
+	inline friend db crs(const Pt &a,const Pt &b){return (db)a.x*b.y-(db)a.y*b.x;}
 	inline friend Pt operator - (const Pt &a,const Pt &b){return (Pt){a.x-b.x,a.y-b.y};}
-	inline friend lint crs(const Pt &a,const Pt &b){return a.x*b.y-a.y*b.x;}
-}pt[N];
-Pt b,c;
-int lst1[N],lst2[N];
-inline db calc_x(const Pt &p){//cout
-	db mx=(db)(b.x+c.x)/2,my=(db)(b.y+c.y)/2;
-	db t2=sqr(b.x-mx)+sqr(b.y-my);
-	db t=sqrt(t2);
-	db x=((p.x-mx)*(b.y-my)-(p.y-my)*(b.x-mx))/t;
-	db y=((p.x-mx)*(b.x-mx)+(p.y-my)*(b.y-my))/t;
-	return x/2+(sqr(y)-t2)/(x*2);
+}pt[N],base;
+int lst[N];
+inline bool cmp_lst(int a,int b){
+	return polarcmp(pt[a]-base,pt[b]-base);
 }
-inline bool cmp_circ(int a1,int a2){
-	return calc_x(pt[a1])+EPS<calc_x(pt[a2]);
-}
-inline bool on_circ(int a1,int a2){
-	return isz(calc_x(pt[a1])-calc_x(pt[a2]));
-}
-inline bool in_circ(int a1,int a2){
-	return calc_x(pt[a2])+EPS>calc_x(pt[a1]);
+inline lint c2(lint n){
+	return n*(n-1)/2;
 }
 int main(){
 #ifndef ONLINE_JUDGE
@@ -63,37 +56,23 @@ int main(){
 	const int n=ni;
 	for(int i=1;i<=n;i++){
 		pt[i]=(Pt){ni,ni};
+		lst[i]=i;
 	}
 	lint ans=0;
 	for(int x=1;x<=n;x++){
-		for(int y=1;y<x;y++){
-			b=pt[x],c=pt[y];
-			int ls1=0,ls2=0;
-			for(int k=1;k<=n;k++){
-				if(x!=k&&y!=k){
-					if(crs(b-c,pt[k]-c)<0){
-						lst1[++ls1]=k;
-					}else{
-						lst2[++ls2]=k;
-					}
-				}
+		base=pt[x],sort(lst+1,lst+n+1,cmp_lst);
+		int cnt=0;
+		for(int i=2,j=2;i<=n&&(pt[lst[i]]-base).quad()<=2;i++){
+			for(;j<=n&&crs(pt[lst[i]]-base,pt[lst[j]]-base)>=0;j++){
+				++cnt;
 			}
-			swap(b,c),sort(lst2+1,lst2+ls2+1,cmp_circ);
-			swap(b,c),sort(lst1+1,lst1+ls1+1,cmp_circ);
-			for(int i=1,j=ls2,j2=j;i<=ls1;i++){
-				for(;j>=1&&!in_circ(lst1[i],lst2[j]);j--);
-				for(apmin(j2,j);j2>=1&&on_circ(lst1[i],lst2[j2]);j2--);
-				ans+=4+j+j2;
-			}
-			swap(b,c);
-			for(int i=1,j=ls1,j2=j;i<=ls2;i++){
-				for(;j>=1&&!in_circ(lst2[i],lst1[j]);j--);
-				for(apmin(j2,j);j2>=1&&on_circ(lst2[i],lst1[j2]);j2--);
-				ans+=4+j+j2;
-			}
+			--cnt;
+			ans+=c2(cnt)+c2(n-2-cnt);
 		}
 	}
-	ans*=2;//swap b,c
+	ans-=(lint)n*(n-1)*(n-2)*(n-3)/24*3;
+	ans*=8;
+	ans+=(lint)n*(n-1)*(n-2)*4;
 	printf("%lld\n",ans);
 	return 0;
 }
