@@ -23,56 +23,48 @@ template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(T));}
 template<class T>inline T sqr(const T &x){return x*x;}
 template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
 template<class T>inline T gcd(const T &a,const T &b){return b?gcd(b,a%b):a;}
-const int N=2010;
-const lint LINF=0x7f7f7f7f7f7f7f7fll;
-lint dis[N][N];
-struct Edge{
-	int u,v,w;
-	inline friend bool operator < (const Edge &a,const Edge &b){
-		return a.w<b.w;
-	}
-}edg[N*N/2];
+const int N=2010,INF=0x7f7f7f7f;
+int gval[N][N];
+int dis[N];
+bool vis[N];
 int main(){
 #ifndef ONLINE_JUDGE
 	freopen("a.in","r",stdin);
 	freopen("a.out","w",stdout);
 #endif
 	const int n=ni;
-	if(n==1){
-		puts("0");
-		return 0;
-	}
-	memset(dis,0x7f,sizeof(dis));
-	for(int i=1;i<=n;i++){
-		dis[i][i]=0;
-	}
-	int es=0;
+	int mnval=INF;
 	for(int i=1;i<=n;i++){
 		for(int j=i+1;j<=n;j++){
-			edg[++es]=(Edge){i,j,ni};
+			gval[i][j]=gval[j][i]=ni;
+			apmin(mnval,gval[i][j]);
 		}
 	}
-	sort(edg+1,edg+es+1);
-	const lint ansdt=(lint)(n-1)*edg[1].w;
-	for(int p=es;p>=1;p--){
-		edg[p].w-=edg[1].w;
-		const int u=edg[p].u,v=edg[p].v,w=edg[p].w;
+	mset(dis+1,0x7f,n);
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			if(i!=j){
+				apmin(dis[i],gval[i][j]-=mnval);
+			}
+		}
+		dis[i]<<=1;
+	}
+	mset(vis+1,0,n);
+	for(int tot=n;tot--;){
+		int x=0;
 		for(int i=1;i<=n;i++){
-			if(dis[i][u]<LINF){
-				for(int j=1;j<=n;j++){
-					apmin(dis[i][j],dis[i][u]+w+(j!=v?w:0));
-				}
+			if(vis[i])continue;
+			if(x==0||dis[i]<dis[x]){
+				x=i;
 			}
-			if(dis[i][v]<LINF){
-				for(int j=1;j<=n;j++){
-					apmin(dis[i][j],dis[i][v]+w+(j!=u?w:0));
-				}
-			}
+		}
+		vis[x]=true;
+		for(int i=1;i<=n;i++){
+			apmin(dis[i],dis[x]+gval[x][i]);
 		}
 	}
 	for(int i=1;i<=n;i++){
-		lint curans=ansdt+dis[i][edg[1].u];
-		printf("%lld\n",curans);
+		printf("%lld\n",dis[i]+(lint)mnval*(n-1));
 	}
 	return 0;
 }
