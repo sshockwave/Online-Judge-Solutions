@@ -45,7 +45,7 @@ struct Perm{
 	}
 }a,b;
 struct Mat{
-	const static int N=16;
+	const static int N=4;
 	lint a[N][N];
 	inline void clr(){
 		for(int i=0;i<N;i++){
@@ -67,22 +67,19 @@ struct Mat{
 	}
 };
 Mat* tmpmat;
+inline int getid(int s){
+	if(s==6)return 0;
+	if(s==9)return 1;
+	if(s==12)return 2;
+	if(s==15)return 3;
+	return -1;
+}
 void psh(int s,int t,lint v){
 	if((t&48)!=48)return;
-	apmax(tmpmat->a[s][t^48],v);
-	/*
-	cut<<"\tstate ";
-	cut<<((s>>3)&1);
-	cut<<((s>>2)&1);
-	cut<<((s>>1)&1);
-	cut<<((s>>0)&1);
-	cut<<"->";
-	cut<<((t>>3)&1);
-	cut<<((t>>2)&1);
-	cut<<((t>>1)&1);
-	cut<<((t>>0)&1);
-	cut<<"\tv="<<v<<endl;
-	*/
+	s=getid(s),t=getid(t^48);
+	if(s!=-1&&t!=-1){
+		apmax(tmpmat->a[s][t],v);
+	}
 }
 namespace seg{
 	const int N=::N<<1;
@@ -98,7 +95,7 @@ namespace seg{
 		inline void getinfo(){
 			assert(l==r);
 			mat.clr(),tmpmat=&mat;
-			for(int ts=0;ts<Mat::N;ts++){
+			for(int ts=0;ts<16;ts++){
 				const int s=ts<<2;
 				for(int i=1;i<=3;i++){
 					if((s>>((i<<1)+1))&1)continue;
@@ -175,7 +172,7 @@ int main(){
 		swap(b.rnk[x],b.rnk[y]);
 		seg::alt_upd(rt,b.rnk[x],min(n,b.rnk[x]+3));
 		seg::alt_upd(rt,b.rnk[y],min(n,b.rnk[y]+3));
-		printf("%lld\n",rt->mat.a[15][15]);
+		printf("%lld\n",rt->mat.a[3][3]);
 	}
 	return 0;
 }
