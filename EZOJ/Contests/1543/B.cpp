@@ -132,15 +132,24 @@ int main(){
 	for(;ccnt>1;){
 		seg::n=seg::pool;
 		const seg::node rt=seg::build(1,n);
+		for(int i=1;i<=n;i++){
+			edg[i].w=LINF;
+		}
 		for(int i=1,j=1;i<=n;i++){
 			for(;j<=es&&ev[j].y<=i;j++){
 				seg::alt_add(rt,ev[j].l,ev[j].r,ev[j].w);
 			}
 			seg::Info v=dj::rt(rt->v1.x)!=dj::rt(i)?rt->v1:rt->v2;
-			edg[i]=(Edge){i,v.x,v.w};
+			apmin(edg[dj::rt(i)],(Edge){i,v.x,v.w});
 		}
-		sort(edg+1,edg+n+1);
+		int es=0;
 		for(int i=1;i<=n;i++){
+			if(dj::fa[i]==0){
+				edg[++es]=edg[i];
+			}
+		}
+		sort(edg+1,edg+es+1);
+		for(int i=1;i<=es;i++){
 			int u=dj::rt(edg[i].u),v=dj::rt(edg[i].v);
 			if(u!=v){
 				--ccnt;
