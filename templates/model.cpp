@@ -15,10 +15,10 @@ template<class T>inline T next_num(){
 	while(i=i*10-'0'+c,isdigit(c=getchar()));
 	return neg?-i:i;
 }
-template<class T1,class T2>inline void apmax(T1 &a,const T2 &b){if(a<b)a=b;}
-template<class T1,class T2>inline void apmin(T1 &a,const T2 &b){if(b<a)a=b;}
+template<class A,class B>inline void apmax(A &a,const B &b){if(a<b)a=b;}
+template<class A,class B>inline void apmin(A &a,const B &b){if(b<a)a=b;}
 template<class T>inline void mset(T a[],int v,int n){memset(a,v,n*sizeof(T));}
-template<class T>inline void mcpy(T a[],T b[],int n){memcpy(a,b,n*sizeof(T));}
+template<class T>inline void mcpy(T a[],const T b[],int n){memcpy(a,b,n*sizeof(T));}
 template<class T>inline T sqr(const T &x){return x*x;}
 template<class T>inline T cabs(const T &x){return x>=0?x:-x;}
 template<class T>inline T gcd(const T &a,const T &b){return b?gcd(b,a%b):a;}
